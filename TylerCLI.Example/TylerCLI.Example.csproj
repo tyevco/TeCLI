@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="obj/$(Configuration)/**/generated/**/*.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="TylerCLI" Version="$(Version)" Condition="'$(Configuration)' == 'Release'" />
+		<PackageReference Include="TylerCLI.Extensions.DependencyInjection" Version="$(Version)" Condition="'$(Configuration)' == 'Release'" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\TylerCLI\TylerCLI.csproj" OutputItemType="Analyzer" Condition="'$(Configuration)' == 'Debug'" />
+		<ProjectReference Include="..\TylerCLI.Extensions.DependencyInjection\TylerCLI.Extensions.DependencyInjection.csproj" OutputItemType="Analyzer" Condition="'$(Configuration)' == 'Debug'" />
+	</ItemGroup>
+
+	<Import Project="..\TylerCLI.Extensions.DependencyInjection\TylerCLI.Extensions.DependencyInjection.props" Condition="'$(Configuration)' == 'Debug'" />
+</Project>

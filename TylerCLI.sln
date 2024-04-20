@@ -1,0 +1,71 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TylerCLI", "TylerCLI\TylerCLI.csproj", "{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TylerCLI.Example", "TylerCLI.Example\TylerCLI.Example.csproj", "{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{6571797F-FDBD-4684-A982-FAD260B78748}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TylerCLI.Core", "TylerCLI.Core\TylerCLI.Core.csproj", "{5C171546-1393-41A0-86EB-DAA2882A265C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Miscelleanous", "Miscelleanous", "{1BFDD9CB-8C4C-47D1-BE44-683E8DDE5140}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Generator.props = Generator.props
+		LICENSE = LICENSE
+		NuGet.config = NuGet.config
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{A8593842-A694-4F6B-9A93-F5E8E5C919C0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TylerCLI.Extensions.DependencyInjection", "TylerCLI.Extensions.DependencyInjection\TylerCLI.Extensions.DependencyInjection.csproj", "{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Components", "Components", "{ECE043CB-0CC7-4875-B54D-05BFE8708EDB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TylerCLI.Tools", "TylerCLI.Tools\TylerCLI.Tools.csproj", "{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C171546-1393-41A0-86EB-DAA2882A265C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C171546-1393-41A0-86EB-DAA2882A265C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C171546-1393-41A0-86EB-DAA2882A265C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C171546-1393-41A0-86EB-DAA2882A265C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD} = {6571797F-FDBD-4684-A982-FAD260B78748}
+		{5C171546-1393-41A0-86EB-DAA2882A265C} = {ECE043CB-0CC7-4875-B54D-05BFE8708EDB}
+		{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E} = {A8593842-A694-4F6B-9A93-F5E8E5C919C0}
+		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD} = {ECE043CB-0CC7-4875-B54D-05BFE8708EDB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {62D33D7F-99A1-4114-8A97-0289533DF055}
+	EndGlobalSection
+EndGlobal

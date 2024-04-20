@@ -1,0 +1,33 @@
+{
+  "profiles": {
+    "empty": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    },
+    "config": {
+      "commandName": "Project",
+      "commandLineArgs": "config"
+    },
+    "config setup": {
+      "commandName": "Project",
+      "commandLineArgs": "config setup"
+    },
+    "config reload": {
+      "commandName": "Project",
+      "commandLineArgs": "config reload"
+    },
+    "config watch": {
+      "commandName": "Project",
+      "commandLineArgs": "config watch"
+    },
+    "auth": {
+      "commandName": "Project",
+      "commandLineArgs": "auth"
+
+    },
+    "auth login": {
+      "commandName": "Project",
+      "commandLineArgs": "auth login"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+<Project>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<RootNamespaceId>TylerCLI</RootNamespaceId>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="TylerCLI" />
+		<InternalsVisibleTo Include="TylerCLI.Core" />
+		<InternalsVisibleTo Include="TylerCLI.Extensions.DependencyInjection" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<Authors>Tyler Coles</Authors>
+		<Description>C# CLI source generator tool</Description>
+		<PackageTags>roslyn;source-generator</PackageTags>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<RepositoryUrl>https://github.com/tyevco/TylerCLI</RepositoryUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+
+		<ItemGroup>
+			<NugetFiles Include="bin\**\*.$(Version).nupkg"/>
+		</ItemGroup>
+
+		<Copy
+            SourceFiles="@(NugetFiles)"
+            DestinationFolder="..\local-packages\"
+			ContinueOnError="true"
+        />
+
+		<Message Text="Copied nupkg to repo directory." Importance="high" />
+	</Target>
+
+	<ItemGroup>
+		<None Include="../LICENSE" Pack="true"  PackagePath=""/>
+	</ItemGroup>
+</Project>
