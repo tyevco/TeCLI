@@ -30,7 +30,7 @@ public partial class DependencyInjectionInvokerGenerator
                 using (sb.AddBlock("partial void InvokeCommandAction<TCommand>(Action<TCommand> parameterizedAction)"))
                 {
                     sb.AppendLine("var command = ServiceProvider.GetRequiredService<TCommand>();");
-                    sb.AppendLine("command?.Invoke(parameterizedAction);");
+                    sb.AppendLine("parameterizedAction?.Invoke(command);");
                 }
             }
         }

@@ -1,8 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using TylerCLI;
 using Microsoft.Extensions.DependencyInjection;
-using TylerCLI.Example;
+using TylerCLI;
 
 Console.WriteLine("Hello world!");
 
