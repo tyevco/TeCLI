@@ -12,7 +12,7 @@
 		<InternalsVisibleTo Include="TylerCLI.Extensions.DependencyInjection" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'NugetPackage'">
+	<PropertyGroup Condition="'$(Configuration)' == 'NugetPackage' Or '$(Configuration)' == 'Release'">
 		<Authors>Tyler Coles</Authors>
 		<Description>C# CLI source generator tool</Description>
 		<PackageTags>roslyn;source-generator</PackageTags>
