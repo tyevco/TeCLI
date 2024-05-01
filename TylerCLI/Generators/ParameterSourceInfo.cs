@@ -11,6 +11,7 @@ namespace TylerCLI.Generators
         public ParameterType ParameterType { get; set; }
         public char ShortName { get; set; }
         public TypedConstant Description { get; set; }
+        public string? ParameterName { get; set; }
         public string? Name { get; set; }
         public SyntaxNode? Parent { get; set; }
         public int ArgumentIndex { get; set; }

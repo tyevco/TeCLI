@@ -80,7 +80,7 @@ public partial class CommandLineArgsGenerator
 
                             if (isOn)
                             {
-                                additionalParams.Add($"{parameter.Name}: p{parameter.ParameterIndex}");
+                                additionalParams.Add($"{parameter.ParameterName}: p{parameter.ParameterIndex}");
                             }
                             else
                             {
@@ -185,6 +185,7 @@ public partial class CommandLineArgsGenerator
         {
             psi = new();
             psi.ParameterIndex = paramIndex++;
+            psi.ParameterName = parameterSymbol.Name;
             psi.Required = parameterSyntax.Default == null;
 
             psi.SpecialType = parameterSymbol.Type.SpecialType;
@@ -255,6 +256,7 @@ public partial class CommandLineArgsGenerator
         {
             psi = new();
             psi.ParameterIndex = paramIndex++;
+            psi.ParameterName = propertySymbol.Name;
             psi.Parent = propertySyntax.Parent;
             psi.Required = !hasInitializer;
             psi.SpecialType = propertySymbol.Type.SpecialType;

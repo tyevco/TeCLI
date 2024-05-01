@@ -25,5 +25,16 @@ public class ConfigurationCommand
     {
         return Task.CompletedTask;
     }
+
+    [Action("finalize", Description = "Finalizes the configuration.")]
+    public Task Finalize(
+                [Option("serverUrl", ShortName = 's')]
+                string url  = "https://localhost",
+
+                [Option("serverName", ShortName = 'n')]
+                string? name = null)
+    {
+        return Task.CompletedTask;
+    }
 }
 
