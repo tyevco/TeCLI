@@ -21,7 +21,7 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
 
-	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'NugetPackage'">
+	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
 
 		<ItemGroup>
 			<NugetFiles Include="bin\**\*.$(Version).nupkg"/>

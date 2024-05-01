@@ -18,7 +18,7 @@
 		<RootNamespace>$(RootNamespaceId)$(NamespaceSuffix)</RootNamespace>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'NugetPackage'">
+	<ItemGroup Condition="'$(Configuration)' == 'Release'">
 		<PackageReference Include="TylerCLI.Core" Version="$(Version)" GeneratePathProperty="true" />
 		<PackageReference Include="TylerCLI.Tools" Version="$(Version)" GeneratePathProperty="true" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
@@ -26,7 +26,7 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)' != 'NugetPackage'">
+	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" />
@@ -35,12 +35,12 @@
 		<ProjectReference Include="..\TylerCLI.Tools\TylerCLI.Tools.csproj" OutputItemType="Analyzer" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'NugetPackage'">
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'NugetPackage'">
+	<ItemGroup Condition="'$(Configuration)' == 'Release'">
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgTylerCLI_Core)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgTylerCLI_Tools)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
