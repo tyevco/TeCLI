@@ -19,8 +19,8 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<PackageReference Include="TylerCLI.Core" Version="$(Version)" GeneratePathProperty="true" />
-		<PackageReference Include="TylerCLI.Tools" Version="$(Version)" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="TylerCLI.Core" Version="$(GitVersion_FullSemVer)" GeneratePathProperty="true" />
+		<PackageReference Include="TylerCLI.Tools" Version="$(GitVersion_FullSemVer)" GeneratePathProperty="true" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
