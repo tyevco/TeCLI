@@ -37,8 +37,8 @@ jobs:
       run: dotnet build --configuration Release **/TylerCLI.Extensions.*.csproj
     - name: Build base project
       run: dotnet build --configuration Release **/TylerCLI.csproj
-    - name: Build Example project
-      run: dotnet build --configuration Release **/TylerCLI.Example.csproj
+#    - name: Build Example project
+#      run: dotnet build --configuration Release **/TylerCLI.Example.csproj
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.3
       with:
