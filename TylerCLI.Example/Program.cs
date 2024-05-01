@@ -2,6 +2,7 @@
 
 using TylerCLI;
 using Microsoft.Extensions.DependencyInjection;
+using TylerCLI.Example;
 
 Console.WriteLine("Hello world!");
 

@@ -1,8 +1,10 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using TylerCLI.Attributes;
 using TylerCLI.Extensions;
 
@@ -43,15 +45,72 @@ public partial class CommandLineArgsGenerator
                 {
                     var variableName = $"p{parameterDetail.ParameterIndex}";
                     GenerateParameterParsingCode(cb, methodSymbol, parameterDetail, variableName);
-                    if (!parameterDetail.Required)
+                    if (parameterDetail.Optional)
                     {
                         hasOptionalValues = true;
                     }
                 }
 
                 cb.AddBlankLine();
-                cb.AppendLine($"// Now invoke the method with the parsed parameters");
-                cb.AppendLine($"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", parameterDetails.Select(p => $"p{p.ParameterIndex}"))}));");
+                if (hasOptionalValues)
+                {
+                    cb.AppendLine($"// Now determine which overload to call for the action.");
+
+                    var paramsList = parameterDetails.Where(x => x.Required).Select(p => $"p{p.ParameterIndex}");
+
+                    var actionFormat = $"actionToInvoke = command => command.{methodSymbol.Name}({{0}});";
+                    cb.AppendLine($"Action<{methodSymbol.ContainingSymbol.Name}> {string.Format(actionFormat, string.Join(", ", paramsList))}");
+
+                    var optionalParameters = parameterDetails.Where(x => x.Optional).ToList();
+                    var bitsTotal = Math.Pow(2, optionalParameters.Count) - 1;
+
+                    CodeBuilder.IfElseBuilder? ifBuilder = null;
+                    for (long bitMask = 1; bitMask <= bitsTotal; bitMask++)
+                    {
+                        StringBuilder ifExprBuilder = new StringBuilder();
+                        List<string> additionalParams = [];
+                        for (int p = 0; p < optionalParameters.Count; p++)
+                        {
+                            var parameter = optionalParameters[p];
+                            var isOn = (bitMask & (1 << p)) == 1 << p;
+                            if (ifExprBuilder.Length > 0)
+                            {
+                                ifExprBuilder.Append(" && ");
+                            }
+
+                            if (isOn)
+                            {
+                                additionalParams.Add($"{parameter.Name}: p{parameter.ParameterIndex}");
+                            }
+                            else
+                            {
+                                ifExprBuilder.Append("!");
+                            }
+
+                            ifExprBuilder.AppendFormat("p{0}Set", parameter.ParameterIndex);
+                        }
+
+                        if (ifBuilder != null)
+                        {
+                            ifBuilder.Else(ifExprBuilder.ToString());
+                        }
+                        else
+                        {
+                            ifBuilder = cb.AddIf(ifExprBuilder.ToString());
+                        }
+
+                        cb.AppendLine(string.Format(actionFormat, string.Join(", ", paramsList.Concat(additionalParams))));
+                    }
+                    ifBuilder?.Dispose();
+
+                    cb.AddBlankLine();
+                    cb.AppendLine($"{methodInvokerName}(actionToInvoke);");
+                }
+                else
+                {
+                    cb.AppendLine($"// Now invoke the method with the parsed parameters");
+                    cb.AppendLine($"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", parameterDetails.Select(p => $"p{p.ParameterIndex}"))}));");
+                }
             }
         }
     }
@@ -163,10 +222,11 @@ public partial class CommandLineArgsGenerator
                     psi.ParameterType = ParameterType.Argument;
                     psi.ArgumentIndex = argumentCount++;
 
+                    psi.Name = parameterSymbol.Name;
                     if (parameterSymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute))
                     {
                         var optionName = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
-                        psi.Name = optionName.IsNull ? parameterSymbol.Name : optionName.Value!.ToString();
+                        psi.Name = optionName.IsNull ? psi.Name : optionName.Value!.ToString();
 
                         var description = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
                         psi.Description = description;
@@ -233,10 +293,11 @@ public partial class CommandLineArgsGenerator
                 {
                     psi.ParameterType = ParameterType.Argument;
                     psi.ArgumentIndex = argumentCount++;
+                    psi.Name = propertySymbol.Name;
                     if (propertySymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute))
                     {
                         var optionName = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
-                        psi.Name = optionName.IsNull ? propertySymbol.Name : optionName.Value!.ToString();
+                        psi.Name = optionName.IsNull ? psi.Name : optionName.Value!.ToString();
 
                         var description = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
                         psi.Description = description;
@@ -255,7 +316,10 @@ public partial class CommandLineArgsGenerator
     private static void GenerateParameterParsingCode(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName)
     {
         cb.AppendLine($"{sourceInfo.DisplayType} {variableName} = default;");
-        cb.AppendLine($"bool {variableName}Set = false;");
+        if (sourceInfo.Optional)
+        {
+            cb.AppendLine($"bool {variableName}Set = false;");
+        }
 
         using (cb.AddBlankScope())
         {

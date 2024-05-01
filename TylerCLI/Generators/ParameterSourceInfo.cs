@@ -17,6 +17,8 @@ namespace TylerCLI.Generators
         public IEnumerable<ParameterSourceInfo> Children { get; set; } = [];
         public int ParameterIndex { get; set; }
         public string? DisplayType { get; set; }
+
+        public bool Optional => !Required;
     }
 
     enum ParameterType

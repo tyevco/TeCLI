@@ -37,6 +37,7 @@
 
 	<PropertyGroup Condition="'$(Configuration)' == 'NugetPackage'">
 		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'NugetPackage'">
@@ -45,4 +46,7 @@
 		<None Include="$(PkgTylerCLI_Tools)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="../README.md" Pack="true"  PackagePath=""/>
+	</ItemGroup>
 </Project>
