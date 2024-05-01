@@ -12,7 +12,7 @@
 		<InternalsVisibleTo Include="TylerCLI.Extensions.DependencyInjection" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+	<PropertyGroup Condition="'$(Configuration)' == 'NugetPackage'">
 		<Authors>Tyler Coles</Authors>
 		<Description>C# CLI source generator tool</Description>
 		<PackageTags>roslyn;source-generator</PackageTags>
@@ -21,7 +21,7 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
 
-	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'NugetPackage'">
 
 		<ItemGroup>
 			<NugetFiles Include="bin\**\*.$(Version).nupkg"/>

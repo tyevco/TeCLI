@@ -8,6 +8,7 @@
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<LangVersion>latest</LangVersion>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Configurations>Debug;Release;NugetPackage</Configurations>
 	</PropertyGroup>
 
 	<Import Project="../Generator.props" />
@@ -17,7 +18,7 @@
 		<RootNamespace>$(RootNamespaceId)$(NamespaceSuffix)</RootNamespace>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Release'">
+	<ItemGroup Condition="'$(Configuration)' == 'NugetPackage'">
 		<PackageReference Include="TylerCLI.Core" Version="$(Version)" GeneratePathProperty="true" />
 		<PackageReference Include="TylerCLI.Tools" Version="$(Version)" GeneratePathProperty="true" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
@@ -25,7 +26,7 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
+	<ItemGroup Condition="'$(Configuration)' != 'NugetPackage'">
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" />
@@ -34,11 +35,11 @@
 		<ProjectReference Include="..\TylerCLI.Tools\TylerCLI.Tools.csproj" OutputItemType="Analyzer" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+	<PropertyGroup Condition="'$(Configuration)' == 'NugetPackage'">
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Release'">
+	<ItemGroup Condition="'$(Configuration)' == 'NugetPackage'">
 		<None Include="TylerCLI.Extensions.DependencyInjection.props" Pack="true" PackagePath="build/" />
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgTylerCLI_Core)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />

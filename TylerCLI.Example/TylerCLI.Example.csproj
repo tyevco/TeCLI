@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<Configurations>Debug;Release;NugetPackage</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -13,14 +14,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TylerCLI" Version="$(Version)" Condition="'$(Configuration)' == 'Release'" />
-		<PackageReference Include="TylerCLI.Extensions.DependencyInjection" Version="$(Version)" Condition="'$(Configuration)' == 'Release'" />
+		<PackageReference Include="TylerCLI" Version="$(Version)" Condition="'$(Configuration)' == 'NugetPackage'" />
+		<PackageReference Include="TylerCLI.Extensions.DependencyInjection" Version="$(Version)" Condition="'$(Configuration)' == 'NugetPackage'" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\TylerCLI\TylerCLI.csproj" OutputItemType="Analyzer" Condition="'$(Configuration)' == 'Debug'" />
-		<ProjectReference Include="..\TylerCLI.Extensions.DependencyInjection\TylerCLI.Extensions.DependencyInjection.csproj" OutputItemType="Analyzer" Condition="'$(Configuration)' == 'Debug'" />
+		<ProjectReference Include="..\TylerCLI\TylerCLI.csproj" OutputItemType="Analyzer" Condition="'$(Configuration)' != 'NugetPackage'" />
+		<ProjectReference Include="..\TylerCLI.Extensions.DependencyInjection\TylerCLI.Extensions.DependencyInjection.csproj" OutputItemType="Analyzer" Condition="'$(Configuration)' != 'NugetPackage'" />
 	</ItemGroup>
 
-	<Import Project="..\TylerCLI.Extensions.DependencyInjection\TylerCLI.Extensions.DependencyInjection.props" Condition="'$(Configuration)' == 'Debug'" />
+	<Import Project="..\TylerCLI.Extensions.DependencyInjection\TylerCLI.Extensions.DependencyInjection.props" Condition="'$(Configuration)' != 'NugetPackage'" />
 </Project>
