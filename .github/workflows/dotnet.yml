@@ -30,8 +30,6 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Build Tools
-      run: dotnet build --configuration Release 
-    - name: Build Tools
       run: dotnet build --configuration Release **/TylerCLI.Tools.csproj
     - name: Build Core
       run: dotnet build --configuration Release **/TylerCLI.Core.csproj
