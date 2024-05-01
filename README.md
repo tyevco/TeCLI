@@ -37,7 +37,7 @@ dotnet add package TylerCLI
 
 2. **Define Actions**
 
-   Use the `ActionAttribute` or `PrimaryActionAttribute` for methods that should be executed as part of a command:
+   Use the `ActionAttribute` for methods that should be executed as part of a command:
 
    ```csharp
    [PrimaryAction(Description = "Say hello")]
@@ -63,10 +63,10 @@ public class Program
 
 #### How to Define Commands
 
-Commands are classes annotated with the `CommandAttribute`, which includes properties for the command name and an optional description. Each command can have multiple actions, which are methods annotated with `ActionAttribute` or `PrimaryActionAttribute`.
+Commands are classes annotated with the `CommandAttribute`, which includes properties for the command name and an optional description. Each command can have multiple actions, which are methods annotated with `ActionAttribute`.
 
 - **Command Attribute:** Marks a class as a command with a specific command name.
-- **Action Attribute:** Marks methods within command classes to be callable actions. The `PrimaryActionAttribute` is used for the default action if no specific action is called.
+- **Action Attribute:** Marks methods within command classes to be callable actions. The `PrimaryAttribute` is used for the default action if no specific action is called.
 
 #### Extending Functionality
 
