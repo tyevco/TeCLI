@@ -3,12 +3,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using TylerCLI;
 
-Console.WriteLine("Hello world!");
-
 IServiceCollection services = new ServiceCollection();
 services.AddCommandDispatcher();
 
 var sp = services.BuildServiceProvider();
 
 var dispatcher = sp.GetRequiredService<CommandDispatcher>();
-dispatcher.Dispatch(args);
+await dispatcher.DispatchAsync(args);

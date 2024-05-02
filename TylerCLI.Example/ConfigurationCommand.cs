@@ -21,9 +21,9 @@ public class ConfigurationCommand
     }
 
     [Action("watch", Description = "Watch a file and trigger event upon changes being detected.")]
-    public Task WatchAsync(string filename = "*", string extensionFilter = "*", bool allowDuplicates = false, bool haltOnError = false, string logLevel = "WARN")
+    public async Task WatchAsync(string filename = "*", string extensionFilter = "*", bool allowDuplicates = false, bool haltOnError = false, string logLevel = "WARN")
     {
-        return Task.CompletedTask;
+        await Task.Delay(2000);
     }
 
     [Action("finalize", Description = "Finalizes the configuration.")]
@@ -35,6 +35,11 @@ public class ConfigurationCommand
                 string? name = null)
     {
         return Task.CompletedTask;
+    }
+
+    [Action("sync", Description = "Syncs the clocks.")]
+    public void Synchronize()
+    {
     }
 }
 

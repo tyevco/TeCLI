@@ -1,10 +1,10 @@
-using TylerCLI.Attributes;
-using TylerCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Text;
+using TylerCLI.Attributes;
+using TylerCLI.Extensions;
 
 namespace TylerCLI.Generators;
 
@@ -12,7 +12,7 @@ public partial class CommandLineArgsGenerator
 {
     private void GenerateCommandDispatcher(GeneratorExecutionContext context, IEnumerable<ClassDeclarationSyntax> commandClasses)
     {
-        Dictionary<string, ClassDeclarationSyntax> dispatchMap = [];
+        Dictionary<ClassDeclarationSyntax, List<string>> dispatchMap = [];
 
         var cb = new CodeBuilder("System", "System.Linq");
 
@@ -20,12 +20,12 @@ public partial class CommandLineArgsGenerator
         {
             using (cb.AddBlock("public partial class CommandDispatcher"))
             {
-                using (cb.AddBlock("public void Dispatch(string[] args)"))
+                // make the partial method for the invoker
+                using (cb.AddBlock("public async Task DispatchAsync(string[] args)"))
                 {
                     using (cb.AddBlock("if (args.Length == 0)"))
                     {
                         cb.AppendLine("DisplayApplicationHelp();");
-                        cb.AppendLine("return;");
                     }
 
                     cb.AddBlankLine();
@@ -40,17 +40,22 @@ public partial class CommandLineArgsGenerator
                         foreach (var commandClass in commandClasses)
                         {
                             var commandName = GetCommandName(commandClass);
-                            var methodName = $"Dispatch{commandClass.Identifier.Text}";
+                            var methodName = $"Dispatch{commandClass.Identifier.Text}Async";
 
                             using (cb.AddBlock($"case \"{commandName!.ToLower()}\":"))
                             {
-                                cb.AppendLine($"{methodName}(remainingArgs);");
+                                cb.AppendLine($"await {methodName}(remainingArgs);");
                                 cb.AppendLine("break;");
                             }
 
                             cb.AddBlankLine();
 
-                            dispatchMap.Add(methodName, commandClass);
+                            if (!dispatchMap.TryGetValue(commandClass, out var dispatchs))
+                            {
+                                dispatchs = [];
+                            }
+                            dispatchs.Add(methodName);
+                            dispatchMap[commandClass] = dispatchs;
                         }
 
                         using (cb.AddBlock("default:"))
@@ -61,10 +66,6 @@ public partial class CommandLineArgsGenerator
                         }
                     }
                 }
-
-                // make the partial method for the invoker
-                cb.AddBlankLine();
-                cb.AppendLine($"partial void InvokeCommandAction<TCommand>(Action<TCommand> parameterizedAction);");
             }
         }
 
@@ -72,18 +73,18 @@ public partial class CommandLineArgsGenerator
 
         foreach (var entry in dispatchMap)
         {
-            GenerateCommandSourceFile(context, entry.Key, entry.Value);
-            GenerateCommandDocumentation(context, entry.Value);
+            GenerateCommandSourceFile(context, entry.Value, entry.Key);
+            GenerateCommandDocumentation(context, entry.Key);
         }
 
         GenerateApplicationDocumentation(context);
     }
 
-    private void GenerateCommandSourceFile(GeneratorExecutionContext context, string methodName, ClassDeclarationSyntax classDecl)
+    private void GenerateCommandSourceFile(GeneratorExecutionContext context, List<string> methodNames, ClassDeclarationSyntax classDecl)
     {
         var cb = new CodeBuilder("System", "System.Linq", "TylerCLI", "TylerCLI.Attributes");
 
-        Dictionary<string, IMethodSymbol> actionMap = [];
+        var actionMap = GetActionInfo(context, classDecl);
 
         cb.AddUsing(context.GetNamespace(classDecl)!);
 
@@ -91,92 +92,102 @@ public partial class CommandLineArgsGenerator
         {
             using (cb.AddBlock("public partial class CommandDispatcher"))
             {
-                using (cb.AddBlock($"private void {methodName}(string[] args)"))
+                foreach (var methodName in methodNames)
                 {
-                    using (cb.AddBlock("if (args.Length == 0)"))
+                    using (cb.AddBlock($"private async Task {methodName}(string[] args)"))
                     {
-                        var model = context.Compilation.GetSemanticModel(classDecl.SyntaxTree);
-
-                        if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
+                        using (cb.AddBlock("if (args.Length == 0)"))
                         {
-                            var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
+                            var model = context.Compilation.GetSemanticModel(classDecl.SyntaxTree);
 
-                            int c = 0;
-                            if (primaryMethods != null)
+                            if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
                             {
-                                foreach (var primaryMethod in primaryMethods)
+                                var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
+
+                                int c = 0;
+                                if (primaryMethods != null)
                                 {
-                                    if (c++ > 0)
+                                    foreach (var primaryMethod in primaryMethods)
                                     {
-                                        // if there are more than 1 primary attributes defined, we should throw a diagnostic error.
-                                    }
-                                    else
-                                    {
-                                        // we want to use this method as the one to call.
-                                        var actionInvokeMethodName = $"{classDecl.Identifier.Text}{primaryMethod.Name}";
-
-                                        cb.AppendLine($"Process{actionInvokeMethodName}(args);");
-                                    }
-                                }
-                            }
-
-                            if (c == 0)
-                            {
-                                cb.AppendLine("throw new Exception();");
-                            }
-                        }
-                    }
-                    using (cb.AddBlock("else"))
-                    {
-                        cb.AppendLine("string action = args[0].ToLower();");
-                        cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
-
-                        using (cb.AddBlock("switch (action)"))
-                        {
-                            actionMap = GenerateCommandActions(context, cb, classDecl);
-
-                            using (cb.AddBlock("default:"))
-                            {
-                                var model = context.Compilation.GetSemanticModel(classDecl.SyntaxTree);
-                                if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
-                                {
-                                    var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
-
-                                    int c = 0;
-                                    if (primaryMethods != null)
-                                    {
-                                        foreach (var primaryMethod in primaryMethods)
+                                        if (c++ > 0)
                                         {
-                                            if (c++ > 0)
-                                            {
-                                                // if there are more than 1 primary attributes defined, we should throw a diagnostic error.
-                                            }
-                                            else
-                                            {
-                                                // we want to use this method as the one to call.
-                                                var actionInvokeMethodName = $"{classDecl.Identifier.Text}{primaryMethod.Name}";
-
-                                                cb.AppendLine($"Process{actionInvokeMethodName}(args);");
-                                            }
+                                            // if there are more than 1 primary attributes defined, we should throw a diagnostic error.
+                                        }
+                                        else
+                                        {
+                                            // we want to use this method as the one to call.
+                                            var actionInvokeMethodName = $"{classDecl.Identifier.Text}{primaryMethod.Name}";
+                                            cb.AppendLine(primaryMethod.MapAsync(
+                                                    () => $"await Process{actionInvokeMethodName}Async(args);",
+                                                    () => $"Process{actionInvokeMethodName}(args);"));
                                         }
                                     }
-
-                                    if (c == 0)
-                                    {
-                                        cb.AppendLine("Console.WriteLine($\"Unknown action: {action}\");");
-                                    }
                                 }
-                                cb.AppendLine("break;");
+
+                                if (c == 0)
+                                {
+                                    cb.AppendLine("throw new Exception();");
+                                }
+                            }
+                        }
+                        using (cb.AddBlock("else"))
+                        {
+                            cb.AppendLine("string action = args[0].ToLower();");
+                            cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
+
+                            using (cb.AddBlock("switch (action)"))
+                            {
+                                foreach (var action in actionMap)
+                                {
+                                    GenerateCommandActions(context, cb, classDecl, action);
+                                }
+
+                                using (cb.AddBlock("default:"))
+                                {
+                                    var model = context.Compilation.GetSemanticModel(classDecl.SyntaxTree);
+                                    if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
+                                    {
+                                        var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
+
+                                        int c = 0;
+                                        if (primaryMethods != null)
+                                        {
+                                            foreach (var primaryMethod in primaryMethods)
+                                            {
+                                                if (c++ > 0)
+                                                {
+                                                    // if there are more than 1 primary attributes defined, we should throw a diagnostic error.
+                                                }
+                                                else
+                                                {
+                                                    // we want to use this method as the one to call.
+                                                    var actionInvokeMethodName = $"{classDecl.Identifier.Text}{primaryMethod.Name}";
+                                                    cb.AppendLine(primaryMethod.MapAsync(
+                                                            () => $"await Process{actionInvokeMethodName}Async(args);",
+                                                            () => $"Process{actionInvokeMethodName}(args);"));
+                                                }
+                                            }
+                                        }
+
+                                        if (c == 0)
+                                        {
+                                            cb.AppendLine("Console.WriteLine($\"Unknown action: {action}\");");
+                                        }
+                                    }
+                                    cb.AppendLine("break;");
+                                }
                             }
                         }
                     }
+
+                    cb.AddBlankLine();
                 }
 
                 // generator process action methods
                 foreach (var entry in actionMap)
                 {
                     cb.AddBlankLine();
-                    GenerateActionCode(cb, entry.Key, entry.Value);
+                    GenerateActionCode(cb, entry);
                 }
 
                 cb.AddBlankLine();

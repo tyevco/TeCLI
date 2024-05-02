@@ -12,7 +12,7 @@ namespace TylerCLI.Generators;
 
 public partial class CommandLineArgsGenerator
 {
-    public static void GenerateParameterCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName)
+    public void GenerateParameterCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName)
     {
         var parameterDetails = GetParameterDetails(methodSymbol.Parameters);
 
@@ -20,7 +20,10 @@ public partial class CommandLineArgsGenerator
         if (parameterDetails.Count == 0)
         {
             // no parameters were specified, so this action can be called.
-            cb.AppendLine($"{methodInvokerName}(command => command.{methodSymbol.Name}());");
+            cb.AppendLine(
+                    methodSymbol.MapAsync(
+                        () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}());",
+                        () => $"{methodInvokerName}(command => command.{methodSymbol.Name}());"));
         }
         else
         {
@@ -29,7 +32,10 @@ public partial class CommandLineArgsGenerator
                 if (!parameterDetails.Any(p => p.Required))
                 {
                     // no parameters were required, so this action can be called.
-                    cb.AppendLine($"{methodInvokerName}(command => command.{methodSymbol.Name}());");
+                    cb.AppendLine(
+                        methodSymbol.MapAsync(
+                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}());",
+                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}());"));
                 }
                 else
                 {
@@ -58,8 +64,14 @@ public partial class CommandLineArgsGenerator
 
                     var paramsList = parameterDetails.Where(x => x.Required).Select(p => $"p{p.ParameterIndex}");
 
-                    var actionFormat = $"actionToInvoke = command => command.{methodSymbol.Name}({{0}});";
-                    cb.AppendLine($"Action<{methodSymbol.ContainingSymbol.Name}> {string.Format(actionFormat, string.Join(", ", paramsList))}");
+                    var actionFormat = methodSymbol.MapAsync(
+                                () => $"actionToInvoke = async command => await command.{methodSymbol.Name}({{0}});",
+                                () => $"actionToInvoke = command => command.{methodSymbol.Name}({{0}});");
+
+                    cb.AppendLine(
+                            methodSymbol.MapAsync(
+                                () => $"Func<{methodSymbol.ContainingSymbol.Name}, Task> {string.Format(actionFormat, string.Join(", ", paramsList))}",
+                                () => $"Action<{methodSymbol.ContainingSymbol.Name}> {string.Format(actionFormat, string.Join(", ", paramsList))}"));
 
                     var optionalParameters = parameterDetails.Where(x => x.Optional).ToList();
                     var bitsTotal = Math.Pow(2, optionalParameters.Count) - 1;
@@ -104,12 +116,18 @@ public partial class CommandLineArgsGenerator
                     ifBuilder?.Dispose();
 
                     cb.AddBlankLine();
-                    cb.AppendLine($"{methodInvokerName}(actionToInvoke);");
+                    cb.AppendLine(
+                            methodSymbol.MapAsync(
+                                () => $"await {methodInvokerName}(actionToInvoke);",
+                                () => $"{methodInvokerName}(actionToInvoke);"));
                 }
                 else
                 {
                     cb.AppendLine($"// Now invoke the method with the parsed parameters");
-                    cb.AppendLine($"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", parameterDetails.Select(p => $"p{p.ParameterIndex}"))}));");
+                    cb.AppendLine(
+                            methodSymbol.MapAsync(
+                                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", parameterDetails.Select(p => $"p{p.ParameterIndex}"))}));",
+                                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", parameterDetails.Select(p => $"p{p.ParameterIndex}"))}));"));
                 }
             }
         }

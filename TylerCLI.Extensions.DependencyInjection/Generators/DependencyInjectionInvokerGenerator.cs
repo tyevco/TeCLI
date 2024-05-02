@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System;
 
 namespace TylerCLI.Extensions.DependencyInjection.Generators
 {
@@ -20,8 +21,8 @@ namespace TylerCLI.Extensions.DependencyInjection.Generators
                 Receiver = cliReceiver;
                 Context = context;
 
-                var invokerLibrary = context.GetBuildProperty("TylerCLI_InvokerLibrary");
-                if (string.Equals(invokerLibrary, "TylerCLI.Extensions.DependencyInjection", System.StringComparison.OrdinalIgnoreCase))
+                var invokerLibrary = context.GetBuildProperty(Constants.BuildProperties.InvokerLibrary);
+                if (string.Equals(invokerLibrary, GetType().Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase))
                 {
                     GenerateInvoker(context);
                     GenerateCommandRegistrations(context, cliReceiver.InvokerClasses);

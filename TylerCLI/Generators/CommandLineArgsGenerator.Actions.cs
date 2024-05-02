@@ -1,17 +1,17 @@
-using TylerCLI.Attributes;
-using TylerCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using TylerCLI.Attributes;
+using TylerCLI.Extensions;
 
 namespace TylerCLI.Generators;
 
 public partial class CommandLineArgsGenerator
 {
-    private Dictionary<string, IMethodSymbol> GenerateCommandActions(GeneratorExecutionContext context, CodeBuilder codeBuilder, ClassDeclarationSyntax classDecl)
+    private IEnumerable<ActionSourceInfo> GetActionInfo(GeneratorExecutionContext context, ClassDeclarationSyntax classDecl)
     {
-        var map = new Dictionary<string, IMethodSymbol>();
+        List<ActionSourceInfo> actions = new List<ActionSourceInfo>();
 
         var model = context.Compilation.GetSemanticModel(classDecl.SyntaxTree);
 
@@ -21,31 +21,53 @@ public partial class CommandLineArgsGenerator
 
             foreach (var actionMethod in actionMethods)
             {
-                var actionAttribute = actionMethod.GetAttribute<ActionAttribute>();
-
-                string actionName = actionAttribute!.ConstructorArguments[0]!.Value!.ToString();
-
-                var actionInvokeMethodName = $"{classDecl.Identifier.Text}{actionMethod.Name}";
-
-                using (codeBuilder.AddBlock($"case \"{actionName}\":"))
+                ActionSourceInfo asi = new()
                 {
-                    codeBuilder.AppendLine($"Process{actionInvokeMethodName}(remainingArgs);");
-                    codeBuilder.AppendLine("break;");
-                }
+                    Method = actionMethod,
+                };
 
-                map.Add(actionInvokeMethodName, actionMethod);
+                var actionAttribute = actionMethod.GetAttribute<ActionAttribute>();
+                asi.DisplayName = actionAttribute!.ConstructorArguments[0]!.Value!.ToString();
+                asi.ActionName = actionMethod.Name;
+                asi.InvokerMethodName = $"{classDecl.Identifier.Text}{actionMethod.Name}";
+
+                if (asi != null)
+                {
+                    actions.Add(asi);
+                }
             }
         }
 
-        return map;
+        return actions;
     }
 
-    private void GenerateActionCode(CodeBuilder cb, string methodName, IMethodSymbol methodSymbol)
+    private void GenerateCommandActions(GeneratorExecutionContext context, CodeBuilder codeBuilder, ClassDeclarationSyntax classDecl, ActionSourceInfo actionInfo)
     {
-        using (cb.AddBlock($"private void Process{methodName}(string[] args)"))
+        using (codeBuilder.AddBlock($"case \"{actionInfo.DisplayName}\":"))
+        {
+            codeBuilder.AppendLine(
+                actionInfo.Method.MapAsync(
+                        () => $"await Process{actionInfo.InvokerMethodName}Async(remainingArgs);",
+                        () => $"Process{actionInfo.InvokerMethodName}(remainingArgs);"));
+            codeBuilder.AppendLine("break;");
+        }
+    }
+
+    private void GenerateActionCode(CodeBuilder cb, ActionSourceInfo actionInfo)
+    {
+
+        using (cb.AddBlock(
+            actionInfo.Method.MapAsync(
+                    () => $"private async Task Process{actionInfo.InvokerMethodName}Async(string[] args)",
+                    () => $"private void Process{actionInfo.InvokerMethodName}(string[] args)")))
         {
             // parse all the remaining arguments.
-            GenerateParameterCode(cb, methodSymbol, $"InvokeCommandAction<{methodSymbol.ContainingSymbol.Name}>");
+            GenerateParameterCode(
+                cb, 
+                actionInfo.Method, 
+                actionInfo.Method.MapAsync(
+                    () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
+                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"));
         }
     }
 }

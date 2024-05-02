@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using System;
-using System.Diagnostics;
-using System.Linq;
+using TylerCLI.Extensions;
 
 namespace TylerCLI.Generators;
 
@@ -22,6 +21,7 @@ public partial class CommandLineArgsGenerator : ISourceGenerator
         {
             Receiver = cliReceiver;
             Context = context;
+
             GenerateCommandDispatcher(context, cliReceiver.CommandClasses);
         }
     }
