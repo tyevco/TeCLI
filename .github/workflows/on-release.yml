@@ -1,13 +1,11 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET (QC)
+name: .NET (Upload Release Packages)
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  release:
+    types: [published]
 
 jobs:
   build-deps:
@@ -80,3 +78,16 @@ jobs:
       with:
         name: ${{ matrix.project }}
         path: ${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
+
+  push-nupkg:
+    needs: build-libs
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: ./.packages
+          merge-multiple: true
+      - name: Push
+        run: dotnet nuget push .packages/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${secrets.NUGET_APIKEY}

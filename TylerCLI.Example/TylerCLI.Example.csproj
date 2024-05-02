@@ -14,8 +14,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TylerCLI" Version="$(GitVersion_FullSemVer)" Condition="'$(Configuration)' == 'Release'" />
-		<PackageReference Include="TylerCLI.Extensions.DependencyInjection" Version="$(GitVersion_FullSemVer)" Condition="'$(Configuration)' == 'Release'" />
+		<PackageReference Include="TylerCLI" Version="$(GitVersion_nuGetVersionV2)" Condition="'$(Configuration)' == 'Release'" />
+		<PackageReference Include="TylerCLI.Extensions.DependencyInjection" Version="$(GitVersion_nuGetVersionV2)" Condition="'$(Configuration)' == 'Release'" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -19,8 +19,8 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<PackageReference Include="TylerCLI.Core" Version="$(GitVersion_FullSemVer)" GeneratePathProperty="true" />
-		<PackageReference Include="TylerCLI.Tools" Version="$(GitVersion_FullSemVer)" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="TylerCLI.Core" Version="$(GitVersion_nuGetVersionV2)" GeneratePathProperty="true" />
+		<PackageReference Include="TylerCLI.Tools" Version="$(GitVersion_nuGetVersionV2)" GeneratePathProperty="true" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
@@ -45,6 +45,10 @@
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgTylerCLI_Core)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgTylerCLI_Tools)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="bin\Release\netstandard2.0\\TylerCLI.dll" />
 	</ItemGroup>
 
 	<ItemGroup>

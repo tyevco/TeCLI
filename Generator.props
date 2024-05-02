@@ -24,12 +24,12 @@
 	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
 
 		<ItemGroup>
-			<NugetFiles Include="bin\**\*.$(GitVersion_FullSemVer).nupkg"/>
+			<NugetFiles Include="bin\**\*.$(GitVersion_nuGetVersionV2).nupkg"/>
 		</ItemGroup>
 
 		<Copy
             SourceFiles="@(NugetFiles)"
-            DestinationFolder="..\local-packages\"
+            DestinationFolder="..\.packages\"
 			ContinueOnError="true"
         />
 
