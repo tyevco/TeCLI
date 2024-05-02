@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TylerCLI.Generators
 {
-    internal class ParameterSourceInfo
+    public class ParameterSourceInfo
     {
         public SpecialType SpecialType { get; set; }
         public bool IsSwitch { get; set; }
@@ -22,7 +22,7 @@ namespace TylerCLI.Generators
         public bool Optional => !Required;
     }
 
-    enum ParameterType
+    public enum ParameterType
     {
         Unknown,
         Option,

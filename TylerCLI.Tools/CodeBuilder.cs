@@ -15,6 +15,8 @@ namespace TylerCLI
 
         private HashSet<string> Usings { get; } = new HashSet<string>();
 
+        private string? LastLine;
+
         public CodeBuilder(params string[] usings)
         {
             Builder = new StringBuilder();
@@ -120,12 +122,20 @@ namespace TylerCLI
 
         public void AppendLine(string line)
         {
-            Builder.AppendFormat("{0}{1}\n", new string(IndentChar, IndentLevel >= 0 ? IndentLevel : 0), line);
+            if (!string.IsNullOrWhiteSpace(line))
+            {
+                Builder.AppendFormat("{0}{1}\n", new string(IndentChar, IndentLevel >= 0 ? IndentLevel : 0), line);
+                LastLine = line;
+            }
         }
 
         public void AddBlankLine()
         {
-            Builder.AppendLine(string.Empty);
+            if (!string.IsNullOrWhiteSpace(LastLine))
+            {
+                Builder.AppendLine(string.Empty);
+                LastLine = string.Empty;
+            }
         }
 
         public override string ToString()

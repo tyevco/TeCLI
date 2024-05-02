@@ -12,29 +12,35 @@ public partial class DependencyInjectionInvokerGenerator
     {
         Dictionary<string, ClassDeclarationSyntax> dispatchMap = [];
 
-        var sb = new CodeBuilder("System", "System.Linq", "Microsoft.Extensions.DependencyInjection");
+        var cb = new CodeBuilder("System", "System.Linq", "Microsoft.Extensions.DependencyInjection");
 
-        using (sb.AddBlock("namespace TylerCLI"))
+        using (cb.AddBlock("namespace TylerCLI"))
         {
-            using (sb.AddBlock("public partial class CommandDispatcher"))
+            using (cb.AddBlock("public partial class CommandDispatcher"))
             {
-                sb.AppendLine("private IServiceProvider ServiceProvider { get; }");
-                sb.AddBlankLine();
-                using (sb.AddBlock("public CommandDispatcher(IServiceProvider serviceProvider)"))
+                cb.AppendLine("private IServiceProvider ServiceProvider { get; }");
+                cb.AddBlankLine();
+                using (cb.AddBlock("public CommandDispatcher(IServiceProvider serviceProvider)"))
                 {
-                    sb.AppendLine("ServiceProvider = serviceProvider;");
+                    cb.AppendLine("ServiceProvider = serviceProvider;");
                 }
 
-                sb.AddBlankLine();
-
-                using (sb.AddBlock("partial void InvokeCommandAction<TCommand>(Action<TCommand> parameterizedAction)"))
+                cb.AddBlankLine();
+                using (cb.AddBlock("async Task InvokeCommandActionAsync<TCommand>(Func<TCommand, Task> parameterizedAction)"))
                 {
-                    sb.AppendLine("var command = ServiceProvider.GetRequiredService<TCommand>();");
-                    sb.AppendLine("parameterizedAction?.Invoke(command);");
+                    cb.AppendLine("var command = ServiceProvider.GetRequiredService<TCommand>();");
+                    cb.AppendLine("await parameterizedAction?.Invoke(command);");
+                }
+
+                cb.AddBlankLine();
+                using (cb.AddBlock($"void InvokeCommandAction<TCommand>(Action<TCommand> parameterizedAction)"))
+                {
+                    cb.AppendLine("var command = ServiceProvider.GetRequiredService<TCommand>();");
+                    cb.AppendLine("parameterizedAction?.Invoke(command);");
                 }
             }
         }
 
-        context.AddSource("CommandDispatcher.Invoker.cs", SourceText.From(sb, Encoding.UTF8));
+        context.AddSource("CommandDispatcher.Invoker.cs", SourceText.From(cb, Encoding.UTF8));
     }
 }

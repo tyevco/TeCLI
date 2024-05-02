@@ -210,4 +210,28 @@ public static class Extensions
 
         return propValue;
     }
+
+    public static bool HasTaskLikeReturnType(this IMethodSymbol methodSymbol)
+    {
+        // Check if there's a GetAwaiter method
+        foreach (var member in methodSymbol.ReturnType.GetMembers("GetAwaiter"))
+        {
+            if (member is IMethodSymbol awaiterMethodSymbol && awaiterMethodSymbol.Parameters.IsEmpty && !awaiterMethodSymbol.ReturnsVoid)
+            {
+                // Check the return type of the GetAwaiter method
+                var returnTypeOfAwaiter = awaiterMethodSymbol.ReturnType;
+                if (returnTypeOfAwaiter.Name.Contains("TaskAwaiter") || returnTypeOfAwaiter.Name.Contains("ValueTaskAwaiter"))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static string MapAsync(this IMethodSymbol methodSymbol, Func<string> isAsync, Func<string> isNotAsync)
+    {
+        return (methodSymbol.IsAsync || methodSymbol.HasTaskLikeReturnType()) ? isAsync() : isNotAsync();
+    }
+
 }
