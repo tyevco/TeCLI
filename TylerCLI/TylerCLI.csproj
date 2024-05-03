@@ -19,8 +19,8 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<PackageReference Include="TylerCLI.Core" Version="$(GitVersion_nuGetVersionV2)" GeneratePathProperty="true" />
-		<PackageReference Include="TylerCLI.Tools" Version="$(GitVersion_nuGetVersionV2)" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="TylerCLI.Core" Version="$(GitVersion_SemVer)" GeneratePathProperty="true" />
+		<PackageReference Include="TylerCLI.Tools" Version="$(GitVersion_SemVer)" GeneratePathProperty="true" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
@@ -48,7 +48,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="bin\Release\netstandard2.0\\TylerCLI.dll" />
+	  <None Remove="bin\Release\netstandard2.0\TylerCLI.dll" />
 	</ItemGroup>
 
 	<ItemGroup>
