@@ -36,7 +36,11 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Build ${{matrix.project}}
-      run: dotnet build --configuration Release **/${{ matrix.project }}.csproj
+      run: dotnet build --configuration Release ${{ matrix.project }}/${{ matrix.project }}.csproj
+
+    - name: Pack (if missing nupkg) ${{matrix.project}}
+      if: ${{ hashFiles('${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg') != '' }}
+      run: dotnet pack --configuration Release ${{ matrix.project }}/${{ matrix.project }}.csproj
 
     - uses: actions/upload-artifact@v4
       with:
@@ -74,7 +78,11 @@ jobs:
         merge-multiple: true
 
     - name: Build ${{matrix.project}}
-      run: dotnet build --configuration Release **/${{ matrix.project }}.csproj
+      run: dotnet build --configuration Release ${{ matrix.project }}/${{ matrix.project }}.csproj
+
+    - name: Pack (if missing nupkg) ${{matrix.project}}
+      if: ${{ hashFiles('${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg') != '' }}
+      run: dotnet pack --configuration Release ${{ matrix.project }}/${{ matrix.project }}.csproj
 
     - uses: actions/upload-artifact@v4
       with:
