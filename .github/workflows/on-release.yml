@@ -90,4 +90,4 @@ jobs:
           path: ./.packages
           merge-multiple: true
       - name: Push
-        run: dotnet nuget push .packages/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${secrets.NUGET_APIKEY}
+        run: dotnet nuget push .packages/*.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{secrets.NUGET_APIKEY}}
