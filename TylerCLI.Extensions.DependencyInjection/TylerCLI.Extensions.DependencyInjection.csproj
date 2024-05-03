@@ -50,9 +50,4 @@
 		<None Include="$(PkgTylerCLI_Core)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="$(PkgTylerCLI_Tools)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<None Remove="bin\Release\netstandard2.0\\TylerCLI.Extensions.DependencyInjection.dll" />
-	</ItemGroup>
-
 </Project>
