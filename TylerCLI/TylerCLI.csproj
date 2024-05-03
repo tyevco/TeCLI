@@ -48,10 +48,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="bin\Release\netstandard2.0\TylerCLI.dll" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<None Include="../README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 </Project>
