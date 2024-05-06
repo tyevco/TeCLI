@@ -27,42 +27,44 @@ public partial class CommandLineArgsGenerator
                     {
                         cb.AppendLine("DisplayApplicationHelp();");
                     }
-
-                    cb.AddBlankLine();
-
-                    cb.AppendLine("string command = args[0].ToLower();");
-                    cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
-
-                    cb.AddBlankLine();
-
-                    using (cb.AddBlock("switch (command)"))
+                    using (cb.AddBlock("else"))
                     {
-                        foreach (var commandClass in commandClasses)
-                        {
-                            var commandName = GetCommandName(commandClass);
-                            var methodName = $"Dispatch{commandClass.Identifier.Text}Async";
+                        cb.AddBlankLine();
 
-                            using (cb.AddBlock($"case \"{commandName!.ToLower()}\":"))
+                        cb.AppendLine("string command = args[0].ToLower();");
+                        cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
+
+                        cb.AddBlankLine();
+
+                        using (cb.AddBlock("switch (command)"))
+                        {
+                            foreach (var commandClass in commandClasses)
                             {
-                                cb.AppendLine($"await {methodName}(remainingArgs);");
+                                var commandName = GetCommandName(commandClass);
+                                var methodName = $"Dispatch{commandClass.Identifier.Text}Async";
+
+                                using (cb.AddBlock($"case \"{commandName!.ToLower()}\":"))
+                                {
+                                    cb.AppendLine($"await {methodName}(remainingArgs);");
+                                    cb.AppendLine("break;");
+                                }
+
+                                cb.AddBlankLine();
+
+                                if (!dispatchMap.TryGetValue(commandClass, out var dispatchs))
+                                {
+                                    dispatchs = [];
+                                }
+                                dispatchs.Add(methodName);
+                                dispatchMap[commandClass] = dispatchs;
+                            }
+
+                            using (cb.AddBlock("default:"))
+                            {
+                                cb.AppendLine("Console.WriteLine($\"Unknown command: {args[0]}\");");
+                                cb.AppendLine("DisplayApplicationHelp();");
                                 cb.AppendLine("break;");
                             }
-
-                            cb.AddBlankLine();
-
-                            if (!dispatchMap.TryGetValue(commandClass, out var dispatchs))
-                            {
-                                dispatchs = [];
-                            }
-                            dispatchs.Add(methodName);
-                            dispatchMap[commandClass] = dispatchs;
-                        }
-
-                        using (cb.AddBlock("default:"))
-                        {
-                            cb.AppendLine("Console.WriteLine($\"Unknown command: {args[0]}\");");
-                            cb.AppendLine("DisplayApplicationHelp();");
-                            cb.AppendLine("break;");
                         }
                     }
                 }
