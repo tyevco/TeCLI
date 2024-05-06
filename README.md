@@ -1,8 +1,8 @@
-### Developer Documentation for TylerCLI
+### Developer Documentation for TeCLI
 
 #### Introduction
 
-TylerCLI is a source-generated CLI parsing library designed to simplify the development of command-line interfaces in .NET applications. It uses custom attributes to mark classes and methods as commands and subcommands, automatically generating the necessary parsing and dispatching logic.
+TeCLI is a source-generated CLI parsing library designed to simplify the development of command-line interfaces in .NET applications. It uses custom attributes to mark classes and methods as commands and subcommands, automatically generating the necessary parsing and dispatching logic.
 
 #### Features
 
@@ -14,10 +14,10 @@ TylerCLI is a source-generated CLI parsing library designed to simplify the deve
 
 ##### Installation
 
-To use TylerCLI in your project, add a reference to the TylerCLI library. You can include it as a project in your solution or as a NuGet package if it is available in that form.
+To use TeCLI in your project, add a reference to the TeCLI library. You can include it as a project in your solution or as a NuGet package if it is available in that form.
 
 ```bash
-dotnet add package TylerCLI
+dotnet add package TeCLI
 ```
 
 ##### Basic Setup
@@ -27,7 +27,7 @@ dotnet add package TylerCLI
    Use the `CommandAttribute` to mark classes that represent CLI commands:
 
    ```csharp
-   using TylerCLI;
+   using TeCLI;
 
    [Command("greet", Description = "Greets the user")]
    public class GreetCommand
@@ -70,7 +70,7 @@ Commands are classes annotated with the `CommandAttribute`, which includes prope
 
 #### Extending Functionality
 
-TylerCLI is designed to be extensible:
+TeCLI is designed to be extensible:
 
 - **Adding New Commands:** Simply create a new class with the `CommandAttribute` and define methods with `ActionAttribute`.
 - **Custom Argument Parsers:** Implement custom parsing logic for complex types by defining a constructor or conversion method that takes a string argument.
@@ -91,4 +91,4 @@ Contributions are welcome! To contribute, please fork the repository, make your 
 
 ### Conclusion
 
-This documentation provides the basic information necessary for developers to get started with TylerCLI, understand its structure, and begin integrating and extending it within their own projects. Make sure to expand on each section with more specific examples and detailed descriptions as needed to address all potential user concerns and use cases.
+This documentation provides the basic information necessary for developers to get started with TeCLI, understand its structure, and begin integrating and extending it within their own projects. Make sure to expand on each section with more specific examples and detailed descriptions as needed to address all potential user concerns and use cases.

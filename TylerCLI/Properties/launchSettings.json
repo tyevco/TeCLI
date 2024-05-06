@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Generators": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\TylerCLI.Example\\TylerCLI.Example.csproj"
-    }
-  },
-  "$schema": "http://json.schemastore.org/launchsettings.json"
-}

@@ -3,13 +3,13 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
-		<RootNamespaceId>TylerCLI</RootNamespaceId>
+		<RootNamespaceId>TeCLI</RootNamespaceId>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="TylerCLI" />
-		<InternalsVisibleTo Include="TylerCLI.Core" />
-		<InternalsVisibleTo Include="TylerCLI.Extensions.DependencyInjection" />
+		<InternalsVisibleTo Include="TeCLI" />
+		<InternalsVisibleTo Include="TeCLI.Core" />
+		<InternalsVisibleTo Include="TeCLI.Extensions.DependencyInjection" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -17,7 +17,7 @@
 		<Description>C# CLI source generator tool</Description>
 		<PackageTags>roslyn;source-generator</PackageTags>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
-		<RepositoryUrl>https://github.com/tyevco/TylerCLI</RepositoryUrl>
+		<RepositoryUrl>https://github.com/tyevco/TeCLI</RepositoryUrl>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
 
