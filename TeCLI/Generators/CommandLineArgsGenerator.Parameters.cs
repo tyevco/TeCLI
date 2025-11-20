@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using TeCLI.Attributes;
 using TeCLI.Extensions;
+using static TeCLI.Constants;
 
 namespace TeCLI.Generators;
 
@@ -40,7 +41,7 @@ public partial class CommandLineArgsGenerator
                 else
                 {
                     // there were not enough parameters specified. the help text should be displayed for this action.
-                    cb.AppendLine($"""throw new ArgumentException("Required parameters not provided. Use --help for usage information.");""");
+                    cb.AppendLine($"""throw new ArgumentException("{ErrorMessages.RequiredParametersNotProvided}");""");
                 }
             }
 
@@ -351,7 +352,7 @@ public partial class CommandLineArgsGenerator
                         cb.AppendLine($"{variableName}Set = true;");
                     }
                     tb.Catch();
-                    cb.AppendLine($"""throw new ArgumentException("Invalid value provided for option '--{sourceInfo.Name}'.");""");
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
                 }
             }
 
@@ -360,7 +361,7 @@ public partial class CommandLineArgsGenerator
             {
                 using (cb.AddBlock("else"))
                 {
-                    cb.AppendLine($"""throw new ArgumentException("Required option '--{sourceInfo.Name}' not provided.");""");
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
                 }
             }
         }
@@ -370,7 +371,7 @@ public partial class CommandLineArgsGenerator
     {
         using (cb.AddBlock($"if (args.Length < {sourceInfo.ArgumentIndex + 1})"))
         {
-            cb.AppendLine($"""throw new ArgumentException("Required argument '{sourceInfo.Name}' not provided.");""");
+            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
         }
         using (cb.AddBlock("else"))
         {
@@ -378,7 +379,7 @@ public partial class CommandLineArgsGenerator
             {
                 cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{sourceInfo.ArgumentIndex}], typeof({sourceInfo.DisplayType}));");
                 tb.Catch();
-                cb.AppendLine($"""throw new ArgumentException("Invalid syntax provided for argument '{sourceInfo.Name}'.");""");
+                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
             }
         }
     }

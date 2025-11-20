@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Text;
 using TeCLI.Attributes;
 using TeCLI.Extensions;
+using static TeCLI.Constants;
 
 namespace TeCLI.Generators;
 
@@ -186,7 +187,7 @@ public partial class CommandLineArgsGenerator
 
             if (count == 0 && throwOnNoPrimary)
             {
-                cb.AppendLine($"""throw new InvalidOperationException("No primary action defined for command '{GetCommandName(classDecl)}'. Use --help for available actions.");""");
+                cb.AppendLine($"""throw new InvalidOperationException(string.Format("{ErrorMessages.NoPrimaryActionDefined}", "{GetCommandName(classDecl)}"));""");
             }
         }
     }

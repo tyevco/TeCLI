@@ -26,8 +26,18 @@ namespace TeCLI
                 foreach (var ns in usings)
                 {
                     var value = ns.Trim();
-                    value = value.StartsWith("using ") ? value.Substring(6) : value;
-                    value = value.EndsWith(";") ? value.Substring(0, value.Length - 1) : value;
+
+                    // Remove "using " prefix if present
+                    if (value.StartsWith("using ", StringComparison.Ordinal))
+                    {
+                        value = value[6..]; // Use range operator instead of Substring
+                    }
+
+                    // Remove trailing semicolon if present
+                    if (value.EndsWith(';'))
+                    {
+                        value = value[..^1]; // Use range operator instead of Substring
+                    }
 
                     if (!string.IsNullOrWhiteSpace(value))
                         Usings.Add(value);
