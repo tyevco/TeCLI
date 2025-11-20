@@ -26,8 +26,10 @@ public partial class CommandLineArgsGenerator
                     cb.AppendLine("Console.WriteLine(\"Usage: <command> [action] [options] [arguments]\");");
                     cb.AppendLine("Console.WriteLine();");
                     cb.AppendLine("Console.WriteLine(\"Global Options:\");");
-                    cb.AppendLine("Console.WriteLine(\"  --help, -h           Display help information\");");
-                    cb.AppendLine("Console.WriteLine(\"  --version            Display version information\");");
+                    cb.AppendLine("Console.WriteLine(\"  --help, -h                     Display help information\");");
+                    cb.AppendLine("Console.WriteLine(\"  --version                      Display version information\");");
+                    cb.AppendLine("Console.WriteLine(\"  --generate-completion <shell>  Generate shell completion script\");");
+                    cb.AppendLine("Console.WriteLine(\"                                 Supported shells: bash, zsh, powershell, fish\");");
                     cb.AppendLine("Console.WriteLine();");
                     cb.AppendLine("Console.WriteLine(\"Available commands:\");");
                     cb.AppendLine("Console.WriteLine();");
