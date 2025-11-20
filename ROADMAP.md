@@ -115,46 +115,57 @@ public void Deploy(
 ---
 
 ### 📊 Custom Type Converters
-**Status:** ✅ Partially Completed (Built-in Types)
+**Status:** ✅ Completed
 **Priority:** Medium
 
-TeCLI now has built-in support for common .NET types! Custom converter registration via `ITypeConverter<T>` is planned for future releases.
+TeCLI now supports both built-in and custom type converters! This enables parsing of any custom type through the `ITypeConverter<T>` interface.
 
 ```csharp
+// Built-in types work automatically
 [Action("fetch")]
-public void Fetch([Option("url")] Uri endpoint)
+public void Fetch([Option("url")] Uri endpoint) { }
+
+// Custom types via ITypeConverter<T>
+public class EmailAddressConverter : ITypeConverter<EmailAddress>
 {
-    // Automatic parsing for Uri!
-    // myapp fetch --url https://example.com
+    public EmailAddress Convert(string value)
+    {
+        if (!value.Contains("@"))
+            throw new ArgumentException($"Invalid email: {value}");
+        return new EmailAddress(value);
+    }
+}
+
+[Action("send")]
+public void Send(
+    [Option("to")] [TypeConverter(typeof(EmailAddressConverter))] EmailAddress recipient)
+{
+    // recipient is automatically converted using EmailAddressConverter
 }
 ```
 
 **Implemented Features:**
-- ✅ Built-in support for common types:
-  - `Uri` - Web URLs and URIs
-  - `DateTime` - Date and time values
-  - `DateTimeOffset` - Timezone-aware timestamps
-  - `TimeSpan` - Duration values (e.g., "2.14:30:00")
-  - `Guid` - Unique identifiers
-  - `FileInfo` - File paths
-  - `DirectoryInfo` - Directory paths
+- ✅ Built-in support for common .NET types:
+  - `Uri`, `DateTime`, `DateTimeOffset`, `TimeSpan`, `Guid`, `FileInfo`, `DirectoryInfo`
+- ✅ `ITypeConverter<T>` interface for custom type conversion
+- ✅ `TypeConverterAttribute` for parameter-level registration
 - ✅ Works with options, arguments, and collections
-- ✅ Automatic type detection and appropriate parsing
-- ✅ Clear error messages for invalid values
-- ✅ Comprehensive test coverage
-
-**Future Enhancements:**
-- `ITypeConverter<T>` interface for custom types
-- Registration mechanism (attribute or global registry)
-- User-defined type converters
+- ✅ Works with environment variables
+- ✅ Clear error messages for conversion failures
+- ✅ Comprehensive test coverage (35+ integration tests)
 
 **Files Changed:**
-- `TeCLI.Tools/Extensions.cs` - Type detection and parse method mapping
-- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Common type properties
-- `TeCLI/Generators/ParameterInfoExtractor.cs` - Detect and store common type info
-- `TeCLI/Generators/ParameterCodeGenerator.cs` - Generate parsing code
-- `TeCLI.Tests/TestCommands/CommonTypesCommand.cs` - Test command
-- `TeCLI.Tests/CommonTypesTests.cs` - Integration tests
+- `TeCLI.Core/TypeConversion/ITypeConverter.cs` - Core converter interface
+- `TeCLI.Core/TypeConversion/TypeConverterAttribute.cs` - Attribute for specifying converters
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Track custom converter info
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Extract custom converter attributes
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Generate custom converter usage code
+- `TeCLI.Tests/TestTypes/EmailAddress.cs` - Example custom type
+- `TeCLI.Tests/TestTypes/EmailAddressConverter.cs` - Example converter
+- `TeCLI.Tests/TestTypes/PhoneNumber.cs` - Example custom type for collections
+- `TeCLI.Tests/TestTypes/PhoneNumberConverter.cs` - Example converter for collections
+- `TeCLI.Tests/TestCommands/CustomConverterCommand.cs` - Test command
+- `TeCLI.Tests/CustomConverterTests.cs` - Comprehensive integration tests
 
 ---
 
@@ -917,10 +928,10 @@ Based on impact and feasibility, the next release should focus on:
 The following high-priority items should be considered next:
 
 1. **Nested Subcommands** (🎯 High Priority, Research Needed) - Support hierarchical command structures
-2. **Complete Custom Type Converters** (📊 Medium Priority) - Add ITypeConverter<T> interface for user-defined types
-3. **Interactive Mode** (📊 Medium Priority) - Prompt users for missing required arguments
-4. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
-5. **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells
+2. **Interactive Mode** (📊 Medium Priority) - Prompt users for missing required arguments
+3. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
+4. **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells
+5. **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks
 
 ---
 

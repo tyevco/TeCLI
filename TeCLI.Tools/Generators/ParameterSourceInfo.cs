@@ -39,6 +39,12 @@ namespace TeCLI.Generators
         // Validation support
         public List<ValidationInfo> Validations { get; set; } = new();
 
+        // Custom type converter support
+        public bool HasCustomConverter { get; set; }
+        public string? CustomConverterType { get; set; }
+        public bool HasElementCustomConverter { get; set; }
+        public string? ElementCustomConverterType { get; set; }
+
         public bool Optional => !Required;
     }
 

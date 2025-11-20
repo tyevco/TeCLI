@@ -80,6 +80,11 @@ internal static class ParameterCodeGenerator
                     {
                         cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), args[{variableName}Index + 1], ignoreCase: true);");
                     }
+                    else if (sourceInfo.HasCustomConverter && !string.IsNullOrEmpty(sourceInfo.CustomConverterType))
+                    {
+                        cb.AppendLine($"var {variableName}Converter = new {sourceInfo.CustomConverterType}();");
+                        cb.AppendLine($"{variableName} = {variableName}Converter.Convert(args[{variableName}Index + 1]);");
+                    }
                     else if (sourceInfo.IsCommonType && !string.IsNullOrEmpty(sourceInfo.CommonTypeParseMethod))
                     {
                         cb.AppendLine($"{variableName} = {string.Format(sourceInfo.CommonTypeParseMethod, $"args[{variableName}Index + 1]")};");
@@ -119,6 +124,11 @@ internal static class ParameterCodeGenerator
                             if (sourceInfo.IsEnum)
                             {
                                 cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), {variableName}EnvValue, ignoreCase: true);");
+                            }
+                            else if (sourceInfo.HasCustomConverter && !string.IsNullOrEmpty(sourceInfo.CustomConverterType))
+                            {
+                                cb.AppendLine($"var {variableName}Converter = new {sourceInfo.CustomConverterType}();");
+                                cb.AppendLine($"{variableName} = {variableName}Converter.Convert({variableName}EnvValue);");
                             }
                             else if (sourceInfo.IsCommonType && !string.IsNullOrEmpty(sourceInfo.CommonTypeParseMethod))
                             {
@@ -195,6 +205,11 @@ internal static class ParameterCodeGenerator
                                 {
                                     cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})System.Enum.Parse(typeof({sourceInfo.ElementType}), trimmedVal, ignoreCase: true));");
                                 }
+                                else if (sourceInfo.HasElementCustomConverter && !string.IsNullOrEmpty(sourceInfo.ElementCustomConverterType))
+                                {
+                                    cb.AppendLine($"var {variableName}ElementConverter = new {sourceInfo.ElementCustomConverterType}();");
+                                    cb.AppendLine($"{variableName}Values.Add({variableName}ElementConverter.Convert(trimmedVal));");
+                                }
                                 else if (sourceInfo.IsElementCommonType && !string.IsNullOrEmpty(sourceInfo.ElementCommonTypeParseMethod))
                                 {
                                     cb.AppendLine($"{variableName}Values.Add({string.Format(sourceInfo.ElementCommonTypeParseMethod, "trimmedVal")});");
@@ -241,6 +256,11 @@ internal static class ParameterCodeGenerator
                                 if (sourceInfo.IsElementEnum)
                                 {
                                     cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})System.Enum.Parse(typeof({sourceInfo.ElementType}), trimmedVal, ignoreCase: true));");
+                                }
+                                else if (sourceInfo.HasElementCustomConverter && !string.IsNullOrEmpty(sourceInfo.ElementCustomConverterType))
+                                {
+                                    cb.AppendLine($"var {variableName}ElementConverter = new {sourceInfo.ElementCustomConverterType}();");
+                                    cb.AppendLine($"{variableName}Values.Add({variableName}ElementConverter.Convert(trimmedVal));");
                                 }
                                 else if (sourceInfo.IsElementCommonType && !string.IsNullOrEmpty(sourceInfo.ElementCommonTypeParseMethod))
                                 {
@@ -324,6 +344,11 @@ internal static class ParameterCodeGenerator
                     if (sourceInfo.IsEnum)
                     {
                         cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), args[{sourceInfo.ArgumentIndex}], ignoreCase: true);");
+                    }
+                    else if (sourceInfo.HasCustomConverter && !string.IsNullOrEmpty(sourceInfo.CustomConverterType))
+                    {
+                        cb.AppendLine($"var {variableName}Converter = new {sourceInfo.CustomConverterType}();");
+                        cb.AppendLine($"{variableName} = {variableName}Converter.Convert(args[{sourceInfo.ArgumentIndex}]);");
                     }
                     else if (sourceInfo.IsCommonType && !string.IsNullOrEmpty(sourceInfo.CommonTypeParseMethod))
                     {
