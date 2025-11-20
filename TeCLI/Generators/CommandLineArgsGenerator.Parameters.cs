@@ -179,11 +179,11 @@ public partial class CommandLineArgsGenerator
 
                 var description = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
 
-                psi.Name = optionName.IsNull ? parameterSymbol.Name : optionName.Value!.ToString();
+                psi.Name = optionName.IsNull ? parameterSymbol.Name : optionName.Value?.ToString() ?? parameterSymbol.Name;
 
                 var shortName = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ShortName").Value;
 
-                psi.ShortName = shortName.IsNull ? '\0' : (char)shortName.Value!;
+                psi.ShortName = !shortName.IsNull && shortName.Value is char ch ? ch : '\0';
 
                 bool isBoolean = parameterSymbol.Type.SpecialType == SpecialType.System_Boolean;
 
@@ -204,7 +204,7 @@ public partial class CommandLineArgsGenerator
                     if (parameterSymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute))
                     {
                         var optionName = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
-                        psi.Name = optionName.IsNull ? psi.Name : optionName.Value!.ToString();
+                        psi.Name = optionName.IsNull ? psi.Name : optionName.Value?.ToString() ?? psi.Name;
 
                         var description = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
                         psi.Description = description;
@@ -259,11 +259,11 @@ public partial class CommandLineArgsGenerator
 
                 var description = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
 
-                psi.Name = optionName.IsNull ? propertySymbol.Name : optionName.Value!.ToString();
+                psi.Name = optionName.IsNull ? propertySymbol.Name : optionName.Value?.ToString() ?? propertySymbol.Name;
 
                 var shortName = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ShortName").Value;
 
-                psi.ShortName = shortName.IsNull ? '\0' : (char)shortName.Value!;
+                psi.ShortName = !shortName.IsNull && shortName.Value is char ch ? ch : '\0';
 
                 bool isBoolean = propertySymbol.Type.SpecialType == SpecialType.System_Boolean;
 
@@ -283,7 +283,7 @@ public partial class CommandLineArgsGenerator
                     if (propertySymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute))
                     {
                         var optionName = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
-                        psi.Name = optionName.IsNull ? psi.Name : optionName.Value!.ToString();
+                        psi.Name = optionName.IsNull ? psi.Name : optionName.Value?.ToString() ?? psi.Name;
 
                         var description = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
                         psi.Description = description;
