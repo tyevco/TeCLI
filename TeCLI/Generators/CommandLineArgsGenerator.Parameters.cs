@@ -43,6 +43,26 @@ public partial class CommandLineArgsGenerator
             bool hasOptionalValues = false;
             using (cb.AddBlock("else"))
             {
+                // Generate list of valid options for unknown option detection
+                var optionParameters = parameterDetails.Where(p => p.ParameterType == ParameterType.Option).ToList();
+                if (optionParameters.Any())
+                {
+                    cb.AppendLine("// Valid options for this action");
+                    cb.Append("var validOptions = new System.Collections.Generic.HashSet<string>(System.StringComparer.OrdinalIgnoreCase) { ");
+                    var validOptions = new List<string>();
+                    foreach (var param in optionParameters)
+                    {
+                        validOptions.Add($"\"--{param.Name}\"");
+                        if (param.ShortName != '\0')
+                        {
+                            validOptions.Add($"\"-{param.ShortName}\"");
+                        }
+                    }
+                    cb.Append(string.Join(", ", validOptions));
+                    cb.AppendLine(" };");
+                    cb.AddBlankLine();
+                }
+
                 foreach (var parameterDetail in parameterDetails)
                 {
                     var variableName = $"p{parameterDetail.ParameterIndex}";
@@ -50,6 +70,29 @@ public partial class CommandLineArgsGenerator
                     if (parameterDetail.Optional)
                     {
                         hasOptionalValues = true;
+                    }
+                }
+
+                // Add unknown option detection
+                if (optionParameters.Any())
+                {
+                    cb.AddBlankLine();
+                    cb.AppendLine("// Check for unknown options");
+                    using (cb.AddBlock("foreach (var arg in args)"))
+                    {
+                        using (cb.AddBlock("if ((arg.StartsWith(\"--\") || arg.StartsWith(\"-\")) && !validOptions.Contains(arg))"))
+                        {
+                            cb.AppendLine("var optionNames = validOptions.Select(o => o).ToArray();");
+                            cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(arg, optionNames);");
+                            using (cb.AddBlock("if (suggestion != null)"))
+                            {
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.UnknownOptionWithSuggestion}", arg, suggestion));""");
+                            }
+                            using (cb.AddBlock("else"))
+                            {
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.UnknownOption}", arg));""");
+                            }
+                        }
                     }
                 }
 
