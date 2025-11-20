@@ -612,6 +612,9 @@ public partial class CommandLineArgsGenerator
             }
         }
 
+        // Extract command-level hooks
+        ExtractHooksFromSymbol(typeSymbol, commandInfo.BeforeExecuteHooks, commandInfo.AfterExecuteHooks, commandInfo.OnErrorHooks);
+
         // Extract actions from methods with ActionAttribute
         var actionMethods = typeSymbol.GetMembersWithAttribute<IMethodSymbol, ActionAttribute>();
         if (actionMethods != null)
@@ -655,6 +658,9 @@ public partial class CommandLineArgsGenerator
                     // Set invoker method name
                     actionInfo.InvokerMethodName = $"{typeSymbol.Name}{method.Name}";
                 }
+
+                // Extract action-level hooks
+                ExtractHooksFromSymbol(method, actionInfo.BeforeExecuteHooks, actionInfo.AfterExecuteHooks, actionInfo.OnErrorHooks);
 
                 commandInfo.Actions.Add(actionInfo);
             }
@@ -879,6 +885,86 @@ public partial class CommandLineArgsGenerator
 
             cb.AddBlankLine();
         }
+    }
+
+    /// <summary>
+    /// Extracts hook attributes from a symbol (command class or action method)
+    /// </summary>
+    private void ExtractHooksFromSymbol(
+        ISymbol symbol,
+        List<HookInfo> beforeExecuteHooks,
+        List<HookInfo> afterExecuteHooks,
+        List<HookInfo> onErrorHooks)
+    {
+        var attributes = symbol.GetAttributes();
+
+        // Extract BeforeExecute hooks
+        foreach (var attr in attributes.Where(a => a.AttributeClass?.Name == "BeforeExecuteAttribute"))
+        {
+            if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is INamedTypeSymbol hookType)
+            {
+                var hookInfo = new HookInfo
+                {
+                    HookTypeName = hookType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                };
+
+                // Get Order property if specified
+                var orderArg = attr.NamedArguments.FirstOrDefault(arg => arg.Key == "Order");
+                if (!orderArg.Value.IsNull && orderArg.Value.Value is int order)
+                {
+                    hookInfo.Order = order;
+                }
+
+                beforeExecuteHooks.Add(hookInfo);
+            }
+        }
+
+        // Extract AfterExecute hooks
+        foreach (var attr in attributes.Where(a => a.AttributeClass?.Name == "AfterExecuteAttribute"))
+        {
+            if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is INamedTypeSymbol hookType)
+            {
+                var hookInfo = new HookInfo
+                {
+                    HookTypeName = hookType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                };
+
+                // Get Order property if specified
+                var orderArg = attr.NamedArguments.FirstOrDefault(arg => arg.Key == "Order");
+                if (!orderArg.Value.IsNull && orderArg.Value.Value is int order)
+                {
+                    hookInfo.Order = order;
+                }
+
+                afterExecuteHooks.Add(hookInfo);
+            }
+        }
+
+        // Extract OnError hooks
+        foreach (var attr in attributes.Where(a => a.AttributeClass?.Name == "OnErrorAttribute"))
+        {
+            if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is INamedTypeSymbol hookType)
+            {
+                var hookInfo = new HookInfo
+                {
+                    HookTypeName = hookType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                };
+
+                // Get Order property if specified
+                var orderArg = attr.NamedArguments.FirstOrDefault(arg => arg.Key == "Order");
+                if (!orderArg.Value.IsNull && orderArg.Value.Value is int order)
+                {
+                    hookInfo.Order = order;
+                }
+
+                onErrorHooks.Add(hookInfo);
+            }
+        }
+
+        // Sort hooks by order
+        beforeExecuteHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
+        afterExecuteHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
+        onErrorHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
     }
 
 }
