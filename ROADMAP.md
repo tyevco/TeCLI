@@ -159,27 +159,42 @@ public void Fetch([Option("url")] Uri endpoint)
 ---
 
 ### 📊 Validation Attributes
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Add declarative validation for options and arguments:
+TeCLI now supports declarative validation for options and arguments! This enables scenarios like:
 ```csharp
 [Action("process")]
 public void Process(
     [Option("port")] [Range(1, 65535)] int port,
-    [Option("email")] [EmailAddress] string email,
+    [Option("email")] [RegularExpression(@"^[^@]+@[^@]+\.[^@]+$")] string email,
     [Option("pattern")] [RegularExpression(@"^\w+$")] string pattern,
-    [Argument] [FileExists] string inputFile)
+    [Argument] [FileExists] string inputFile,
+    [Option("output")] [DirectoryExists] string? outputDir = null)
 {
 }
 ```
 
-**Validation Types:**
-- Range validation (numeric bounds)
-- Regular expression patterns
-- File/directory existence checks
-- Email, URL validation
-- Custom validation attributes
+**Implemented Features:**
+- ✅ `RangeAttribute` - Validates numeric values are within specified bounds
+- ✅ `RegularExpressionAttribute` - Validates strings match a regex pattern
+- ✅ `FileExistsAttribute` - Validates file paths point to existing files
+- ✅ `DirectoryExistsAttribute` - Validates directory paths point to existing directories
+- ✅ Custom error messages for validation failures
+- ✅ Works with both options and arguments
+- ✅ Proper handling of optional parameters (validation skipped when not provided)
+- ✅ Comprehensive test coverage
+
+**Files Changed:**
+- `TeCLI.Core/Validation/RangeAttribute.cs` - Range validation attribute
+- `TeCLI.Core/Validation/RegularExpressionAttribute.cs` - Regex validation attribute
+- `TeCLI.Core/Validation/FileExistsAttribute.cs` - File existence validation attribute
+- `TeCLI.Core/Validation/DirectoryExistsAttribute.cs` - Directory existence validation attribute
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Added validation tracking
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Extract validation attributes
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Generate validation code
+- `TeCLI.Tests/TestCommands/ValidationCommand.cs` - Test command
+- `TeCLI.Tests/ValidationTests.cs` - Comprehensive integration tests
 
 ---
 
@@ -887,9 +902,10 @@ Based on impact and feasibility, the next release should focus on:
 The following high-priority items should be considered next:
 
 1. **Nested Subcommands** (🎯 High Priority, Research Needed) - Support hierarchical command structures
-2. **Custom Type Converters** (📊 Medium Priority) - Allow parsing of complex types like Uri, DateTime
-3. **Validation Attributes** (📊 Medium Priority) - Declarative validation for options and arguments
-4. **Environment Variable Binding** (📊 Medium Priority) - Populate options from environment variables
+2. **Environment Variable Binding** (📊 Medium Priority) - Populate options from environment variables
+3. **Complete Custom Type Converters** (📊 Medium Priority) - Add ITypeConverter<T> interface for user-defined types
+4. **Interactive Mode** (📊 Medium Priority) - Prompt users for missing required arguments
+5. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
 
 ---
 

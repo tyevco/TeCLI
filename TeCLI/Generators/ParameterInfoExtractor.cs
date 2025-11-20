@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
 using TeCLI.Attributes;
+using TeCLI.Attributes.Validation;
 using TeCLI.Extensions;
 using TeCLI.Generators;
 
@@ -133,6 +134,9 @@ internal static class ParameterInfoExtractor
                     psi.ParameterType = ParameterType.Container;
                 }
             }
+
+            // Extract validation attributes
+            ExtractValidationInfo(psi, parameterSymbol);
         }
 
         return psi;
@@ -216,6 +220,9 @@ internal static class ParameterInfoExtractor
                     psi.ParameterType = ParameterType.Container;
                 }
             }
+
+            // Extract validation attributes
+            ExtractValidationInfo(psi, propertySymbol);
         }
 
         return psi;
@@ -286,6 +293,97 @@ internal static class ParameterInfoExtractor
 
             var description = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
             psi.Description = description;
+        }
+    }
+
+    private static void ExtractValidationInfo(ParameterSourceInfo psi, ISymbol symbol)
+    {
+        var attributes = symbol.GetAttributes();
+
+        // Check for RangeAttribute
+        var rangeAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(RangeAttribute));
+        if (rangeAttr != null && rangeAttr.ConstructorArguments.Length == 2)
+        {
+            var min = rangeAttr.ConstructorArguments[0].Value;
+            var max = rangeAttr.ConstructorArguments[1].Value;
+            psi.Validations.Add(new ValidationInfo
+            {
+                AttributeTypeName = "Range",
+                ValidationCode = $"new TeCLI.Attributes.Validation.RangeAttribute({min}, {max}).Validate({{0}}, \"{psi.Name}\")"
+            });
+        }
+
+        // Check for RegularExpressionAttribute
+        var regexAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(RegularExpressionAttribute));
+        if (regexAttr != null && regexAttr.ConstructorArguments.Length >= 1)
+        {
+            var pattern = regexAttr.ConstructorArguments[0].Value?.ToString() ?? "";
+            var errorMessage = regexAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ErrorMessage").Value;
+
+            string validationCode;
+            if (!errorMessage.IsNull && errorMessage.Value != null)
+            {
+                var errorMsg = errorMessage.Value.ToString();
+                validationCode = $"new TeCLI.Attributes.Validation.RegularExpressionAttribute(@\"{pattern}\") {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
+            }
+            else
+            {
+                validationCode = $"new TeCLI.Attributes.Validation.RegularExpressionAttribute(@\"{pattern}\").Validate({{0}}, \"{psi.Name}\")";
+            }
+
+            psi.Validations.Add(new ValidationInfo
+            {
+                AttributeTypeName = "RegularExpression",
+                ValidationCode = validationCode
+            });
+        }
+
+        // Check for FileExistsAttribute
+        var fileExistsAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(FileExistsAttribute));
+        if (fileExistsAttr != null)
+        {
+            var errorMessage = fileExistsAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ErrorMessage").Value;
+
+            string validationCode;
+            if (!errorMessage.IsNull && errorMessage.Value != null)
+            {
+                var errorMsg = errorMessage.Value.ToString();
+                validationCode = $"new TeCLI.Attributes.Validation.FileExistsAttribute() {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
+            }
+            else
+            {
+                validationCode = $"new TeCLI.Attributes.Validation.FileExistsAttribute().Validate({{0}}, \"{psi.Name}\")";
+            }
+
+            psi.Validations.Add(new ValidationInfo
+            {
+                AttributeTypeName = "FileExists",
+                ValidationCode = validationCode
+            });
+        }
+
+        // Check for DirectoryExistsAttribute
+        var dirExistsAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(DirectoryExistsAttribute));
+        if (dirExistsAttr != null)
+        {
+            var errorMessage = dirExistsAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ErrorMessage").Value;
+
+            string validationCode;
+            if (!errorMessage.IsNull && errorMessage.Value != null)
+            {
+                var errorMsg = errorMessage.Value.ToString();
+                validationCode = $"new TeCLI.Attributes.Validation.DirectoryExistsAttribute() {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
+            }
+            else
+            {
+                validationCode = $"new TeCLI.Attributes.Validation.DirectoryExistsAttribute().Validate({{0}}, \"{psi.Name}\")";
+            }
+
+            psi.Validations.Add(new ValidationInfo
+            {
+                AttributeTypeName = "DirectoryExists",
+                ValidationCode = validationCode
+            });
         }
     }
 }

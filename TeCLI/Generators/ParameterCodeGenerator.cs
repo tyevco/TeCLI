@@ -31,6 +31,9 @@ internal static class ParameterCodeGenerator
             {
                 // Container parameters are handled by their nested properties
             }
+
+            // Generate validation code
+            GenerateValidationCode(cb, sourceInfo, variableName);
         }
     }
 
@@ -324,6 +327,34 @@ internal static class ParameterCodeGenerator
             using (cb.AddBlock("else"))
             {
                 cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
+            }
+        }
+    }
+
+    private static void GenerateValidationCode(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName)
+    {
+        if (sourceInfo.Validations.Count == 0)
+        {
+            return;
+        }
+
+        // For optional parameters, only validate if the value was set
+        if (sourceInfo.Optional)
+        {
+            using (cb.AddBlock($"if ({variableName}Set)"))
+            {
+                foreach (var validation in sourceInfo.Validations)
+                {
+                    cb.AppendLine(string.Format(validation.ValidationCode, variableName) + ";");
+                }
+            }
+        }
+        else
+        {
+            // For required parameters or arguments, always validate
+            foreach (var validation in sourceInfo.Validations)
+            {
+                cb.AppendLine(string.Format(validation.ValidationCode, variableName) + ";");
             }
         }
     }
