@@ -32,105 +32,146 @@ public partial class CommandLineArgsGenerator
 
         var cb = new CodeBuilder("System", "System.Linq");
 
+        // Add namespace for global options if present
+        if (globalOptions != null && !string.IsNullOrEmpty(globalOptions.Namespace))
+        {
+            cb.AddUsing(globalOptions.Namespace);
+        }
+
         using (cb.AddBlock("namespace TeCLI"))
         {
             using (cb.AddBlock("public partial class CommandDispatcher"))
             {
+                // Add global options field if present
+                if (globalOptions != null)
+                {
+                    cb.AppendLine($"private {globalOptions.FullTypeName} _globalOptions = new {globalOptions.FullTypeName}();");
+                    cb.AddBlankLine();
+                }
+
                 // make the partial method for the invoker
                 using (cb.AddBlock("public async Task DispatchAsync(string[] args)"))
                 {
                     using (cb.AddBlock("if (args.Length == 0)"))
                     {
                         cb.AppendLine("DisplayApplicationHelp();");
+                        cb.AppendLine("return;");
                     }
-                    using (cb.AddBlock("else"))
+
+                    cb.AddBlankLine();
+
+                    // Parse global options first if present
+                    if (globalOptions != null && globalOptions.Options.Count > 0)
                     {
+                        cb.AppendLine("// Parse global options");
+                        cb.AppendLine("var globalOptionsParsed = new System.Collections.Generic.HashSet<int>();");
+                        GenerateGlobalOptionsParsingCode(cb, globalOptions);
                         cb.AddBlankLine();
-
-                        // Check for version flag
-                        using (cb.AddBlock("if (args.Contains(\"--version\"))"))
+                        cb.AppendLine("// Remove parsed global options from args");
+                        cb.AppendLine("var commandArgs = new System.Collections.Generic.List<string>();");
+                        using (cb.AddBlock("for (int i = 0; i < args.Length; i++)"))
                         {
-                            cb.AppendLine("DisplayVersion();");
-                            cb.AppendLine("return;");
-                        }
-
-                        cb.AddBlankLine();
-
-                        // Check for help flag
-                        using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
-                        {
-                            cb.AppendLine("DisplayApplicationHelp();");
-                            cb.AppendLine("return;");
-                        }
-
-                        cb.AddBlankLine();
-
-                        cb.AppendLine("string command = args[0].ToLower();");
-                        cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
-
-                        cb.AddBlankLine();
-
-                        using (cb.AddBlock("switch (command)"))
-                        {
-                            foreach (var commandInfo in commandHierarchies)
+                            using (cb.AddBlock("if (!globalOptionsParsed.Contains(i))"))
                             {
-                                var methodName = $"Dispatch{commandInfo.TypeSymbol!.Name}Async";
+                                cb.AppendLine("commandArgs.Add(args[i]);");
+                            }
+                        }
+                        cb.AppendLine("args = commandArgs.ToArray();");
+                        cb.AddBlankLine();
+                    }
 
-                                // Generate case for primary name
-                                using (cb.AddBlock($"case \"{commandInfo.CommandName!.ToLower()}\":"))
+                    using (cb.AddBlock("if (args.Length == 0)"))
+                    {
+                        cb.AppendLine("DisplayApplicationHelp();");
+                        cb.AppendLine("return;");
+                    }
+
+                    cb.AddBlankLine();
+
+                    // Check for version flag
+                    using (cb.AddBlock("if (args.Contains(\"--version\"))"))
+                    {
+                        cb.AppendLine("DisplayVersion();");
+                        cb.AppendLine("return;");
+                    }
+
+                    cb.AddBlankLine();
+
+                    // Check for help flag
+                    using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
+                    {
+                        cb.AppendLine("DisplayApplicationHelp();");
+                        cb.AppendLine("return;");
+                    }
+
+                    cb.AddBlankLine();
+
+                    cb.AppendLine("string command = args[0].ToLower();");
+                    cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
+
+                    cb.AddBlankLine();
+
+                    using (cb.AddBlock("switch (command)"))
+                    {
+                        foreach (var commandInfo in commandHierarchies)
+                        {
+                            var methodName = $"Dispatch{commandInfo.TypeSymbol!.Name}Async";
+
+                            // Generate case for primary name
+                            using (cb.AddBlock($"case \"{commandInfo.CommandName!.ToLower()}\":"))
+                            {
+                                cb.AppendLine($"await {methodName}(remainingArgs);");
+                                cb.AppendLine("break;");
+                            }
+
+                            cb.AddBlankLine();
+
+                            // Generate cases for aliases
+                            foreach (var alias in commandInfo.Aliases)
+                            {
+                                using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
                                 {
                                     cb.AppendLine($"await {methodName}(remainingArgs);");
                                     cb.AppendLine("break;");
                                 }
 
                                 cb.AddBlankLine();
-
-                                // Generate cases for aliases
-                                foreach (var alias in commandInfo.Aliases)
-                                {
-                                    using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
-                                    {
-                                        cb.AppendLine($"await {methodName}(remainingArgs);");
-                                        cb.AppendLine("break;");
-                                    }
-
-                                    cb.AddBlankLine();
-                                }
-                            }
-
-                            using (cb.AddBlock("default:"))
-                            {
-                                // Build list of available commands (including aliases) for suggestions
-                                cb.AppendLine("var availableCommands = new[] {");
-                                bool first = true;
-                                foreach (var commandInfo in commandHierarchies)
-                                {
-                                    if (!first) cb.Append(", ");
-                                    cb.Append($"\"{commandInfo.CommandName!.ToLower()}\"");
-                                    first = false;
-
-                                    // Add aliases to the suggestion list
-                                    foreach (var alias in commandInfo.Aliases)
-                                    {
-                                        cb.Append($", \"{alias.ToLower()}\"");
-                                    }
-                                }
-                                cb.AppendLine(" };");
-
-                                cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(command, availableCommands);");
-                                using (cb.AddBlock("if (suggestion != null)"))
-                                {
-                                    cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownCommandWithSuggestion}", args[0], suggestion));""");
-                                }
-                                using (cb.AddBlock("else"))
-                                {
-                                    cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownCommand}", args[0]));""");
-                                }
-                                cb.AppendLine("DisplayApplicationHelp();");
-                                cb.AppendLine("break;");
                             }
                         }
+
+                        using (cb.AddBlock("default:"))
+                        {
+                            // Build list of available commands (including aliases) for suggestions
+                            cb.AppendLine("var availableCommands = new[] {");
+                            bool first = true;
+                            foreach (var commandInfo in commandHierarchies)
+                            {
+                                if (!first) cb.Append(", ");
+                                cb.Append($"\"{commandInfo.CommandName!.ToLower()}\"");
+                                first = false;
+
+                                // Add aliases to the suggestion list
+                                foreach (var alias in commandInfo.Aliases)
+                                {
+                                    cb.Append($", \"{alias.ToLower()}\"");
+                                }
+                            }
+                            cb.AppendLine(" };");
+
+                            cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(command, availableCommands);");
+                            using (cb.AddBlock("if (suggestion != null)"))
+                            {
+                                cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownCommandWithSuggestion}", args[0], suggestion));""");
+                            }
+                            using (cb.AddBlock("else"))
+                            {
+                                cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownCommand}", args[0]));""");
+                            }
+                            cb.AppendLine("DisplayApplicationHelp();");
+                            cb.AppendLine("break;");
+                        }
                     }
+                }
                 }
             }
         }
@@ -140,7 +181,7 @@ public partial class CommandLineArgsGenerator
         // Generate dispatch methods for all commands in the hierarchies
         foreach (var commandInfo in commandHierarchies)
         {
-            GenerateCommandSourceFileHierarchical(context, compilation, commandInfo);
+            GenerateCommandSourceFileHierarchical(context, compilation, commandInfo, globalOptions);
             GenerateCommandDocumentation(context, compilation, commandInfo);
         }
 
@@ -244,7 +285,7 @@ public partial class CommandLineArgsGenerator
     /// <summary>
     /// Generates dispatch methods for a command hierarchy (including nested subcommands)
     /// </summary>
-    private void GenerateCommandSourceFileHierarchical(SourceProductionContext context, Compilation compilation, CommandSourceInfo commandInfo)
+    private void GenerateCommandSourceFileHierarchical(SourceProductionContext context, Compilation compilation, CommandSourceInfo commandInfo, GlobalOptionsSourceInfo? globalOptions = null)
     {
         var cb = new CodeBuilder("System", "System.Linq", "TeCLI", "TeCLI.Attributes");
 
@@ -266,7 +307,7 @@ public partial class CommandLineArgsGenerator
                 foreach (var action in commandInfo.Actions)
                 {
                     cb.AddBlankLine();
-                    GenerateActionCode(cb, action);
+                    GenerateActionCode(cb, action, globalOptions);
                 }
 
                 cb.AddBlankLine();
@@ -278,7 +319,7 @@ public partial class CommandLineArgsGenerator
         // Recursively generate dispatch methods for subcommands
         foreach (var subcommand in commandInfo.Subcommands)
         {
-            GenerateCommandSourceFileHierarchical(context, compilation, subcommand);
+            GenerateCommandSourceFileHierarchical(context, compilation, subcommand, globalOptions);
         }
     }
 
@@ -749,6 +790,95 @@ public partial class CommandLineArgsGenerator
         }
 
         return globalOptions;
+    }
+
+    /// <summary>
+    /// Generates code to parse global options from command line arguments
+    /// </summary>
+    private void GenerateGlobalOptionsParsingCode(CodeBuilder cb, GlobalOptionsSourceInfo globalOptions)
+    {
+        foreach (var option in globalOptions.Options)
+        {
+            // Generate parsing code for each global option using the same logic as regular options
+            var tempVarName = $"_globalOpt_{option.Name}";
+            var setFlagName = $"{tempVarName}Set";
+
+            cb.AppendLine($"// Parse global option: {option.Name}");
+
+            // Look for the option in args
+            cb.AppendLine($"for (int i = 0; i < args.Length; i++)");
+            using (cb.AddBlock())
+            {
+                cb.AppendLine($"var arg = args[i];");
+
+                // Build condition to match option name or short name
+                var conditions = new List<string>();
+                conditions.Add($"arg == \"--{option.Name}\"");
+                if (option.ShortName != '\0')
+                {
+                    conditions.Add($"arg == \"-{option.ShortName}\"");
+                }
+
+                var condition = string.Join(" || ", conditions);
+
+                using (cb.AddBlock($"if ({condition})"))
+                {
+                    cb.AppendLine("globalOptionsParsed.Add(i);");
+
+                    if (option.IsSwitch)
+                    {
+                        // Boolean switch - just set to true
+                        cb.AppendLine($"_globalOptions.{option.Name} = true;");
+                    }
+                    else
+                    {
+                        // Regular option - parse the next argument
+                        using (cb.AddBlock("if (i + 1 < args.Length)"))
+                        {
+                            cb.AppendLine("globalOptionsParsed.Add(i + 1);");
+
+                            // Generate parsing code based on type
+                            if (option.IsEnum)
+                            {
+                                cb.AppendLine($"_globalOptions.{option.Name} = ({option.DisplayType})System.Enum.Parse(typeof({option.DisplayType}), args[i + 1], ignoreCase: true);");
+                            }
+                            else if (option.HasCustomConverter && !string.IsNullOrEmpty(option.CustomConverterType))
+                            {
+                                cb.AppendLine($"var converter_{option.Name} = new {option.CustomConverterType}();");
+                                cb.AppendLine($"_globalOptions.{option.Name} = converter_{option.Name}.Convert(args[i + 1]);");
+                            }
+                            else if (option.IsCommonType && !string.IsNullOrEmpty(option.CommonTypeParser))
+                            {
+                                cb.AppendLine($"_globalOptions.{option.Name} = {option.CommonTypeParser}(args[i + 1]);");
+                            }
+                            else if (option.Type == "string" || option.Type == "global::System.String")
+                            {
+                                cb.AppendLine($"_globalOptions.{option.Name} = args[i + 1];");
+                            }
+                            else
+                            {
+                                // Default parsing using the type's Parse method
+                                cb.AppendLine($"_globalOptions.{option.Name} = {option.DisplayType}.Parse(args[i + 1]);");
+                            }
+
+                            // Generate validation if present
+                            if (option.Validations.Count > 0)
+                            {
+                                foreach (var validation in option.Validations)
+                                {
+                                    var validationCode = string.Format(validation.ValidationCode, $"_globalOptions.{option.Name}");
+                                    cb.AppendLine($"{validationCode};");
+                                }
+                            }
+                        }
+                    }
+
+                    cb.AppendLine("break;");
+                }
+            }
+
+            cb.AddBlankLine();
+        }
     }
 
 }
