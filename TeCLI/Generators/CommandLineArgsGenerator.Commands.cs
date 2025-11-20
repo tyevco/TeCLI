@@ -106,6 +106,15 @@ public partial class CommandLineArgsGenerator
 
                     cb.AddBlankLine();
 
+                    // Check for generate-completion flag
+                    using (cb.AddBlock("if (args[0] == \"--generate-completion\" && args.Length >= 2)"))
+                    {
+                        cb.AppendLine("GenerateCompletion(args[1]);");
+                        cb.AppendLine("return;");
+                    }
+
+                    cb.AddBlankLine();
+
                     cb.AppendLine("string command = args[0].ToLower();");
                     cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
 
@@ -172,6 +181,11 @@ public partial class CommandLineArgsGenerator
                         }
                     }
                 }
+
+                cb.AddBlankLine();
+
+                // Generate completion support methods
+                GenerateCompletionSupport(cb, commandHierarchies, globalOptions);
                 }
             }
         }
