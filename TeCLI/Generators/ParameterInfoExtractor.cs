@@ -81,6 +81,14 @@ internal static class ParameterInfoExtractor
             psi.SpecialType = parameterSymbol.Type.SpecialType;
             psi.DisplayType = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+            // Check if this is a collection type
+            if (parameterSymbol.Type.IsCollectionType(out var elementType))
+            {
+                psi.IsCollection = true;
+                psi.ElementType = elementType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                psi.ElementSpecialType = elementType?.SpecialType ?? SpecialType.None;
+            }
+
             if (parameterSymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute))
             {
                 ExtractOptionInfo(psi, optionAttribute, parameterSymbol.Name, parameterSymbol.Type.SpecialType);
@@ -127,6 +135,14 @@ internal static class ParameterInfoExtractor
 
             psi.SpecialType = propertySymbol.Type.SpecialType;
             psi.DisplayType = propertySymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+            // Check if this is a collection type
+            if (propertySymbol.Type.IsCollectionType(out var elementType))
+            {
+                psi.IsCollection = true;
+                psi.ElementType = elementType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                psi.ElementSpecialType = elementType?.SpecialType ?? SpecialType.None;
+            }
 
             if (propertySymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute))
             {

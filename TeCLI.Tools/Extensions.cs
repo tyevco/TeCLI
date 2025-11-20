@@ -210,6 +210,23 @@ public static class Extensions
 
     public static bool IsValidOptionType(this ITypeSymbol typeSymbol)
     {
+        // Check if it's a primitive type
+        if (IsPrimitiveType(typeSymbol))
+        {
+            return true;
+        }
+
+        // Check if it's a collection of primitive types
+        if (IsCollectionType(typeSymbol, out var elementType))
+        {
+            return IsPrimitiveType(elementType);
+        }
+
+        return false;
+    }
+
+    public static bool IsPrimitiveType(this ITypeSymbol typeSymbol)
+    {
         return typeSymbol.SpecialType switch
         {
             SpecialType.System_Boolean => true,
@@ -228,6 +245,42 @@ public static class Extensions
             SpecialType.System_String => true,
             _ => false
         };
+    }
+
+    public static bool IsCollectionType(this ITypeSymbol typeSymbol, out ITypeSymbol? elementType)
+    {
+        elementType = null;
+
+        // Check for array type (T[])
+        if (typeSymbol is IArrayTypeSymbol arrayType)
+        {
+            elementType = arrayType.ElementType;
+            return true;
+        }
+
+        // Check for generic collection types (List<T>, IEnumerable<T>, ICollection<T>, etc.)
+        if (typeSymbol is INamedTypeSymbol namedType && namedType.IsGenericType)
+        {
+            var typeArguments = namedType.TypeArguments;
+            if (typeArguments.Length == 1)
+            {
+                var typeName = namedType.OriginalDefinition.ToDisplayString();
+
+                // Support common collection interfaces and types
+                if (typeName == "System.Collections.Generic.List<T>" ||
+                    typeName == "System.Collections.Generic.IEnumerable<T>" ||
+                    typeName == "System.Collections.Generic.ICollection<T>" ||
+                    typeName == "System.Collections.Generic.IList<T>" ||
+                    typeName == "System.Collections.Generic.IReadOnlyCollection<T>" ||
+                    typeName == "System.Collections.Generic.IReadOnlyList<T>")
+                {
+                    elementType = typeArguments[0];
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public static string? GetBuildProperty(this GeneratorExecutionContext context, string buildPropertyName)
