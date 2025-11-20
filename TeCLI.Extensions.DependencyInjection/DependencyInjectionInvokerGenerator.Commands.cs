@@ -2,13 +2,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace TeCLI.Extensions.DependencyInjection.Generators;
 
 public partial class DependencyInjectionInvokerGenerator
 {
-    private void GenerateCommandRegistrations(GeneratorExecutionContext context, IEnumerable<ClassDeclarationSyntax> classes)
+    private void GenerateCommandRegistrations(SourceProductionContext context, Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes)
     {
         var sb = new CodeBuilder("System", "System.Linq", "Microsoft.Extensions.DependencyInjection");
 
@@ -21,7 +22,7 @@ public partial class DependencyInjectionInvokerGenerator
                     sb.AppendLine("services.AddSingleton<CommandDispatcher>();");
                     foreach (var classDecl in classes)
                     {
-                        sb.AppendLine($"services.AddSingleton<{context.GetFullyQualifiedName(classDecl)}>();");
+                        sb.AppendLine($"services.AddSingleton<{compilation.GetFullyQualifiedName(classDecl)}>();");
                     }
                     sb.AppendLine("return services;");
                 }

@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using TeCLI.Attributes;
 using TeCLI.Extensions;
@@ -10,7 +11,7 @@ namespace TeCLI.Generators;
 
 public partial class CommandLineArgsGenerator
 {
-    private void GenerateCommandDispatcher(GeneratorExecutionContext context, IEnumerable<ClassDeclarationSyntax> commandClasses)
+    private void GenerateCommandDispatcher(SourceProductionContext context, Compilation compilation, ImmutableArray<ClassDeclarationSyntax> commandClasses)
     {
         Dictionary<ClassDeclarationSyntax, List<string>> dispatchMap = [];
 
@@ -75,20 +76,20 @@ public partial class CommandLineArgsGenerator
 
         foreach (var entry in dispatchMap)
         {
-            GenerateCommandSourceFile(context, entry.Value, entry.Key);
-            GenerateCommandDocumentation(context, entry.Key);
+            GenerateCommandSourceFile(context, compilation, entry.Value, entry.Key);
+            GenerateCommandDocumentation(context, compilation, entry.Key);
         }
 
-        GenerateApplicationDocumentation(context);
+        GenerateApplicationDocumentation(context, compilation);
     }
 
-    private void GenerateCommandSourceFile(GeneratorExecutionContext context, List<string> methodNames, ClassDeclarationSyntax classDecl)
+    private void GenerateCommandSourceFile(SourceProductionContext context, Compilation compilation, List<string> methodNames, ClassDeclarationSyntax classDecl)
     {
         var cb = new CodeBuilder("System", "System.Linq", "TeCLI", "TeCLI.Attributes");
 
-        var actionMap = GetActionInfo(context, classDecl);
+        var actionMap = GetActionInfo(compilation, classDecl);
 
-        cb.AddUsing(context.GetNamespace(classDecl)!);
+        cb.AddUsing(compilation.GetNamespace(classDecl)!);
 
         using (cb.AddBlock("namespace TeCLI"))
         {
@@ -100,7 +101,7 @@ public partial class CommandLineArgsGenerator
                     {
                         using (cb.AddBlock("if (args.Length == 0)"))
                         {
-                            var model = context.Compilation.GetSemanticModel(classDecl.SyntaxTree);
+                            var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
 
                             if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
                             {
@@ -141,12 +142,12 @@ public partial class CommandLineArgsGenerator
                             {
                                 foreach (var action in actionMap)
                                 {
-                                    GenerateCommandActions(context, cb, classDecl, action);
+                                    GenerateCommandActions(compilation, cb, classDecl, action);
                                 }
 
                                 using (cb.AddBlock("default:"))
                                 {
-                                    var model = context.Compilation.GetSemanticModel(classDecl.SyntaxTree);
+                                    var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
                                     if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
                                     {
                                         var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();

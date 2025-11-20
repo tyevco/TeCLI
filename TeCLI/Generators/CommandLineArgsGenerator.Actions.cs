@@ -9,11 +9,11 @@ namespace TeCLI.Generators;
 
 public partial class CommandLineArgsGenerator
 {
-    private IEnumerable<ActionSourceInfo> GetActionInfo(GeneratorExecutionContext context, ClassDeclarationSyntax classDecl)
+    private IEnumerable<ActionSourceInfo> GetActionInfo(Compilation compilation, ClassDeclarationSyntax classDecl)
     {
         List<ActionSourceInfo> actions = new List<ActionSourceInfo>();
 
-        var model = context.Compilation.GetSemanticModel(classDecl.SyntaxTree);
+        var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
 
         if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
         {
@@ -41,7 +41,7 @@ public partial class CommandLineArgsGenerator
         return actions;
     }
 
-    private void GenerateCommandActions(GeneratorExecutionContext context, CodeBuilder codeBuilder, ClassDeclarationSyntax classDecl, ActionSourceInfo actionInfo)
+    private void GenerateCommandActions(Compilation compilation, CodeBuilder codeBuilder, ClassDeclarationSyntax classDecl, ActionSourceInfo actionInfo)
     {
         using (codeBuilder.AddBlock($"case \"{actionInfo.DisplayName}\":"))
         {

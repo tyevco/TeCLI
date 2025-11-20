@@ -7,7 +7,7 @@ namespace TeCLI.Generators;
 
 public partial class CommandLineArgsGenerator
 {
-    private void GenerateApplicationDocumentation(GeneratorExecutionContext context)
+    private void GenerateApplicationDocumentation(SourceProductionContext context, Compilation compilation)
     {
         CodeBuilder cb = new CodeBuilder("System");
 
@@ -25,7 +25,7 @@ public partial class CommandLineArgsGenerator
         context.AddSource("CommandDispatcher.Documentation.cs", SourceText.From(cb, Encoding.UTF8));
     }
 
-    private void GenerateCommandDocumentation(GeneratorExecutionContext context, ClassDeclarationSyntax classDecl)
+    private void GenerateCommandDocumentation(SourceProductionContext context, Compilation compilation, ClassDeclarationSyntax classDecl)
     {
         CodeBuilder cb = new CodeBuilder("System");
         using (cb.AddBlock("namespace TeCLI"))
