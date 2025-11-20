@@ -18,6 +18,7 @@ namespace TeCLI.Generators
         public IEnumerable<ParameterSourceInfo> Children { get; set; } = [];
         public int ParameterIndex { get; set; }
         public string? DisplayType { get; set; }
+        public string? DefaultValue { get; set; }
 
         public bool Optional => !Required;
     }

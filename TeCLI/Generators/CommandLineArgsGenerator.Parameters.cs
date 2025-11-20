@@ -60,66 +60,36 @@ public partial class CommandLineArgsGenerator
                 cb.AddBlankLine();
                 if (hasOptionalValues)
                 {
-                    cb.AppendLine($"// Now determine which overload to call for the action.");
+                    cb.AppendLine($"// Build parameter list with optional values handled via ternary operators");
 
-                    var paramsList = parameterDetails.Where(x => x.Required).Select(p => $"p{p.ParameterIndex}");
+                    // Build the complete parameter list with all parameters (required and optional)
+                    List<string> allParams = [];
 
-                    var actionFormat = methodSymbol.MapAsync(
-                                () => $"actionToInvoke = async command => await command.{methodSymbol.Name}({{0}});",
-                                () => $"actionToInvoke = command => command.{methodSymbol.Name}({{0}});");
-
-                    cb.AppendLine(
-                            methodSymbol.MapAsync(
-                                () => $"Func<{methodSymbol.ContainingSymbol.Name}, Task> {string.Format(actionFormat, string.Join(", ", paramsList))}",
-                                () => $"Action<{methodSymbol.ContainingSymbol.Name}> {string.Format(actionFormat, string.Join(", ", paramsList))}"));
-
-                    var optionalParameters = parameterDetails.Where(x => x.Optional).ToList();
-                    var bitsTotal = Math.Pow(2, optionalParameters.Count) - 1;
-
-                    CodeBuilder.IfElseBuilder? ifBuilder = null;
-                    for (long bitMask = 1; bitMask <= bitsTotal; bitMask++)
+                    foreach (var param in parameterDetails)
                     {
-                        StringBuilder ifExprBuilder = new StringBuilder();
-                        List<string> additionalParams = [];
-                        for (int p = 0; p < optionalParameters.Count; p++)
+                        if (param.Required)
                         {
-                            var parameter = optionalParameters[p];
-                            var isOn = (bitMask & (1 << p)) == 1 << p;
-                            if (ifExprBuilder.Length > 0)
-                            {
-                                ifExprBuilder.Append(" && ");
-                            }
-
-                            if (isOn)
-                            {
-                                additionalParams.Add($"{parameter.ParameterName}: p{parameter.ParameterIndex}");
-                            }
-                            else
-                            {
-                                ifExprBuilder.Append("!");
-                            }
-
-                            ifExprBuilder.AppendFormat("p{0}Set", parameter.ParameterIndex);
+                            // Required parameters are passed directly
+                            allParams.Add($"{param.ParameterName}: p{param.ParameterIndex}");
                         }
-
-                        if (ifBuilder != null)
+                        else if (param.IsSwitch)
                         {
-                            ifBuilder.Else(ifExprBuilder.ToString());
+                            // Switches are always evaluated (true/false), no need for ternary
+                            allParams.Add($"{param.ParameterName}: p{param.ParameterIndex}");
                         }
                         else
                         {
-                            ifBuilder = cb.AddIf(ifExprBuilder.ToString());
+                            // Optional non-switch parameters use ternary: if set, use parsed value, otherwise use default
+                            var defaultValue = param.DefaultValue ?? $"default({param.DisplayType})";
+                            allParams.Add($"{param.ParameterName}: p{param.ParameterIndex}Set ? p{param.ParameterIndex} : {defaultValue}");
                         }
-
-                        cb.AppendLine(string.Format(actionFormat, string.Join(", ", paramsList.Concat(additionalParams))));
                     }
-                    ifBuilder?.Dispose();
 
-                    cb.AddBlankLine();
+                    // Generate single method call with all parameters
                     cb.AppendLine(
                             methodSymbol.MapAsync(
-                                () => $"await {methodInvokerName}(actionToInvoke);",
-                                () => $"{methodInvokerName}(actionToInvoke);"));
+                                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", allParams)}));",
+                                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", allParams)}));"));
                 }
                 else
                 {
@@ -188,6 +158,12 @@ public partial class CommandLineArgsGenerator
             psi.ParameterIndex = paramIndex++;
             psi.ParameterName = parameterSymbol.Name;
             psi.Required = parameterSyntax.Default == null;
+
+            // Capture the default value if present
+            if (parameterSyntax.Default != null)
+            {
+                psi.DefaultValue = parameterSyntax.Default.Value.ToString();
+            }
 
             psi.SpecialType = parameterSymbol.Type.SpecialType;
             psi.DisplayType = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -260,6 +236,13 @@ public partial class CommandLineArgsGenerator
             psi.ParameterName = propertySymbol.Name;
             psi.Parent = propertySyntax.Parent;
             psi.Required = !hasInitializer;
+
+            // Capture the default value from initializer if present
+            if (propertySyntax.Initializer != null)
+            {
+                psi.DefaultValue = propertySyntax.Initializer.Value.ToString();
+            }
+
             psi.SpecialType = propertySymbol.Type.SpecialType;
             psi.DisplayType = propertySymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
