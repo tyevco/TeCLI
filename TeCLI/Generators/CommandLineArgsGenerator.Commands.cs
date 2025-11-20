@@ -10,6 +10,10 @@ using static TeCLI.Constants;
 
 namespace TeCLI.Generators;
 
+/// <summary>
+/// Generates the CommandDispatcher class and command routing logic.
+/// This partial class handles the top-level command dispatch infrastructure.
+/// </summary>
 public partial class CommandLineArgsGenerator
 {
     private void GenerateCommandDispatcher(SourceProductionContext context, Compilation compilation, ImmutableArray<ClassDeclarationSyntax> commandClasses)
