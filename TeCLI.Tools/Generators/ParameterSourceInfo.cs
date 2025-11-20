@@ -19,6 +19,9 @@ namespace TeCLI.Generators
         public int ParameterIndex { get; set; }
         public string? DisplayType { get; set; }
         public string? DefaultValue { get; set; }
+        public bool IsCollection { get; set; }
+        public string? ElementType { get; set; }
+        public SpecialType ElementSpecialType { get; set; }
 
         public bool Optional => !Required;
     }

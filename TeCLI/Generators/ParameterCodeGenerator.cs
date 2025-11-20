@@ -44,6 +44,11 @@ internal static class ParameterCodeGenerator
 
             cb.AppendLine($"{variableName} = {switchCheck};");
         }
+        else if (sourceInfo.IsCollection)
+        {
+            // Generate collection parsing code
+            GenerateCollectionOptionSource(cb, sourceInfo, variableName);
+        }
         else
         {
             string optionCheck = sourceInfo.ShortName != '\0'
@@ -76,19 +81,168 @@ internal static class ParameterCodeGenerator
         }
     }
 
+    private static void GenerateCollectionOptionSource(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName)
+    {
+        string optionCheck = sourceInfo.ShortName != '\0'
+            ? $"args[i] == \"-{sourceInfo.ShortName}\" || args[i] == \"--{sourceInfo.Name}\""
+            : $"args[i] == \"--{sourceInfo.Name}\"";
+
+        cb.AppendLine($"var {variableName}Values = new System.Collections.Generic.List<{sourceInfo.ElementType}>();");
+
+        using (cb.AddBlock($"for (int i = 0; i < args.Length - 1; i++)"))
+        {
+            using (cb.AddBlock($"if ({optionCheck})"))
+            {
+                // Check if next arg is not another option
+                using (cb.AddBlock($"if (i + 1 < args.Length && !args[i + 1].StartsWith(\"-\"))"))
+                {
+                    using (var tb = cb.AddTry())
+                    {
+                        cb.AppendLine($"// Support comma-separated values");
+                        cb.AppendLine($"var values = args[i + 1].Split(',');");
+                        using (cb.AddBlock($"foreach (var val in values)"))
+                        {
+                            cb.AppendLine($"var trimmedVal = val.Trim();");
+                            using (cb.AddBlock($"if (!string.IsNullOrWhiteSpace(trimmedVal))"))
+                            {
+                                cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})Convert.ChangeType(trimmedVal, typeof({sourceInfo.ElementType})));");
+                            }
+                        }
+                        tb.Catch();
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+                    }
+                }
+            }
+        }
+
+        // Convert list to final collection type
+        using (cb.AddBlock($"if ({variableName}Values.Count > 0)"))
+        {
+            // Determine how to create the final collection
+            if (sourceInfo.DisplayType!.Contains("[]"))
+            {
+                // Array type
+                cb.AppendLine($"{variableName} = {variableName}Values.ToArray();");
+            }
+            else if (sourceInfo.DisplayType.Contains("List<"))
+            {
+                // List<T>
+                cb.AppendLine($"{variableName} = {variableName}Values;");
+            }
+            else
+            {
+                // IEnumerable, ICollection, IList, etc. - use ToArray() and let the runtime handle the conversion
+                cb.AppendLine($"{variableName} = {variableName}Values.ToArray();");
+            }
+
+            if (sourceInfo.Optional)
+            {
+                cb.AppendLine($"{variableName}Set = true;");
+            }
+        }
+
+        // If required and no values were provided
+        if (sourceInfo.Required)
+        {
+            using (cb.AddBlock("else"))
+            {
+                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
+            }
+        }
+    }
+
     private static void GenerateArgumentSource(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName)
     {
-        using (cb.AddBlock($"if (args.Length < {sourceInfo.ArgumentIndex + 1})"))
+        if (sourceInfo.IsCollection)
         {
-            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
+            // For collection arguments, collect all remaining positional arguments starting from this index
+            GenerateCollectionArgumentSource(cb, sourceInfo, variableName);
         }
-        using (cb.AddBlock("else"))
+        else
         {
-            using (var tb = cb.AddTry())
+            using (cb.AddBlock($"if (args.Length < {sourceInfo.ArgumentIndex + 1})"))
             {
-                cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{sourceInfo.ArgumentIndex}], typeof({sourceInfo.DisplayType}));");
-                tb.Catch();
-                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
+            }
+            using (cb.AddBlock("else"))
+            {
+                using (var tb = cb.AddTry())
+                {
+                    cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{sourceInfo.ArgumentIndex}], typeof({sourceInfo.DisplayType}));");
+                    tb.Catch();
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+                }
+            }
+        }
+    }
+
+    private static void GenerateCollectionArgumentSource(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName)
+    {
+        cb.AppendLine($"var {variableName}Values = new System.Collections.Generic.List<{sourceInfo.ElementType}>();");
+
+        // Collect all positional (non-option) arguments starting from the argument index
+        cb.AppendLine($"int {variableName}ArgCount = 0;");
+        using (cb.AddBlock("for (int i = 0; i < args.Length; i++)"))
+        {
+            using (cb.AddBlock("if (!args[i].StartsWith(\"-\"))"))
+            {
+                using (cb.AddBlock($"if ({variableName}ArgCount >= {sourceInfo.ArgumentIndex})"))
+                {
+                    using (var tb = cb.AddTry())
+                    {
+                        cb.AppendLine($"// Support comma-separated values in arguments too");
+                        cb.AppendLine($"var values = args[i].Split(',');");
+                        using (cb.AddBlock("foreach (var val in values)"))
+                        {
+                            cb.AppendLine($"var trimmedVal = val.Trim();");
+                            using (cb.AddBlock("if (!string.IsNullOrWhiteSpace(trimmedVal))"))
+                            {
+                                cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})Convert.ChangeType(trimmedVal, typeof({sourceInfo.ElementType})));");
+                            }
+                        }
+                        tb.Catch();
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+                    }
+                }
+                cb.AppendLine($"{variableName}ArgCount++;");
+            }
+            using (cb.AddBlock("else"))
+            {
+                cb.AppendLine($"// Skip the option and its value (if it has one)");
+                using (cb.AddBlock("if (i + 1 < args.Length && !args[i + 1].StartsWith(\"-\"))"))
+                {
+                    cb.AppendLine("i++; // Skip the option's value");
+                }
+            }
+        }
+
+        // Convert list to final collection type
+        using (cb.AddBlock($"if ({variableName}Values.Count > 0)"))
+        {
+            // Determine how to create the final collection
+            if (sourceInfo.DisplayType!.Contains("[]"))
+            {
+                // Array type
+                cb.AppendLine($"{variableName} = {variableName}Values.ToArray();");
+            }
+            else if (sourceInfo.DisplayType.Contains("List<"))
+            {
+                // List<T>
+                cb.AppendLine($"{variableName} = {variableName}Values;");
+            }
+            else
+            {
+                // IEnumerable, ICollection, IList, etc. - use ToArray() and let the runtime handle the conversion
+                cb.AppendLine($"{variableName} = {variableName}Values.ToArray();");
+            }
+        }
+
+        // If required and no values were provided
+        if (sourceInfo.Required)
+        {
+            using (cb.AddBlock("else"))
+            {
+                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
             }
         }
     }

@@ -14,10 +14,10 @@ This document outlines potential features and improvements for TeCLI. Items are 
 ## Core Feature Enhancements
 
 ### 🎯 Array and Collection Support
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** High
 
-Currently, TeCLI only supports primitive types. Adding support for collections would enable scenarios like:
+TeCLI now supports collection types for both options and arguments! This enables scenarios like:
 ```csharp
 [Action("process")]
 public void Process(
@@ -25,15 +25,26 @@ public void Process(
     [Option("tags")] List<string> tags)
 {
     // myapp process --files file1.txt --files file2.txt --tags tag1 --tags tag2
+    // OR: myapp process --files file1.txt,file2.txt --tags tag1,tag2
 }
 ```
 
-**Implementation Considerations:**
-- Support for arrays (`T[]`)
-- Support for `List<T>`, `IEnumerable<T>`, `ICollection<T>`
-- Repeatable options syntax (`--file a.txt --file b.txt`)
-- Comma-separated values syntax (`--files a.txt,b.txt,c.txt`)
-- New analyzers to validate collection types
+**Implemented Features:**
+- ✅ Support for arrays (`T[]`)
+- ✅ Support for `List<T>`, `IEnumerable<T>`, `ICollection<T>`, `IList<T>`, `IReadOnlyCollection<T>`, `IReadOnlyList<T>`
+- ✅ Repeatable options syntax (`--file a.txt --file b.txt`)
+- ✅ Comma-separated values syntax (`--files a.txt,b.txt,c.txt`)
+- ✅ Mixed syntax support (repeatable + comma-separated)
+- ✅ Collection support for both options and arguments
+- ✅ Comprehensive test coverage
+
+**Files Changed:**
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Added collection tracking properties
+- `TeCLI.Tools/Extensions.cs` - Added collection type detection and validation
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Added collection type detection logic
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Implemented collection parsing
+- `TeCLI.Tests/TestCommands/CollectionCommand.cs` - Test command for collections
+- `TeCLI.Tests/CollectionSupportTests.cs` - Comprehensive integration tests
 
 ---
 
@@ -790,10 +801,10 @@ This section will be populated based on GitHub issues and community feedback.
 
 Based on impact and feasibility, the next release should focus on:
 
-1. ✅ Array/Collection Support (High impact, moderate complexity)
-2. ✅ Enum Support (High impact, low complexity)
-3. ✅ Required Options (High impact, low complexity)
-4. ✅ Automatic Version Flag (Medium impact, low complexity)
+1. ✅ Array/Collection Support (High impact, moderate complexity) - **COMPLETED**
+2. **Enum Support** (High impact, low complexity) - **NEXT PRIORITY**
+3. Required Options (High impact, low complexity)
+4. Automatic Version Flag (Medium impact, low complexity)
 5. ✅ Improved Error Messages with Suggestions (High impact, moderate complexity) - **COMPLETED**
 
 ## Priorities for Future Releases
