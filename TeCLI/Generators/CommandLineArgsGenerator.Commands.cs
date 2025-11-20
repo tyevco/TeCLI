@@ -18,7 +18,8 @@ public partial class CommandLineArgsGenerator
 {
     private void GenerateCommandDispatcher(SourceProductionContext context, Compilation compilation, ImmutableArray<ClassDeclarationSyntax> commandClasses)
     {
-        Dictionary<ClassDeclarationSyntax, List<string>> dispatchMap = [];
+        // Build command hierarchies
+        var commandHierarchies = BuildCommandHierarchies(compilation, commandClasses);
 
         var cb = new CodeBuilder("System", "System.Linq");
 
@@ -62,14 +63,12 @@ public partial class CommandLineArgsGenerator
 
                         using (cb.AddBlock("switch (command)"))
                         {
-                            foreach (var commandClass in commandClasses)
+                            foreach (var commandInfo in commandHierarchies)
                             {
-                                var commandName = GetCommandName(commandClass);
-                                var commandAliases = GetCommandAliases(compilation, commandClass);
-                                var methodName = $"Dispatch{commandClass.Identifier.Text}Async";
+                                var methodName = $"Dispatch{commandInfo.TypeSymbol!.Name}Async";
 
                                 // Generate case for primary name
-                                using (cb.AddBlock($"case \"{commandName!.ToLower()}\":"))
+                                using (cb.AddBlock($"case \"{commandInfo.CommandName!.ToLower()}\":"))
                                 {
                                     cb.AppendLine($"await {methodName}(remainingArgs);");
                                     cb.AppendLine("break;");
@@ -78,7 +77,7 @@ public partial class CommandLineArgsGenerator
                                 cb.AddBlankLine();
 
                                 // Generate cases for aliases
-                                foreach (var alias in commandAliases)
+                                foreach (var alias in commandInfo.Aliases)
                                 {
                                     using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
                                     {
@@ -88,13 +87,6 @@ public partial class CommandLineArgsGenerator
 
                                     cb.AddBlankLine();
                                 }
-
-                                if (!dispatchMap.TryGetValue(commandClass, out var dispatchs))
-                                {
-                                    dispatchs = [];
-                                }
-                                dispatchs.Add(methodName);
-                                dispatchMap[commandClass] = dispatchs;
                             }
 
                             using (cb.AddBlock("default:"))
@@ -102,17 +94,14 @@ public partial class CommandLineArgsGenerator
                                 // Build list of available commands (including aliases) for suggestions
                                 cb.AppendLine("var availableCommands = new[] {");
                                 bool first = true;
-                                foreach (var commandClass in commandClasses)
+                                foreach (var commandInfo in commandHierarchies)
                                 {
-                                    var commandName = GetCommandName(commandClass);
-                                    var commandAliases = GetCommandAliases(compilation, commandClass);
-
                                     if (!first) cb.Append(", ");
-                                    cb.Append($"\"{commandName!.ToLower()}\"");
+                                    cb.Append($"\"{commandInfo.CommandName!.ToLower()}\"");
                                     first = false;
 
                                     // Add aliases to the suggestion list
-                                    foreach (var alias in commandAliases)
+                                    foreach (var alias in commandInfo.Aliases)
                                     {
                                         cb.Append($", \"{alias.ToLower()}\"");
                                     }
@@ -139,10 +128,11 @@ public partial class CommandLineArgsGenerator
 
         context.AddSource("CommandDispatcher.cs", SourceText.From(cb, Encoding.UTF8));
 
-        foreach (var entry in dispatchMap)
+        // Generate dispatch methods for all commands in the hierarchies
+        foreach (var commandInfo in commandHierarchies)
         {
-            GenerateCommandSourceFile(context, compilation, entry.Value, entry.Key);
-            GenerateCommandDocumentation(context, compilation, entry.Key);
+            GenerateCommandSourceFileHierarchical(context, compilation, commandInfo);
+            GenerateCommandDocumentation(context, compilation, commandInfo);
         }
 
         GenerateApplicationDocumentation(context, compilation);
@@ -242,6 +232,217 @@ public partial class CommandLineArgsGenerator
         context.AddSource($"CommandDispatcher.Command.{classDecl.Identifier.Text}.cs", SourceText.From(cb, Encoding.UTF8));
     }
 
+    /// <summary>
+    /// Generates dispatch methods for a command hierarchy (including nested subcommands)
+    /// </summary>
+    private void GenerateCommandSourceFileHierarchical(SourceProductionContext context, Compilation compilation, CommandSourceInfo commandInfo)
+    {
+        var cb = new CodeBuilder("System", "System.Linq", "TeCLI", "TeCLI.Attributes");
+
+        // Add namespace for the command type
+        var namespaceSymbol = commandInfo.TypeSymbol!.ContainingNamespace;
+        if (namespaceSymbol != null && !namespaceSymbol.IsGlobalNamespace)
+        {
+            cb.AddUsing(namespaceSymbol.ToDisplayString());
+        }
+
+        using (cb.AddBlock("namespace TeCLI"))
+        {
+            using (cb.AddBlock("public partial class CommandDispatcher"))
+            {
+                // Generate dispatch method for this command
+                GenerateCommandDispatchMethod(cb, compilation, commandInfo);
+
+                // Generate action processing methods for this command's actions
+                foreach (var action in commandInfo.Actions)
+                {
+                    cb.AddBlankLine();
+                    GenerateActionCode(cb, action);
+                }
+
+                cb.AddBlankLine();
+            }
+        }
+
+        context.AddSource($"CommandDispatcher.Command.{commandInfo.TypeSymbol.Name}.cs", SourceText.From(cb, Encoding.UTF8));
+
+        // Recursively generate dispatch methods for subcommands
+        foreach (var subcommand in commandInfo.Subcommands)
+        {
+            GenerateCommandSourceFileHierarchical(context, compilation, subcommand);
+        }
+    }
+
+    /// <summary>
+    /// Generates the dispatch method for a single command (which may have subcommands and/or actions)
+    /// </summary>
+    private void GenerateCommandDispatchMethod(CodeBuilder cb, Compilation compilation, CommandSourceInfo commandInfo)
+    {
+        var methodName = $"Dispatch{commandInfo.TypeSymbol!.Name}Async";
+
+        using (cb.AddBlock($"private async Task {methodName}(string[] args)"))
+        {
+            // Check for help flag first
+            using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
+            {
+                cb.AppendLine($"DisplayCommand{commandInfo.TypeSymbol.Name}Help();");
+                cb.AppendLine("return;");
+            }
+
+            cb.AddBlankLine();
+
+            using (cb.AddBlock("if (args.Length == 0)"))
+            {
+                // If no args, try to invoke primary action
+                GeneratePrimaryMethodInvocationFromInfo(cb, compilation, commandInfo, throwOnNoPrimary: true);
+            }
+            using (cb.AddBlock("else"))
+            {
+                cb.AppendLine("string subcommandOrAction = args[0].ToLower();");
+                cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
+
+                cb.AddBlankLine();
+
+                using (cb.AddBlock("switch (subcommandOrAction)"))
+                {
+                    // Generate cases for subcommands first (they take precedence)
+                    foreach (var subcommand in commandInfo.Subcommands)
+                    {
+                        var subMethodName = $"Dispatch{subcommand.TypeSymbol!.Name}Async";
+
+                        // Primary subcommand name
+                        using (cb.AddBlock($"case \"{subcommand.CommandName!.ToLower()}\":"))
+                        {
+                            cb.AppendLine($"await {subMethodName}(remainingArgs);");
+                            cb.AppendLine("return;");
+                        }
+
+                        cb.AddBlankLine();
+
+                        // Subcommand aliases
+                        foreach (var alias in subcommand.Aliases)
+                        {
+                            using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
+                            {
+                                cb.AppendLine($"await {subMethodName}(remainingArgs);");
+                                cb.AppendLine("return;");
+                            }
+
+                            cb.AddBlankLine();
+                        }
+                    }
+
+                    // Generate cases for actions
+                    foreach (var action in commandInfo.Actions)
+                    {
+                        var actionInvokeMethodName = $"{commandInfo.TypeSymbol.Name}{action.Method!.Name}";
+
+                        // Primary action name
+                        using (cb.AddBlock($"case \"{action.ActionName!.ToLower()}\":"))
+                        {
+                            cb.AppendLine(action.Method.MapAsync(
+                                () => $"await Process{actionInvokeMethodName}Async(remainingArgs);",
+                                () => $"Process{actionInvokeMethodName}(remainingArgs);"));
+                            cb.AppendLine("break;");
+                        }
+
+                        cb.AddBlankLine();
+
+                        // Action aliases
+                        foreach (var alias in action.Aliases)
+                        {
+                            using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
+                            {
+                                cb.AppendLine(action.Method.MapAsync(
+                                    () => $"await Process{actionInvokeMethodName}Async(remainingArgs);",
+                                    () => $"Process{actionInvokeMethodName}(remainingArgs);"));
+                                cb.AppendLine("break;");
+                            }
+
+                            cb.AddBlankLine();
+                        }
+                    }
+
+                    // Default case: try primary action or show error
+                    using (cb.AddBlock("default:"))
+                    {
+                        GeneratePrimaryMethodInvocationFromInfo(cb, compilation, commandInfo, throwOnNoPrimary: false);
+
+                        // Build list of available subcommands and actions for suggestions
+                        cb.AppendLine("var availableOptions = new List<string>();");
+
+                        // Add subcommands
+                        foreach (var subcommand in commandInfo.Subcommands)
+                        {
+                            cb.AppendLine($"availableOptions.Add(\"{subcommand.CommandName!.ToLower()}\");");
+                            foreach (var alias in subcommand.Aliases)
+                            {
+                                cb.AppendLine($"availableOptions.Add(\"{alias.ToLower()}\");");
+                            }
+                        }
+
+                        // Add actions
+                        foreach (var action in commandInfo.Actions)
+                        {
+                            cb.AppendLine($"availableOptions.Add(\"{action.ActionName!.ToLower()}\");");
+                            foreach (var alias in action.Aliases)
+                            {
+                                cb.AppendLine($"availableOptions.Add(\"{alias.ToLower()}\");");
+                            }
+                        }
+
+                        cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(subcommandOrAction, availableOptions.ToArray());");
+                        using (cb.AddBlock("if (suggestion != null)"))
+                        {
+                            cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownActionWithSuggestion}", subcommandOrAction, suggestion));""");
+                        }
+                        using (cb.AddBlock("else"))
+                        {
+                            cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownAction}", subcommandOrAction));""");
+                        }
+                        cb.AppendLine("break;");
+                    }
+                }
+            }
+        }
+
+        cb.AddBlankLine();
+    }
+
+    /// <summary>
+    /// Generates primary method invocation from CommandSourceInfo
+    /// </summary>
+    private void GeneratePrimaryMethodInvocationFromInfo(CodeBuilder cb, Compilation compilation, CommandSourceInfo commandInfo, bool throwOnNoPrimary)
+    {
+        var primaryMethods = commandInfo.TypeSymbol!.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
+
+        int count = 0;
+        if (primaryMethods != null)
+        {
+            foreach (var primaryMethod in primaryMethods)
+            {
+                if (count++ > 0)
+                {
+                    // Multiple primary attributes defined - use the first one
+                    break;
+                }
+                else
+                {
+                    // Use this method as the primary action
+                    var actionInvokeMethodName = $"{commandInfo.TypeSymbol.Name}{primaryMethod.Name}";
+                    cb.AppendLine(primaryMethod.MapAsync(
+                            () => $"await Process{actionInvokeMethodName}Async(args);",
+                            () => $"Process{actionInvokeMethodName}(args);"));
+                }
+            }
+        }
+
+        if (count == 0 && throwOnNoPrimary)
+        {
+            cb.AppendLine($"""throw new InvalidOperationException(string.Format("{ErrorMessages.NoPrimaryActionDefined}", "{commandInfo.CommandName}"));""");
+        }
+    }
+
     private string? GetCommandName(ClassDeclarationSyntax classDecl)
     {
         // Logic to extract command name from attributes
@@ -316,6 +517,146 @@ public partial class CommandLineArgsGenerator
                 cb.AppendLine($"""throw new InvalidOperationException(string.Format("{ErrorMessages.NoPrimaryActionDefined}", "{GetCommandName(classDecl)}"));""");
             }
         }
+    }
+
+    /// <summary>
+    /// Recursively extracts command information including nested subcommands
+    /// </summary>
+    private CommandSourceInfo ExtractCommandInfo(Compilation compilation, INamedTypeSymbol typeSymbol, CommandSourceInfo? parent = null, int level = 0)
+    {
+        var commandInfo = new CommandSourceInfo
+        {
+            TypeSymbol = typeSymbol,
+            Parent = parent,
+            Level = level
+        };
+
+        // Extract command name and metadata from CommandAttribute
+        var commandAttr = typeSymbol.GetAttribute<CommandAttribute>();
+        if (commandAttr != null)
+        {
+            // Get command name from first constructor argument
+            if (commandAttr.ConstructorArguments.Length > 0)
+            {
+                commandInfo.CommandName = commandAttr.ConstructorArguments[0].Value?.ToString();
+            }
+
+            // Get description from named argument
+            var descArg = commandAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Description");
+            if (!descArg.Value.IsNull)
+            {
+                commandInfo.Description = descArg.Value.Value?.ToString();
+            }
+
+            // Get aliases from named argument
+            var aliasesArg = commandAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Aliases");
+            if (!aliasesArg.Value.IsNull && aliasesArg.Value.Kind == TypedConstantKind.Array)
+            {
+                foreach (var value in aliasesArg.Value.Values)
+                {
+                    if (value.Value is string alias)
+                    {
+                        commandInfo.Aliases.Add(alias);
+                    }
+                }
+            }
+        }
+
+        // Extract actions from methods with ActionAttribute
+        var actionMethods = typeSymbol.GetMembersWithAttribute<IMethodSymbol, ActionAttribute>();
+        if (actionMethods != null)
+        {
+            foreach (var method in actionMethods)
+            {
+                var actionInfo = new ActionSourceInfo
+                {
+                    Method = method
+                };
+
+                var actionAttr = method.GetAttribute<ActionAttribute>();
+                if (actionAttr != null)
+                {
+                    // Get action name from first constructor argument
+                    if (actionAttr.ConstructorArguments.Length > 0)
+                    {
+                        actionInfo.ActionName = actionAttr.ConstructorArguments[0].Value?.ToString();
+                    }
+
+                    // Get display name
+                    var displayNameArg = actionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "DisplayName");
+                    if (!displayNameArg.Value.IsNull)
+                    {
+                        actionInfo.DisplayName = displayNameArg.Value.Value?.ToString();
+                    }
+
+                    // Get aliases
+                    var aliasesArg = actionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Aliases");
+                    if (!aliasesArg.Value.IsNull && aliasesArg.Value.Kind == TypedConstantKind.Array)
+                    {
+                        foreach (var value in aliasesArg.Value.Values)
+                        {
+                            if (value.Value is string alias)
+                            {
+                                actionInfo.Aliases.Add(alias);
+                            }
+                        }
+                    }
+
+                    // Set invoker method name
+                    actionInfo.InvokerMethodName = $"{typeSymbol.Name}{method.Name}";
+                }
+
+                commandInfo.Actions.Add(actionInfo);
+            }
+        }
+
+        // Recursively extract nested commands (nested classes with CommandAttribute)
+        var nestedTypes = typeSymbol.GetTypeMembers();
+        foreach (var nestedType in nestedTypes)
+        {
+            if (nestedType.GetAttribute<CommandAttribute>() != null)
+            {
+                var nestedCommandInfo = ExtractCommandInfo(compilation, nestedType, commandInfo, level + 1);
+                commandInfo.Subcommands.Add(nestedCommandInfo);
+            }
+        }
+
+        return commandInfo;
+    }
+
+    /// <summary>
+    /// Builds a flat list of all commands in the hierarchy for easy iteration
+    /// </summary>
+    private List<CommandSourceInfo> FlattenCommandHierarchy(CommandSourceInfo rootCommand)
+    {
+        var result = new List<CommandSourceInfo> { rootCommand };
+
+        foreach (var subcommand in rootCommand.Subcommands)
+        {
+            result.AddRange(FlattenCommandHierarchy(subcommand));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Builds command hierarchies from all top-level command classes
+    /// </summary>
+    private List<CommandSourceInfo> BuildCommandHierarchies(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> commandClasses)
+    {
+        var hierarchies = new List<CommandSourceInfo>();
+
+        foreach (var commandClass in commandClasses)
+        {
+            var model = compilation.GetSemanticModel(commandClass.SyntaxTree);
+            if (model.GetDeclaredSymbol(commandClass) is INamedTypeSymbol typeSymbol)
+            {
+                var commandInfo = ExtractCommandInfo(compilation, typeSymbol);
+                hierarchies.Add(commandInfo);
+            }
+        }
+
+        return hierarchies;
     }
 
 }
