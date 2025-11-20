@@ -7,3 +7,7 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 CLI001 | Usage | Error | PrimitiveTypeArgumentAnalyzer
 CLI002 | Usage | Error | SetOptionAccessibilityAnalyzer
+CLI003 | Usage | Error | MultiplePrimaryAttributeAnalyzer
+CLI004 | Usage | Warning | CommandOptionNameValidationAnalyzer - Invalid command name
+CLI005 | Usage | Warning | CommandOptionNameValidationAnalyzer - Invalid option name
+CLI006 | Usage | Error | CommandOptionNameValidationAnalyzer - Empty name not allowed

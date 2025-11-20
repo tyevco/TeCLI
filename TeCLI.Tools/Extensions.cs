@@ -241,19 +241,42 @@ public static class Extensions
 
     public static bool HasTaskLikeReturnType(this IMethodSymbol methodSymbol)
     {
-        // Check if there's a GetAwaiter method
-        foreach (var member in methodSymbol.ReturnType.GetMembers("GetAwaiter"))
+        var returnType = methodSymbol.ReturnType;
+
+        // Check for Task, Task<T>, ValueTask, or ValueTask<T> by checking the namespace and type name
+        var typeNamespace = returnType.ContainingNamespace?.ToDisplayString();
+        var typeName = returnType.Name;
+
+        // Check for System.Threading.Tasks.Task or System.Threading.Tasks.Task<T>
+        if (typeNamespace == "System.Threading.Tasks")
         {
-            if (member is IMethodSymbol awaiterMethodSymbol && awaiterMethodSymbol.Parameters.IsEmpty && !awaiterMethodSymbol.ReturnsVoid)
+            if (typeName == "Task" || typeName == "ValueTask")
             {
-                // Check the return type of the GetAwaiter method
-                var returnTypeOfAwaiter = awaiterMethodSymbol.ReturnType;
-                if (returnTypeOfAwaiter.Name.Contains("TaskAwaiter") || returnTypeOfAwaiter.Name.Contains("ValueTaskAwaiter"))
+                return true;
+            }
+        }
+
+        // Fallback: Check if there's a GetAwaiter method with proper awaiter pattern
+        // This handles custom awaitables
+        foreach (var member in returnType.GetMembers("GetAwaiter"))
+        {
+            if (member is IMethodSymbol awaiterMethodSymbol &&
+                awaiterMethodSymbol.Parameters.IsEmpty &&
+                !awaiterMethodSymbol.ReturnsVoid)
+            {
+                // Verify the awaiter has required members (IsCompleted, OnCompleted, GetResult)
+                var awaiterType = awaiterMethodSymbol.ReturnType;
+                var hasIsCompleted = awaiterType.GetMembers("IsCompleted").Any(m => m is IPropertySymbol);
+                var hasOnCompleted = awaiterType.GetMembers("OnCompleted").Any(m => m is IMethodSymbol);
+                var hasGetResult = awaiterType.GetMembers("GetResult").Any(m => m is IMethodSymbol);
+
+                if (hasIsCompleted && hasOnCompleted && hasGetResult)
                 {
                     return true;
                 }
             }
         }
+
         return false;
     }
 
