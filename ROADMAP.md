@@ -367,30 +367,101 @@ public class RemoveCommand
 ---
 
 ### 📊 Global Options
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Options available across all commands:
+TeCLI now supports global options that are available across all commands! Options defined in a class marked with `[GlobalOptions]` are automatically parsed before command dispatch and can be injected into any action method.
+
 ```csharp
-public class GlobalOptions
+[GlobalOptions]
+public class AppGlobalOptions
 {
     [Option("verbose", ShortName = 'v')]
     public bool Verbose { get; set; }
 
     [Option("config")]
-    public string ConfigFile { get; set; }
+    public string? ConfigFile { get; set; }
+
+    [Option("log-level")]
+    public string LogLevel { get; set; } = "info";
+
+    [Option("timeout")]
+    public int Timeout { get; set; } = 30;
 }
 
 [Command("build")]
 public class BuildCommand
 {
-    [Primary]
-    public void Build(GlobalOptions globals, [Option("output")] string output)
+    [Action("run")]
+    public void Run(AppGlobalOptions globals, [Option("output")] string output)
     {
-        if (globals.Verbose) { /* ... */ }
+        if (globals.Verbose)
+            Console.WriteLine($"Building to {output}...");
+
+        // Use other global options
+        Console.WriteLine($"Log level: {globals.LogLevel}");
+        Console.WriteLine($"Timeout: {globals.Timeout}s");
     }
 }
+
+[Command("deploy")]
+public class DeployCommand
+{
+    [Action("prod")]
+    public void Production(AppGlobalOptions globals, [Argument] string environment)
+    {
+        // Same global options available here
+        if (globals.Verbose)
+            Console.WriteLine($"Deploying to {environment}...");
+    }
+}
+
+// Usage examples:
+// myapp --verbose build run --output dist/
+// myapp --config app.json deploy prod production
+// myapp -v --log-level debug build run --output out/
 ```
+
+**Implemented Features:**
+- ✅ `[GlobalOptions]` attribute to mark global options class
+- ✅ Automatic parsing before command dispatch
+- ✅ Global options removed from args before action processing
+- ✅ Automatic injection into action methods that request them
+- ✅ Support for all option types (switches, strings, ints, enums, custom converters)
+- ✅ Default values work as expected
+- ✅ Short names and long names both supported
+- ✅ Validation attributes work with global options
+- ✅ Environment variable binding works with global options
+- ✅ Actions can optionally receive global options (not required)
+- ✅ Multiple actions can all receive the same global options instance
+- ✅ Comprehensive test coverage (25+ integration tests)
+
+**Use Cases:**
+- Consistent verbose/debug flags across all commands
+- Shared configuration file specification
+- Common authentication tokens or API keys
+- Logging level configuration
+- Timeout and retry settings
+- Output format preferences
+
+**Architecture:**
+- Global options parsed first, stored in `_globalOptions` field
+- Parsed global options removed from args array
+- Actions inspected for parameters matching global options type
+- Global options instance automatically passed when requested
+
+**Files Added:**
+- `TeCLI.Core/GlobalOptionsAttribute.cs` - Attribute to mark global options class
+- `TeCLI.Tools/Generators/GlobalOptionsSourceInfo.cs` - Data structure for tracking
+- `TeCLI.Tests/TestCommands/GlobalOptionsCommand.cs` - Test command
+- `TeCLI.Tests/GlobalOptionsTests.cs` - Comprehensive integration tests
+
+**Files Modified:**
+- `TeCLI/Generators/CommandLineArgsGenerator.cs` - Detect global options classes
+- `TeCLI/Generators/CommandLineArgsGenerator.Commands.cs` - Parse global options
+- `TeCLI/Generators/CommandLineArgsGenerator.Parameters.cs` - Inject into actions
+- `TeCLI/Generators/CommandLineArgsGenerator.Actions.cs` - Thread through pipeline
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Made methods internal for reuse
 
 ---
 
@@ -973,7 +1044,8 @@ The following high-priority items should be considered next:
 2. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
 3. **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells
 4. **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks
-5. **Global Options** (📊 Medium Priority) - Options available across all commands
+5. **Mutual Exclusivity** (💡 Low Priority) - Mark options as mutually exclusive
+6. **ANSI Color and Styling Support** (📊 Medium Priority) - Enhanced help text and colored output
 
 ---
 
