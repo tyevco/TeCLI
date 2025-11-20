@@ -35,7 +35,19 @@ namespace TeCLI.Generators
         public string? CommonTypeParseMethod { get; set; }
         public string? ElementCommonTypeParseMethod { get; set; }
 
+        // Validation support
+        public List<ValidationInfo> Validations { get; set; } = new();
+
         public bool Optional => !Required;
+    }
+
+    /// <summary>
+    /// Information about a validation attribute applied to a parameter
+    /// </summary>
+    public class ValidationInfo
+    {
+        public string AttributeTypeName { get; set; } = string.Empty;
+        public string ValidationCode { get; set; } = string.Empty;
     }
 
     public enum ParameterType
