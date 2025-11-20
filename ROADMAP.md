@@ -695,25 +695,52 @@ public async Task Process([Argument] string[] files)
 ## Configuration and Settings
 
 ### 📊 Configuration File Support
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Load options from configuration files:
+TeCLI now supports loading options from configuration files! This enables centralized configuration management across commands.
+
 ```json
 {
-  "deploy": {
-    "environment": "production",
-    "region": "us-west",
-    "verbose": true
+  "globalOptions": {
+    "verbose": true,
+    "log-level": "debug"
+  },
+  "commands": {
+    "deploy": {
+      "environment": "production",
+      "region": "us-west"
+    }
   }
 }
 ```
 
-**Features:**
-- Multiple format support (JSON, YAML, TOML, INI)
-- Configuration file discovery (`.teclirc`, `tecli.json`, etc.)
-- Merge strategy: file < environment < CLI arguments
-- Per-command configuration sections
+**Implemented Features:**
+- ✅ JSON configuration file support (using System.Text.Json)
+- ✅ Automatic configuration file discovery in order:
+  - `.teclirc.json`, `.teclirc.yaml`, `.teclirc.yml` (current directory)
+  - `tecli.json`, `tecli.yaml`, `tecli.yml` (current directory)
+  - Same files in user home directory
+- ✅ Merge strategy with proper precedence: CLI arguments > Environment variables > Config file > Default values
+- ✅ Per-command configuration sections
+- ✅ Global options configuration support
+- ✅ Support for all option types: strings, integers, booleans, enums, custom converters
+- ✅ Graceful error handling (invalid JSON/values are silently ignored)
+- ✅ Comprehensive test coverage (25+ integration tests)
+
+**Files Changed:**
+- `TeCLI/Generators/CommandLineArgsGenerator.Commands.cs` - Added config file loading and discovery
+- `TeCLI/Generators/CommandLineArgsGenerator.Parameters.cs` - Added commandName parameter
+- `TeCLI/Generators/CommandLineArgsGenerator.Actions.cs` - Pass command name for config lookup
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Config file fallback in parameter parsing
+- `TeCLI.Tests/TestCommands/ConfigFileCommand.cs` - Test command
+- `TeCLI.Tests/ConfigFileTests.cs` - Comprehensive integration tests
+
+**Future Enhancements:**
+- YAML format support (requires YamlDotNet dependency)
+- TOML format support
+- INI format support
+- Configuration profiles
 
 ---
 
@@ -1189,10 +1216,11 @@ Based on impact and feasibility, the next release should focus on:
 
 The following high-priority items should be considered next:
 
-1. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
-2. **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks
-3. **ANSI Color and Styling Support** (📊 Medium Priority) - Enhanced help text and colored output
-4. **Mutual Exclusivity** (💡 Low Priority) - Mark options as mutually exclusive
+1. ✅ **Configuration File Support** (📊 Medium Priority) - Load options from configuration files - **COMPLETED**
+2. ✅ **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells - **COMPLETED**
+3. ✅ **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks - **COMPLETED**
+4. **ANSI Color and Styling Support** (📊 Medium Priority) - Enhanced help text and colored output
+5. **Mutual Exclusivity** (💡 Low Priority) - Mark options as mutually exclusive
 
 ---
 

@@ -126,6 +126,9 @@ public partial class CommandLineArgsGenerator
 
         using (cb.AddBlock(methodSignature))
         {
+            // Get command name for config file lookup
+            var commandName = actionInfo.Method.ContainingSymbol.Name.ToLower().Replace("command", "");
+
             if (hasAnyHooks)
             {
                 // Generate hook context creation
@@ -177,7 +180,8 @@ public partial class CommandLineArgsGenerator
                             actionInfo.Method.MapAsync(
                                 () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
                                 () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
-                            globalOptions);
+                            globalOptions,
+                            commandName);
 
                         // Generate after execute hooks
                         if (allAfterHooks.Count > 0)
@@ -238,7 +242,8 @@ public partial class CommandLineArgsGenerator
                         actionInfo.Method.MapAsync(
                             () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
                             () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
-                        globalOptions);
+                        globalOptions,
+                        commandName);
                 }
             }
             else
@@ -250,7 +255,8 @@ public partial class CommandLineArgsGenerator
                     actionInfo.Method.MapAsync(
                         () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
                         () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
-                    globalOptions);
+                    globalOptions,
+                    commandName);
             }
         }
     }

@@ -9,7 +9,7 @@ namespace TeCLI.Generators;
 /// </summary>
 internal static class ParameterCodeGenerator
 {
-    public static void GenerateParameterParsingCode(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName)
+    public static void GenerateParameterParsingCode(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName, string? commandName = null)
     {
         cb.AppendLine($"{sourceInfo.DisplayType} {variableName} = default;");
         if (sourceInfo.Optional)
@@ -21,7 +21,7 @@ internal static class ParameterCodeGenerator
         {
             if (sourceInfo.ParameterType == ParameterType.Option)
             {
-                GenerateOptionSource(cb, methodSymbol, sourceInfo, variableName);
+                GenerateOptionSource(cb, methodSymbol, sourceInfo, variableName, commandName);
             }
             else if (sourceInfo.ParameterType == ParameterType.Argument)
             {
@@ -37,7 +37,7 @@ internal static class ParameterCodeGenerator
         }
     }
 
-    private static void GenerateOptionSource(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName)
+    private static void GenerateOptionSource(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName, string? commandName = null)
     {
         if (sourceInfo.IsSwitch)
         {
@@ -56,6 +56,22 @@ internal static class ParameterCodeGenerator
                     using (cb.AddBlock($"if (!string.IsNullOrEmpty({variableName}EnvValue))"))
                     {
                         cb.AppendLine($"{variableName} = bool.TryParse({variableName}EnvValue, out var {variableName}Parsed) && {variableName}Parsed;");
+                    }
+                }
+            }
+
+            // Config file fallback for boolean switches
+            if (!string.IsNullOrEmpty(commandName))
+            {
+                using (cb.AddBlock($"if (!{variableName})"))
+                {
+                    cb.AppendLine($"// Check config file for switch: {sourceInfo.Name}");
+                    using (cb.AddBlock($"if (_configValues.TryGetValue(\"{commandName}\", out var {variableName}SwitchConfigDict))"))
+                    {
+                        using (cb.AddBlock($"if ({variableName}SwitchConfigDict.TryGetValue(\"{sourceInfo.Name}\", out var {variableName}SwitchConfigValue))"))
+                        {
+                            cb.AppendLine($"{variableName} = bool.TryParse({variableName}SwitchConfigValue, out var {variableName}SwitchParsed) && {variableName}SwitchParsed;");
+                        }
                     }
                 }
             }
@@ -156,9 +172,12 @@ internal static class ParameterCodeGenerator
                             }
                         }
                     }
-                    // Check if we should prompt for the value
                     using (cb.AddBlock("else"))
                     {
+                        // Environment variable not found, check config file
+                        GenerateConfigFileFallback(cb, sourceInfo, variableName, commandName);
+
+                        // Check if we should prompt for the value
                         if (!string.IsNullOrEmpty(sourceInfo.Prompt))
                         {
                             GeneratePromptCode(cb, sourceInfo, variableName);
@@ -171,7 +190,10 @@ internal static class ParameterCodeGenerator
                 }
                 else
                 {
-                    // No environment variable
+                    // No environment variable, check config file
+                    GenerateConfigFileFallback(cb, sourceInfo, variableName, commandName);
+
+                    // Check if we should prompt for the value
                     if (!string.IsNullOrEmpty(sourceInfo.Prompt))
                     {
                         // Prompt for value
@@ -599,6 +621,54 @@ internal static class ParameterCodeGenerator
             foreach (var validation in sourceInfo.Validations)
             {
                 cb.AppendLine(string.Format(validation.ValidationCode, variableName) + ";");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generates code to check config file for option value
+    /// </summary>
+    private static void GenerateConfigFileFallback(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName, string? commandName)
+    {
+        if (string.IsNullOrEmpty(commandName))
+        {
+            // If no command name is provided, can't look up config values
+            return;
+        }
+
+        cb.AppendLine($"// Check config file for option: {sourceInfo.Name}");
+        using (cb.AddBlock($"if (_configValues.TryGetValue(\"{commandName}\", out var {variableName}ConfigDict))"))
+        {
+            using (cb.AddBlock($"if ({variableName}ConfigDict.TryGetValue(\"{sourceInfo.Name}\", out var {variableName}ConfigValue))"))
+            {
+                using (var tb = cb.AddTry())
+                {
+                    if (sourceInfo.IsEnum)
+                    {
+                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), {variableName}ConfigValue, ignoreCase: true);");
+                    }
+                    else if (sourceInfo.HasCustomConverter && !string.IsNullOrEmpty(sourceInfo.CustomConverterType))
+                    {
+                        cb.AppendLine($"var {variableName}Converter = new {sourceInfo.CustomConverterType}();");
+                        cb.AppendLine($"{variableName} = {variableName}Converter.Convert({variableName}ConfigValue);");
+                    }
+                    else if (sourceInfo.IsCommonType && !string.IsNullOrEmpty(sourceInfo.CommonTypeParseMethod))
+                    {
+                        cb.AppendLine($"{variableName} = {string.Format(sourceInfo.CommonTypeParseMethod, $"{variableName}ConfigValue")};");
+                    }
+                    else
+                    {
+                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType({variableName}ConfigValue, typeof({sourceInfo.DisplayType}));");
+                    }
+
+                    if (sourceInfo.Optional)
+                    {
+                        cb.AppendLine($"{variableName}Set = true;");
+                    }
+
+                    tb.Catch();
+                    cb.AppendLine($"// Silently ignore config file parse errors for option '{sourceInfo.Name}'");
+                }
             }
         }
     }

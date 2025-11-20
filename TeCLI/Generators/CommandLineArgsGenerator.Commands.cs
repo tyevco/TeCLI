@@ -30,7 +30,7 @@ public partial class CommandLineArgsGenerator
         // Build command hierarchies
         var commandHierarchies = BuildCommandHierarchies(compilation, commandClasses);
 
-        var cb = new CodeBuilder("System", "System.Linq");
+        var cb = new CodeBuilder("System", "System.Linq", "System.Collections.Generic");
 
         // Add namespace for global options if present
         if (globalOptions != null && !string.IsNullOrEmpty(globalOptions.Namespace))
@@ -42,6 +42,10 @@ public partial class CommandLineArgsGenerator
         {
             using (cb.AddBlock("public partial class CommandDispatcher"))
             {
+                // Add config values dictionary to store configuration file data
+                cb.AppendLine("private Dictionary<string, Dictionary<string, string>> _configValues = new Dictionary<string, Dictionary<string, string>>();");
+                cb.AddBlankLine();
+
                 // Add global options field if present
                 if (globalOptions != null)
                 {
@@ -52,6 +56,11 @@ public partial class CommandLineArgsGenerator
                 // make the partial method for the invoker
                 using (cb.AddBlock("public async Task DispatchAsync(string[] args)"))
                 {
+                    // Load configuration file first
+                    cb.AppendLine("// Load configuration file if present");
+                    cb.AppendLine("LoadConfigFile();");
+                    cb.AddBlankLine();
+
                     using (cb.AddBlock("if (args.Length == 0)"))
                     {
                         cb.AppendLine("DisplayApplicationHelp();");
@@ -186,6 +195,9 @@ public partial class CommandLineArgsGenerator
 
                 // Generate completion support methods
                 GenerateCompletionSupport(cb, commandHierarchies, globalOptions);
+
+                // Generate config file loading method
+                GenerateConfigFileLoadingMethod(cb, globalOptions, commandHierarchies);
                 }
             }
         }
@@ -901,6 +913,79 @@ public partial class CommandLineArgsGenerator
                 }
             }
 
+            // After checking CLI args, check for config file values
+            cb.AddBlankLine();
+            cb.AppendLine($"// Check config file for global option: {option.Name}");
+            using (cb.AddBlock($"if (_configValues.TryGetValue(\"globalOptions\", out var globalConfigDict))"))
+            {
+                using (cb.AddBlock($"if (globalConfigDict.TryGetValue(\"{option.Name}\", out var configValue))"))
+                {
+                    // Only use config value if the option wasn't already set from CLI
+                    cb.AppendLine($"// Only use config value if not set from CLI");
+                    cb.AppendLine($"bool isSetFromCli = globalOptionsParsed.Any(idx => args[idx] == \"--{option.Name}\"{(option.ShortName != '\0' ? $" || args[idx] == \"-{option.ShortName}\"" : "")});");
+                    using (cb.AddBlock("if (!isSetFromCli)"))
+                    {
+                        if (option.IsSwitch)
+                        {
+                            cb.AppendLine($"if (bool.TryParse(configValue, out var boolValue))");
+                            using (cb.AddBlock())
+                            {
+                                cb.AppendLine($"_globalOptions.{option.Name} = boolValue;");
+                            }
+                        }
+                        else if (option.IsEnum)
+                        {
+                            using (cb.AddBlock("try"))
+                            {
+                                cb.AppendLine($"_globalOptions.{option.Name} = ({option.DisplayType})System.Enum.Parse(typeof({option.DisplayType}), configValue, ignoreCase: true);");
+                            }
+                            using (cb.AddBlock("catch"))
+                            {
+                                cb.AppendLine("// Ignore invalid enum values from config");
+                            }
+                        }
+                        else if (option.HasCustomConverter && !string.IsNullOrEmpty(option.CustomConverterType))
+                        {
+                            using (cb.AddBlock("try"))
+                            {
+                                cb.AppendLine($"var converter_{option.Name} = new {option.CustomConverterType}();");
+                                cb.AppendLine($"_globalOptions.{option.Name} = converter_{option.Name}.Convert(configValue);");
+                            }
+                            using (cb.AddBlock("catch"))
+                            {
+                                cb.AppendLine("// Ignore conversion errors from config");
+                            }
+                        }
+                        else if (option.IsCommonType && !string.IsNullOrEmpty(option.CommonTypeParser))
+                        {
+                            using (cb.AddBlock("try"))
+                            {
+                                cb.AppendLine($"_globalOptions.{option.Name} = {option.CommonTypeParser}(configValue);");
+                            }
+                            using (cb.AddBlock("catch"))
+                            {
+                                cb.AppendLine("// Ignore parse errors from config");
+                            }
+                        }
+                        else if (option.Type == "string" || option.Type == "global::System.String")
+                        {
+                            cb.AppendLine($"_globalOptions.{option.Name} = configValue;");
+                        }
+                        else
+                        {
+                            using (cb.AddBlock("try"))
+                            {
+                                cb.AppendLine($"_globalOptions.{option.Name} = {option.DisplayType}.Parse(configValue);");
+                            }
+                            using (cb.AddBlock("catch"))
+                            {
+                                cb.AppendLine("// Ignore parse errors from config");
+                            }
+                        }
+                    }
+                }
+            }
+
             cb.AddBlankLine();
         }
     }
@@ -983,6 +1068,102 @@ public partial class CommandLineArgsGenerator
         beforeExecuteHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
         afterExecuteHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
         onErrorHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
+    }
+
+    /// <summary>
+    /// Generates the LoadConfigFile method to discover and load configuration files
+    /// </summary>
+    private void GenerateConfigFileLoadingMethod(CodeBuilder cb, GlobalOptionsSourceInfo? globalOptions, List<CommandSourceInfo> commandHierarchies)
+    {
+        cb.AddBlankLine();
+        using (cb.AddBlock("private void LoadConfigFile()"))
+        {
+            // Try to find config file
+            cb.AppendLine("string? configPath = null;");
+            cb.AppendLine("var currentDir = System.IO.Directory.GetCurrentDirectory();");
+            cb.AppendLine("var homeDir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);");
+            cb.AddBlankLine();
+
+            // Check for config files in order of precedence
+            cb.AppendLine("// Search for config files in order of precedence");
+            cb.AppendLine("var searchPaths = new[] {");
+            cb.AppendLine("    System.IO.Path.Combine(currentDir, \".teclirc.json\"),");
+            cb.AppendLine("    System.IO.Path.Combine(currentDir, \".teclirc.yaml\"),");
+            cb.AppendLine("    System.IO.Path.Combine(currentDir, \".teclirc.yml\"),");
+            cb.AppendLine("    System.IO.Path.Combine(currentDir, \"tecli.json\"),");
+            cb.AppendLine("    System.IO.Path.Combine(currentDir, \"tecli.yaml\"),");
+            cb.AppendLine("    System.IO.Path.Combine(currentDir, \"tecli.yml\"),");
+            cb.AppendLine("    System.IO.Path.Combine(homeDir, \".teclirc.json\"),");
+            cb.AppendLine("    System.IO.Path.Combine(homeDir, \".teclirc.yaml\"),");
+            cb.AppendLine("    System.IO.Path.Combine(homeDir, \".teclirc.yml\")");
+            cb.AppendLine("};");
+            cb.AddBlankLine();
+
+            using (cb.AddBlock("foreach (var path in searchPaths)"))
+            {
+                using (cb.AddBlock("if (System.IO.File.Exists(path))"))
+                {
+                    cb.AppendLine("configPath = path;");
+                    cb.AppendLine("break;");
+                }
+            }
+            cb.AddBlankLine();
+
+            // If no config file found, return
+            using (cb.AddBlock("if (configPath == null)"))
+            {
+                cb.AppendLine("return;");
+            }
+            cb.AddBlankLine();
+
+            // Try to parse the config file
+            using (cb.AddBlock("try"))
+            {
+                cb.AppendLine("var json = System.IO.File.ReadAllText(configPath);");
+                cb.AddBlankLine();
+
+                // Parse JSON using System.Text.Json
+                cb.AppendLine("// Parse JSON configuration");
+                cb.AppendLine("using var document = System.Text.Json.JsonDocument.Parse(json);");
+                cb.AppendLine("var root = document.RootElement;");
+                cb.AddBlankLine();
+
+                // Parse global options section if global options are present
+                if (globalOptions != null && globalOptions.Options.Count > 0)
+                {
+                    using (cb.AddBlock("if (root.TryGetProperty(\"globalOptions\", out var globalOptionsSection))"))
+                    {
+                        cb.AppendLine("var globalOptionsDict = new Dictionary<string, string>();");
+                        using (cb.AddBlock("foreach (var prop in globalOptionsSection.EnumerateObject())"))
+                        {
+                            cb.AppendLine("globalOptionsDict[prop.Name] = prop.Value.ToString();");
+                        }
+                        cb.AppendLine("_configValues[\"globalOptions\"] = globalOptionsDict;");
+                    }
+                    cb.AddBlankLine();
+                }
+
+                // Parse commands section
+                using (cb.AddBlock("if (root.TryGetProperty(\"commands\", out var commandsSection))"))
+                {
+                    using (cb.AddBlock("foreach (var commandProp in commandsSection.EnumerateObject())"))
+                    {
+                        cb.AppendLine("var commandName = commandProp.Name;");
+                        cb.AppendLine("var commandOptionsDict = new Dictionary<string, string>();");
+                        using (cb.AddBlock("foreach (var optionProp in commandProp.Value.EnumerateObject())"))
+                        {
+                            cb.AppendLine("commandOptionsDict[optionProp.Name] = optionProp.Value.ToString();");
+                        }
+                        cb.AppendLine("_configValues[commandName] = commandOptionsDict;");
+                    }
+                }
+            }
+            using (cb.AddBlock("catch (System.Exception ex)"))
+            {
+                cb.AppendLine("// Silently ignore config file parsing errors");
+                cb.AppendLine("// In production, you might want to log this");
+            }
+        }
     }
 
 }
