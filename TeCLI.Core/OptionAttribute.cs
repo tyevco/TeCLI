@@ -85,6 +85,50 @@ public class OptionAttribute : Attribute
     public string? EnvVar { get; set; }
 
     /// <summary>
+    /// Gets or sets a prompt message to display when the option is not provided.
+    /// </summary>
+    /// <value>
+    /// The prompt message to display to the user. When specified, the user will be
+    /// prompted interactively for the value if it's not provided on the command line
+    /// or via environment variable. Prompting applies when the option is required or
+    /// when a default value would otherwise be used.
+    /// Precedence: CLI option > environment variable > interactive prompt > default value.
+    /// Default is <c>null</c> (no prompting).
+    /// </value>
+    /// <example>
+    /// <code>
+    /// [Action("deploy")]
+    /// public void Deploy(
+    ///     [Option("region", Prompt = "Select deployment region")] string region = "us-west")
+    /// {
+    ///     // User will be prompted if region is not provided via CLI or env var
+    /// }
+    /// </code>
+    /// </example>
+    public string? Prompt { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether input should be hidden (for sensitive data like passwords).
+    /// </summary>
+    /// <value>
+    /// <c>true</c> if the input should be masked/hidden; otherwise, <c>false</c>.
+    /// Only applies when <see cref="Prompt"/> is specified.
+    /// Default is <c>false</c>.
+    /// </value>
+    /// <example>
+    /// <code>
+    /// [Action("login")]
+    /// public void Login(
+    ///     [Option("username", Prompt = "Enter username")] string username,
+    ///     [Option("password", Prompt = "Enter password", SecurePrompt = true)] string password)
+    /// {
+    ///     // password input will be masked
+    /// }
+    /// </code>
+    /// </example>
+    public bool SecurePrompt { get; set; } = false;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="OptionAttribute"/> class.
     /// </summary>
     /// <param name="name">The long name of the option (without --).</param>

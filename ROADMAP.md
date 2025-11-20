@@ -546,24 +546,54 @@ Did you mean '--environment'?
 ---
 
 ### 📊 Interactive Mode
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Prompt users for missing required arguments:
+TeCLI now supports interactive prompting for missing arguments and options! This enables user-friendly CLI applications that can prompt for values when they're not provided.
+
 ```csharp
 [Action("deploy")]
 public void Deploy(
     [Argument(Prompt = "Enter deployment environment")] string environment,
-    [Option("region", Prompt = "Select region")] string region)
+    [Option("region", Prompt = "Select deployment region")] string region = "us-west")
 {
+    // If environment not provided via CLI, user will be prompted
+    // If region not provided via CLI or env var, user will be prompted (or default used)
+}
+
+[Action("login")]
+public void Login(
+    [Argument(Prompt = "Enter username")] string username,
+    [Argument(Prompt = "Enter password", SecurePrompt = true)] string password)
+{
+    // Password input will be masked with asterisks
 }
 ```
 
-**Features:**
-- Optional prompts for missing values
-- Validation on prompted input
-- Support for secure input (passwords)
-- Integration with libraries like Spectre.Console
+**Implemented Features:**
+- ✅ `Prompt` property on `ArgumentAttribute` - Interactive prompt message for missing arguments
+- ✅ `Prompt` property on `OptionAttribute` - Interactive prompt message for missing options
+- ✅ `SecurePrompt` property - Mask input with asterisks for sensitive data (passwords, API keys)
+- ✅ Validation on prompted input - All existing validation works with prompted values
+- ✅ Type conversion support - Prompts work with all types (strings, ints, enums, custom converters)
+- ✅ Precedence handling - CLI > environment variable > interactive prompt > default value
+- ✅ Works with required and optional parameters
+- ✅ Comprehensive test coverage
+
+**Use Cases:**
+- Password/credential input without exposing in command history
+- User-friendly CLIs that guide users through required inputs
+- Interactive configuration setup
+- Simplified command syntax (fewer required CLI arguments)
+
+**Files Changed:**
+- `TeCLI.Core/ArgumentAttribute.cs` - Added `Prompt` and `SecurePrompt` properties
+- `TeCLI.Core/OptionAttribute.cs` - Added `Prompt` and `SecurePrompt` properties
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Track prompt configuration
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Extract prompt attributes
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Generate interactive prompt code
+- `TeCLI.Tests/TestCommands/InteractiveModeCommand.cs` - Test command
+- `TeCLI.Tests/InteractiveModeTests.cs` - Integration tests
 
 ---
 
@@ -1040,12 +1070,11 @@ Based on impact and feasibility, the next release should focus on:
 
 The following high-priority items should be considered next:
 
-1. **Interactive Mode** (📊 Medium Priority) - Prompt users for missing required arguments
-2. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
-3. **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells
-4. **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks
+1. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
+2. **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells
+3. **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks
+4. **ANSI Color and Styling Support** (📊 Medium Priority) - Enhanced help text and colored output
 5. **Mutual Exclusivity** (💡 Low Priority) - Mark options as mutually exclusive
-6. **ANSI Color and Styling Support** (📊 Medium Priority) - Enhanced help text and colored output
 
 ---
 

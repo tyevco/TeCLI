@@ -271,6 +271,20 @@ internal static class ParameterInfoExtractor
             psi.EnvVar = envVarName;
         }
 
+        // Extract the Prompt property from the attribute
+        var prompt = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Prompt").Value;
+        if (!prompt.IsNull && prompt.Value is string promptMessage)
+        {
+            psi.Prompt = promptMessage;
+        }
+
+        // Extract the SecurePrompt property from the attribute
+        var securePrompt = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "SecurePrompt").Value;
+        if (!securePrompt.IsNull && securePrompt.Value is bool isSecure)
+        {
+            psi.SecurePrompt = isSecure;
+        }
+
         bool isBoolean = typeSpecialType == SpecialType.System_Boolean;
         if (isBoolean)
         {
@@ -291,6 +305,20 @@ internal static class ParameterInfoExtractor
 
             var description = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
             psi.Description = description;
+
+            // Extract the Prompt property from the attribute
+            var prompt = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Prompt").Value;
+            if (!prompt.IsNull && prompt.Value is string promptMessage)
+            {
+                psi.Prompt = promptMessage;
+            }
+
+            // Extract the SecurePrompt property from the attribute
+            var securePrompt = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "SecurePrompt").Value;
+            if (!securePrompt.IsNull && securePrompt.Value is bool isSecure)
+            {
+                psi.SecurePrompt = isSecure;
+            }
         }
     }
 
@@ -307,6 +335,20 @@ internal static class ParameterInfoExtractor
 
             var description = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Description").Value;
             psi.Description = description;
+
+            // Extract the Prompt property from the attribute
+            var prompt = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Prompt").Value;
+            if (!prompt.IsNull && prompt.Value is string promptMessage)
+            {
+                psi.Prompt = promptMessage;
+            }
+
+            // Extract the SecurePrompt property from the attribute
+            var securePrompt = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "SecurePrompt").Value;
+            if (!securePrompt.IsNull && securePrompt.Value is bool isSecure)
+            {
+                psi.SecurePrompt = isSecure;
+            }
         }
     }
 
