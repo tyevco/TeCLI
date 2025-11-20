@@ -8,7 +8,7 @@ namespace TeCLI.Generators;
 
 public partial class CommandLineArgsGenerator
 {
-    public void GenerateParameterCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName, GlobalOptionsSourceInfo? globalOptions = null)
+    public void GenerateParameterCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName, GlobalOptionsSourceInfo? globalOptions = null, string? commandName = null)
     {
         var parameterDetails = ParameterInfoExtractor.GetParameterDetails(methodSymbol.Parameters);
 
@@ -83,7 +83,7 @@ public partial class CommandLineArgsGenerator
                 foreach (var parameterDetail in parameterDetails)
                 {
                     var variableName = $"p{parameterDetail.ParameterIndex}";
-                    ParameterCodeGenerator.GenerateParameterParsingCode(cb, methodSymbol, parameterDetail, variableName);
+                    ParameterCodeGenerator.GenerateParameterParsingCode(cb, methodSymbol, parameterDetail, variableName, commandName);
                     if (parameterDetail.Optional)
                     {
                         hasOptionalValues = true;
