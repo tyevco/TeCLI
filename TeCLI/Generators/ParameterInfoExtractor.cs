@@ -310,7 +310,7 @@ internal static class ParameterInfoExtractor
         }
     }
 
-    private static void ExtractValidationInfo(ParameterSourceInfo psi, ISymbol symbol)
+    internal static void ExtractValidationInfo(ParameterSourceInfo psi, ISymbol symbol)
     {
         var attributes = symbol.GetAttributes();
 
@@ -401,7 +401,7 @@ internal static class ParameterInfoExtractor
         }
     }
 
-    private static void ExtractCustomConverterInfo(ParameterSourceInfo psi, ISymbol symbol)
+    internal static void ExtractCustomConverterInfo(ParameterSourceInfo psi, ISymbol symbol)
     {
         var attributes = symbol.GetAttributes();
 

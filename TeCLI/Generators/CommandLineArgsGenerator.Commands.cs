@@ -16,8 +16,17 @@ namespace TeCLI.Generators;
 /// </summary>
 public partial class CommandLineArgsGenerator
 {
-    private void GenerateCommandDispatcher(SourceProductionContext context, Compilation compilation, ImmutableArray<ClassDeclarationSyntax> commandClasses)
+    private void GenerateCommandDispatcher(SourceProductionContext context, Compilation compilation, ImmutableArray<ClassDeclarationSyntax> commandClasses, ImmutableArray<ClassDeclarationSyntax> globalOptionsClasses)
     {
+        // Extract global options information
+        GlobalOptionsSourceInfo? globalOptions = null;
+        if (globalOptionsClasses.Length > 0)
+        {
+            // Only support one global options class for now
+            var globalOptionsClass = globalOptionsClasses[0];
+            globalOptions = ExtractGlobalOptionsInfo(compilation, globalOptionsClass);
+        }
+
         // Build command hierarchies
         var commandHierarchies = BuildCommandHierarchies(compilation, commandClasses);
 
@@ -657,6 +666,89 @@ public partial class CommandLineArgsGenerator
         }
 
         return hierarchies;
+    }
+
+    /// <summary>
+    /// Extracts global options information from a class marked with [GlobalOptions]
+    /// </summary>
+    private GlobalOptionsSourceInfo ExtractGlobalOptionsInfo(Compilation compilation, ClassDeclarationSyntax classDecl)
+    {
+        var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
+        var typeSymbol = model.GetDeclaredSymbol(classDecl) as INamedTypeSymbol;
+
+        var globalOptions = new GlobalOptionsSourceInfo
+        {
+            TypeSymbol = typeSymbol,
+            TypeName = typeSymbol?.Name,
+            FullTypeName = typeSymbol?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            Namespace = typeSymbol?.ContainingNamespace?.ToDisplayString()
+        };
+
+        if (typeSymbol == null)
+            return globalOptions;
+
+        // Extract all properties with [Option] attribute
+        var properties = typeSymbol.GetMembers().OfType<IPropertySymbol>();
+        foreach (var property in properties)
+        {
+            var optionAttr = property.GetAttribute<OptionAttribute>();
+            if (optionAttr != null)
+            {
+                var paramInfo = new ParameterSourceInfo
+                {
+                    Name = property.Name,
+                    Type = property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    Optional = property.NullableAnnotation == NullableAnnotation.Annotated || property.Type.IsValueType == false,
+                    ParameterType = ParameterType.Option
+                };
+
+                // Detect collection types
+                paramInfo.DetectCollectionType(property.Type);
+
+                // Detect enum types
+                paramInfo.DetectEnumType(property.Type);
+
+                // Detect common built-in types
+                paramInfo.DetectCommonTypes(property.Type);
+
+                // Extract option name, short name, required, envvar from attribute
+                var optionName = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
+                if (optionName.IsNull && optionAttr.ConstructorArguments.Length > 0)
+                {
+                    optionName = optionAttr.ConstructorArguments[0];
+                }
+                paramInfo.Name = optionName.IsNull ? property.Name : optionName.Value?.ToString() ?? property.Name;
+
+                var shortName = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ShortName").Value;
+                paramInfo.ShortName = !shortName.IsNull && shortName.Value is char ch ? ch : '\0';
+
+                var required = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Required").Value;
+                if (!required.IsNull && required.Value is bool isRequired)
+                {
+                    paramInfo.Required = isRequired;
+                }
+
+                var envVar = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "EnvVar").Value;
+                if (!envVar.IsNull && envVar.Value is string envVarName)
+                {
+                    paramInfo.EnvVar = envVarName;
+                }
+
+                bool isBoolean = property.Type.SpecialType == SpecialType.System_Boolean;
+                if (isBoolean)
+                {
+                    paramInfo.IsSwitch = true;
+                }
+
+                // Extract validation and custom converter info
+                ParameterInfoExtractor.ExtractValidationInfo(paramInfo, property);
+                ParameterInfoExtractor.ExtractCustomConverterInfo(paramInfo, property);
+
+                globalOptions.Options.Add(paramInfo);
+            }
+        }
+
+        return globalOptions;
     }
 
 }
