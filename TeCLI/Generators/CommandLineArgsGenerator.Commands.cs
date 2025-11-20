@@ -37,6 +37,15 @@ public partial class CommandLineArgsGenerator
                     {
                         cb.AddBlankLine();
 
+                        // Check for version flag
+                        using (cb.AddBlock("if (args.Contains(\"--version\"))"))
+                        {
+                            cb.AppendLine("DisplayVersion();");
+                            cb.AppendLine("return;");
+                        }
+
+                        cb.AddBlankLine();
+
                         // Check for help flag
                         using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
                         {

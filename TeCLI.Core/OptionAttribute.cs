@@ -55,6 +55,15 @@ public class OptionAttribute : Attribute
     public string? Description { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether this option is required.
+    /// </summary>
+    /// <value>
+    /// <c>true</c> if the option must be provided by the user; otherwise, <c>false</c>.
+    /// Default is <c>false</c>.
+    /// </value>
+    public bool Required { get; set; } = false;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="OptionAttribute"/> class.
     /// </summary>
     /// <param name="name">The long name of the option (without --).</param>

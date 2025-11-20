@@ -83,10 +83,10 @@ public void Run([Option("log-level")] LogLevel level = LogLevel.Info)
 ---
 
 ### 🎯 Required Options
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** High
 
-Allow marking options as required (currently only arguments can be required):
+TeCLI now supports marking options as required! This enables scenarios like:
 ```csharp
 [Action("deploy")]
 public void Deploy(
@@ -97,10 +97,20 @@ public void Deploy(
 }
 ```
 
-**Implementation:**
-- Add `Required` property to `OptionAttribute`
-- Validation during parsing
-- Clear error messages for missing required options
+**Implemented Features:**
+- ✅ `Required` property added to `OptionAttribute`
+- ✅ Validation during parsing with clear error messages
+- ✅ Support for required options with short names
+- ✅ Support for required collection options
+- ✅ Comprehensive test coverage
+
+**Files Changed:**
+- `TeCLI.Core/OptionAttribute.cs` - Added `Required` property
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Extract `Required` from attribute
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Validation logic (already existed)
+- `TeCLI.Tools/Constants.cs` - Error message (already existed)
+- `TeCLI.Tests/TestCommands/RequiredOptionsCommand.cs` - Test command
+- `TeCLI.Tests/RequiredOptionTests.cs` - Comprehensive integration tests
 
 ---
 
@@ -276,10 +286,10 @@ public void Output(
 ## User Experience Enhancements
 
 ### 🎯 Automatic Version Flag
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** High
 
-Automatically handle `--version` flag:
+TeCLI now automatically handles the `--version` flag! This enables easy version display:
 ```csharp
 [assembly: AssemblyVersion("1.2.3")]
 [assembly: AssemblyInformationalVersion("1.2.3-beta")]
@@ -289,10 +299,18 @@ Automatically handle `--version` flag:
 // Output: myapp 1.2.3-beta
 ```
 
-**Features:**
-- Reads from assembly attributes
-- Customizable version format
-- Reserved switch like `--help`
+**Implemented Features:**
+- ✅ Automatic `--version` flag detection
+- ✅ Reads from `AssemblyInformationalVersionAttribute` (preferred)
+- ✅ Falls back to `AssemblyVersion` if informational version not available
+- ✅ Reserved switch like `--help`
+- ✅ Included in global help text
+- ✅ Works at application level (before command parsing)
+
+**Files Changed:**
+- `TeCLI/Generators/CommandLineArgsGenerator.Commands.cs` - Added version flag check
+- `TeCLI/Generators/CommandLineArgsGenerator.Help.cs` - Generated DisplayVersion method
+- `TeCLI/Generators/CommandLineArgsGenerator.Help.cs` - Updated help text to show --version
 
 ---
 
@@ -815,8 +833,8 @@ Based on impact and feasibility, the next release should focus on:
 1. ✅ Array/Collection Support (High impact, moderate complexity) - **COMPLETED**
 2. ✅ Enum Support (High impact, low complexity) - **COMPLETED**
 3. ✅ Improved Error Messages with Suggestions (High impact, moderate complexity) - **COMPLETED**
-4. **Required Options** (High impact, low complexity) - **NEXT PRIORITY**
-5. **Automatic Version Flag** (Medium impact, low complexity)
+4. ✅ Required Options (High impact, low complexity) - **COMPLETED**
+5. ✅ Automatic Version Flag (High impact, low complexity) - **COMPLETED**
 
 ## Priorities for Future Releases
 

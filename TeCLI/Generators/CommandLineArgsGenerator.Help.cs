@@ -15,7 +15,7 @@ public partial class CommandLineArgsGenerator
     {
         // This is called with the full list of command classes, but we need to collect them
         // Since this is called per-command, we'll generate application-level help differently
-        CodeBuilder cb = new CodeBuilder("System");
+        CodeBuilder cb = new CodeBuilder("System", "System.Reflection");
 
         using (cb.AddBlock("namespace TeCLI"))
         {
@@ -25,9 +25,45 @@ public partial class CommandLineArgsGenerator
                 {
                     cb.AppendLine("Console.WriteLine(\"Usage: <command> [action] [options] [arguments]\");");
                     cb.AppendLine("Console.WriteLine();");
+                    cb.AppendLine("Console.WriteLine(\"Global Options:\");");
+                    cb.AppendLine("Console.WriteLine(\"  --help, -h           Display help information\");");
+                    cb.AppendLine("Console.WriteLine(\"  --version            Display version information\");");
+                    cb.AppendLine("Console.WriteLine();");
                     cb.AppendLine("Console.WriteLine(\"Available commands:\");");
                     cb.AppendLine("Console.WriteLine();");
                     cb.AppendLine("// Commands will be listed by individual command help generators");
+                }
+
+                cb.AddBlankLine();
+
+                using (cb.AddBlock("public static void DisplayVersion()"))
+                {
+                    cb.AppendLine("var assembly = System.Reflection.Assembly.GetEntryAssembly();");
+                    cb.AppendLine("if (assembly != null)");
+                    cb.AppendLine("{");
+                    cb.AppendLine("    var assemblyName = assembly.GetName();");
+                    cb.AppendLine("    var appName = assemblyName.Name ?? \"app\";");
+                    cb.AppendLine("    ");
+                    cb.AppendLine("    // Try to get AssemblyInformationalVersion first (e.g., \"1.2.3-beta\")");
+                    cb.AppendLine("    var infoVersionAttr = assembly.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>();");
+                    cb.AppendLine("    if (infoVersionAttr != null && !string.IsNullOrEmpty(infoVersionAttr.InformationalVersion))");
+                    cb.AppendLine("    {");
+                    cb.AppendLine("        Console.WriteLine($\"{appName} {infoVersionAttr.InformationalVersion}\");");
+                    cb.AppendLine("    }");
+                    cb.AppendLine("    else if (assemblyName.Version != null)");
+                    cb.AppendLine("    {");
+                    cb.AppendLine("        // Fallback to AssemblyVersion");
+                    cb.AppendLine("        Console.WriteLine($\"{appName} {assemblyName.Version}\");");
+                    cb.AppendLine("    }");
+                    cb.AppendLine("    else");
+                    cb.AppendLine("    {");
+                    cb.AppendLine("        Console.WriteLine($\"{appName} (version unknown)\");");
+                    cb.AppendLine("    }");
+                    cb.AppendLine("}");
+                    cb.AppendLine("else");
+                    cb.AppendLine("{");
+                    cb.AppendLine("    Console.WriteLine(\"Version information not available\");");
+                    cb.AppendLine("}");
                 }
             }
         }
@@ -144,6 +180,11 @@ public partial class CommandLineArgsGenerator
                         cb.AppendLine("Console.WriteLine(\"  --help, -h           Display this help message\");");
                         cb.AppendLine("Console.WriteLine();");
                     }
+
+                    // Always show global options
+                    cb.AppendLine("Console.WriteLine(\"Global Options:\");");
+                    cb.AppendLine("Console.WriteLine(\"  --version            Display version information\");");
+                    cb.AppendLine("Console.WriteLine();");
                 }
             }
         }
