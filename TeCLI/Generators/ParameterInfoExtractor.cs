@@ -257,6 +257,13 @@ internal static class ParameterInfoExtractor
             // (based on whether there's a default value)
         }
 
+        // Extract the EnvVar property from the attribute
+        var envVar = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "EnvVar").Value;
+        if (!envVar.IsNull && envVar.Value is string envVarName)
+        {
+            psi.EnvVar = envVarName;
+        }
+
         bool isBoolean = typeSpecialType == SpecialType.System_Boolean;
         if (isBoolean)
         {

@@ -64,6 +64,27 @@ public class OptionAttribute : Attribute
     public bool Required { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets the environment variable name to use as a fallback value.
+    /// </summary>
+    /// <value>
+    /// The name of an environment variable to read if the option is not provided on the command line.
+    /// When specified, the precedence is: CLI option > environment variable > default value.
+    /// Default is <c>null</c> (no environment variable fallback).
+    /// </value>
+    /// <example>
+    /// <code>
+    /// [Action("connect")]
+    /// public void Connect(
+    ///     [Option("api-key", EnvVar = "API_KEY")] string apiKey,
+    ///     [Option("timeout", EnvVar = "TIMEOUT")] int timeout = 30)
+    /// {
+    ///     // Can be set via --api-key OR API_KEY environment variable
+    /// }
+    /// </code>
+    /// </example>
+    public string? EnvVar { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="OptionAttribute"/> class.
     /// </summary>
     /// <param name="name">The long name of the option (without --).</param>

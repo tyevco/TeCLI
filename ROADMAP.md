@@ -199,24 +199,39 @@ public void Process(
 ---
 
 ### 📊 Environment Variable Binding
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Allow options to be populated from environment variables:
+TeCLI now supports environment variable binding for options! This enables scenarios like:
 ```csharp
 [Action("connect")]
 public void Connect(
     [Option("api-key", EnvVar = "API_KEY")] string apiKey,
-    [Option("timeout", EnvVar = "TIMEOUT")] int timeout = 30)
+    [Option("timeout", EnvVar = "TIMEOUT")] int timeout = 30,
+    [Option("verbose", EnvVar = "VERBOSE")] bool verbose = false)
 {
     // Can be set via --api-key OR API_KEY environment variable
 }
 ```
 
-**Features:**
-- Environment variable fallback when option not provided
-- Prefix support for namespacing (e.g., `MYAPP_`)
-- Clear precedence: CLI option > environment variable > default value
+**Implemented Features:**
+- ✅ `EnvVar` property on `OptionAttribute` to specify environment variable name
+- ✅ Automatic fallback to environment variables when option not provided via CLI
+- ✅ Clear precedence: CLI option > environment variable > default value
+- ✅ Support for all types: strings, integers, booleans, enums, common types
+- ✅ Support for collections (comma-separated values in environment variables)
+- ✅ Proper error handling with clear messages for invalid environment variable values
+- ✅ Works with required options
+- ✅ Works with short names
+- ✅ Comprehensive test coverage (35+ integration tests)
+
+**Files Changed:**
+- `TeCLI.Core/OptionAttribute.cs` - Added `EnvVar` property
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Track environment variable name
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Extract `EnvVar` from attribute
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Generate environment variable fallback code
+- `TeCLI.Tests/TestCommands/EnvVarCommand.cs` - Test command
+- `TeCLI.Tests/EnvVarTests.cs` - Comprehensive integration tests
 
 ---
 
@@ -902,10 +917,10 @@ Based on impact and feasibility, the next release should focus on:
 The following high-priority items should be considered next:
 
 1. **Nested Subcommands** (🎯 High Priority, Research Needed) - Support hierarchical command structures
-2. **Environment Variable Binding** (📊 Medium Priority) - Populate options from environment variables
-3. **Complete Custom Type Converters** (📊 Medium Priority) - Add ITypeConverter<T> interface for user-defined types
-4. **Interactive Mode** (📊 Medium Priority) - Prompt users for missing required arguments
-5. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
+2. **Complete Custom Type Converters** (📊 Medium Priority) - Add ITypeConverter<T> interface for user-defined types
+3. **Interactive Mode** (📊 Medium Priority) - Prompt users for missing required arguments
+4. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
+5. **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells
 
 ---
 

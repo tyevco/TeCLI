@@ -46,6 +46,19 @@ internal static class ParameterCodeGenerator
                 : $"args.Contains(\"--{sourceInfo.Name}\")";
 
             cb.AppendLine($"{variableName} = {switchCheck};");
+
+            // Environment variable fallback for boolean switches
+            if (!string.IsNullOrEmpty(sourceInfo.EnvVar))
+            {
+                using (cb.AddBlock($"if (!{variableName})"))
+                {
+                    cb.AppendLine($"var {variableName}EnvValue = System.Environment.GetEnvironmentVariable(\"{sourceInfo.EnvVar}\");");
+                    using (cb.AddBlock($"if (!string.IsNullOrEmpty({variableName}EnvValue))"))
+                    {
+                        cb.AppendLine($"{variableName} = bool.TryParse({variableName}EnvValue, out var {variableName}Parsed) && {variableName}Parsed;");
+                    }
+                }
+            }
         }
         else if (sourceInfo.IsCollection)
         {
@@ -93,13 +106,62 @@ internal static class ParameterCodeGenerator
                     }
                 }
             }
-
-            // if the field is required, we want to throw an exception if it is not provided.
-            if (sourceInfo.Required)
+            using (cb.AddBlock("else"))
             {
-                using (cb.AddBlock("else"))
+                // Environment variable fallback
+                if (!string.IsNullOrEmpty(sourceInfo.EnvVar))
                 {
-                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
+                    cb.AppendLine($"var {variableName}EnvValue = System.Environment.GetEnvironmentVariable(\"{sourceInfo.EnvVar}\");");
+                    using (cb.AddBlock($"if (!string.IsNullOrEmpty({variableName}EnvValue))"))
+                    {
+                        using (var tb = cb.AddTry())
+                        {
+                            if (sourceInfo.IsEnum)
+                            {
+                                cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), {variableName}EnvValue, ignoreCase: true);");
+                            }
+                            else if (sourceInfo.IsCommonType && !string.IsNullOrEmpty(sourceInfo.CommonTypeParseMethod))
+                            {
+                                cb.AppendLine($"{variableName} = {string.Format(sourceInfo.CommonTypeParseMethod, $"{variableName}EnvValue")};");
+                            }
+                            else
+                            {
+                                cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType({variableName}EnvValue, typeof({sourceInfo.DisplayType}));");
+                            }
+
+                            if (sourceInfo.Optional)
+                            {
+                                cb.AppendLine($"{variableName}Set = true;");
+                            }
+                            tb.Catch();
+
+                            if (sourceInfo.IsEnum)
+                            {
+                                cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'. Valid values are: {{1}}", {variableName}EnvValue, validValues));""");
+                            }
+                            else
+                            {
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'", {variableName}EnvValue));""");
+                            }
+                        }
+                    }
+                    // If required and no env var found
+                    if (sourceInfo.Required)
+                    {
+                        using (cb.AddBlock("else"))
+                        {
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
+                        }
+                    }
+                }
+                else
+                {
+                    // No environment variable, check if required
+                    if (sourceInfo.Required)
+                    {
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
+                    }
                 }
             }
         }
@@ -153,6 +215,53 @@ internal static class ParameterCodeGenerator
                         else
                         {
                             cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Try environment variable if no values from command line
+        if (!string.IsNullOrEmpty(sourceInfo.EnvVar))
+        {
+            using (cb.AddBlock($"if ({variableName}Values.Count == 0)"))
+            {
+                cb.AppendLine($"var {variableName}EnvValue = System.Environment.GetEnvironmentVariable(\"{sourceInfo.EnvVar}\");");
+                using (cb.AddBlock($"if (!string.IsNullOrEmpty({variableName}EnvValue))"))
+                {
+                    using (var tb = cb.AddTry())
+                    {
+                        cb.AppendLine($"// Parse comma-separated values from environment variable");
+                        cb.AppendLine($"var envValues = {variableName}EnvValue.Split(',');");
+                        using (cb.AddBlock($"foreach (var val in envValues)"))
+                        {
+                            cb.AppendLine($"var trimmedVal = val.Trim();");
+                            using (cb.AddBlock($"if (!string.IsNullOrWhiteSpace(trimmedVal))"))
+                            {
+                                if (sourceInfo.IsElementEnum)
+                                {
+                                    cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})System.Enum.Parse(typeof({sourceInfo.ElementType}), trimmedVal, ignoreCase: true));");
+                                }
+                                else if (sourceInfo.IsElementCommonType && !string.IsNullOrEmpty(sourceInfo.ElementCommonTypeParseMethod))
+                                {
+                                    cb.AppendLine($"{variableName}Values.Add({string.Format(sourceInfo.ElementCommonTypeParseMethod, "trimmedVal")});");
+                                }
+                                else
+                                {
+                                    cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})Convert.ChangeType(trimmedVal, typeof({sourceInfo.ElementType})));");
+                                }
+                            }
+                        }
+                        tb.Catch();
+
+                        if (sourceInfo.IsElementEnum)
+                        {
+                            cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value in environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'. Valid values are: {{0}}", validValues));""");
+                        }
+                        else
+                        {
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value in environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'"));""");
                         }
                     }
                 }
