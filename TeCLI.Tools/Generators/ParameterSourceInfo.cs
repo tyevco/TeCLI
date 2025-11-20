@@ -23,6 +23,12 @@ namespace TeCLI.Generators
         public string? ElementType { get; set; }
         public SpecialType ElementSpecialType { get; set; }
 
+        // Enum support
+        public bool IsEnum { get; set; }
+        public bool IsFlags { get; set; }
+        public bool IsElementEnum { get; set; }
+        public bool IsElementFlags { get; set; }
+
         public bool Optional => !Required;
     }
 
