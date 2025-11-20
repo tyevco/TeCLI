@@ -66,6 +66,14 @@
 
             // InvalidOperationException messages (configuration errors)
             public const string NoPrimaryActionDefined = "No primary action defined for command '{0}'. Use --help for available actions.";
+
+            // Unknown command/action messages with suggestions
+            public const string UnknownCommand = "Unknown command: {0}";
+            public const string UnknownCommandWithSuggestion = "Unknown command: {0}\nDid you mean '{1}'?";
+            public const string UnknownAction = "Unknown action: {0}";
+            public const string UnknownActionWithSuggestion = "Unknown action: {0}\nDid you mean '{1}'?";
+            public const string UnknownOption = "Unknown option: {0}";
+            public const string UnknownOptionWithSuggestion = "Unknown option: {0}\nDid you mean '{1}'?";
         }
     }
 }

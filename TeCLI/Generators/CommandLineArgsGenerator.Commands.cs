@@ -76,7 +76,27 @@ public partial class CommandLineArgsGenerator
 
                             using (cb.AddBlock("default:"))
                             {
-                                cb.AppendLine("Console.WriteLine($\"Unknown command: {args[0]}\");");
+                                // Build list of available commands for suggestions
+                                cb.AppendLine("var availableCommands = new[] {");
+                                bool first = true;
+                                foreach (var commandClass in commandClasses)
+                                {
+                                    var commandName = GetCommandName(commandClass);
+                                    if (!first) cb.Append(", ");
+                                    cb.Append($"\"{commandName!.ToLower()}\"");
+                                    first = false;
+                                }
+                                cb.AppendLine(" };");
+
+                                cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(command, availableCommands);");
+                                using (cb.AddBlock("if (suggestion != null)"))
+                                {
+                                    cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownCommandWithSuggestion}", args[0], suggestion));""");
+                                }
+                                using (cb.AddBlock("else"))
+                                {
+                                    cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownCommand}", args[0]));""");
+                                }
                                 cb.AppendLine("DisplayApplicationHelp();");
                                 cb.AppendLine("break;");
                             }
@@ -141,7 +161,27 @@ public partial class CommandLineArgsGenerator
                                 using (cb.AddBlock("default:"))
                                 {
                                     GeneratePrimaryMethodInvocation(cb, compilation, classDecl, throwOnNoPrimary: false);
-                                    cb.AppendLine("Console.WriteLine($\"Unknown action: {action}\");");
+
+                                    // Build list of available actions for suggestions
+                                    cb.AppendLine("var availableActions = new[] {");
+                                    bool first = true;
+                                    foreach (var action in actionMap)
+                                    {
+                                        if (!first) cb.Append(", ");
+                                        cb.Append($"\"{action.ActionName.ToLower()}\"");
+                                        first = false;
+                                    }
+                                    cb.AppendLine(" };");
+
+                                    cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(action, availableActions);");
+                                    using (cb.AddBlock("if (suggestion != null)"))
+                                    {
+                                        cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownActionWithSuggestion}", action, suggestion));""");
+                                    }
+                                    using (cb.AddBlock("else"))
+                                    {
+                                        cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownAction}", action));""");
+                                    }
                                     cb.AppendLine("break;");
                                 }
                             }
