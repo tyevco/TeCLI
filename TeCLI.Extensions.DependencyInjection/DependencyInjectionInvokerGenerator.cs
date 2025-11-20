@@ -1,33 +1,67 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace TeCLI.Extensions.DependencyInjection.Generators
 {
     [Generator]
-    public partial class DependencyInjectionInvokerGenerator : ISourceGenerator
+    public partial class DependencyInjectionInvokerGenerator : IIncrementalGenerator
     {
-        private GeneratorExecutionContext Context { get; set; }
-        private TeCLIDependencyReceiver? Receiver { get; set; }
-
-        public void Initialize(GeneratorInitializationContext context)
+        public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterForSyntaxNotifications(() => new TeCLIDependencyReceiver());
-        }
+            // Create a pipeline for classes with CommandAttribute
+            var commandClassesProvider = context.SyntaxProvider.CreateSyntaxProvider(
+                predicate: static (node, _) => node is ClassDeclarationSyntax { AttributeLists.Count: > 0 },
+                transform: static (ctx, _) =>
+                {
+                    var classDecl = (ClassDeclarationSyntax)ctx.Node;
+                    var model = ctx.SemanticModel;
 
-        public void Execute(GeneratorExecutionContext context)
-        {
-            if (context.SyntaxReceiver is TeCLIDependencyReceiver cliReceiver)
+                    // Get the symbol for the class
+                    if (model.GetDeclaredSymbol(classDecl) is not INamedTypeSymbol classSymbol)
+                        return null;
+
+                    // Check if it has CommandAttribute
+                    var hasCommandAttribute = classSymbol.GetAttributes().Any(attr =>
+                    {
+                        var attrClass = attr.AttributeClass;
+                        return attrClass?.Name == "CommandAttribute"
+                            || attrClass?.ToDisplayString() == "TeCLI.Attributes.CommandAttribute";
+                    });
+
+                    return hasCommandAttribute ? classDecl : null;
+                })
+                .Where(static c => c is not null);
+
+            // Collect all command classes
+            var commandClassesCollected = commandClassesProvider.Collect();
+            var compilationAndAnalyzerConfigProvider = context.CompilationProvider
+                .Combine(context.AnalyzerConfigOptionsProvider);
+
+            // Combine with command classes
+            var combined = compilationAndAnalyzerConfigProvider.Combine(commandClassesCollected);
+
+            // Register source output
+            context.RegisterSourceOutput(combined, (spc, source) =>
             {
-                Receiver = cliReceiver;
-                Context = context;
+                var ((compilation, analyzerConfig), commandClasses) = source;
 
-                var invokerLibrary = context.GetBuildProperty(Constants.BuildProperties.InvokerLibrary);
+                // Check if this is the correct invoker library
+                var invokerLibrary = analyzerConfig.GlobalOptions.TryGetValue(
+                    $"build_property.{Constants.BuildProperties.InvokerLibrary}",
+                    out var value) ? value : null;
+
                 if (string.Equals(invokerLibrary, GetType().Assembly.GetName().Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    GenerateInvoker(context);
-                    GenerateCommandRegistrations(context, cliReceiver.InvokerClasses);
+                    GenerateInvoker(spc, compilation);
+                    if (commandClasses.Length > 0)
+                    {
+                        GenerateCommandRegistrations(spc, compilation, commandClasses!);
+                    }
                 }
-            }
+            });
         }
     }
 }

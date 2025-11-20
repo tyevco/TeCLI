@@ -8,7 +8,7 @@ namespace TeCLI.Extensions.DependencyInjection.Generators;
 
 public partial class DependencyInjectionInvokerGenerator
 {
-    private void GenerateInvoker(GeneratorExecutionContext context)
+    private void GenerateInvoker(SourceProductionContext context, Compilation compilation)
     {
         Dictionary<string, ClassDeclarationSyntax> dispatchMap = [];
 

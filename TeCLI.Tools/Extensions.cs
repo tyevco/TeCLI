@@ -116,9 +116,37 @@ public static class Extensions
         return classSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     }
 
+    public static string? GetNamespace(this Compilation compilation, MemberDeclarationSyntax syntax)
+    {
+        var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+
+        var classSymbol = semanticModel.GetDeclaredSymbol(syntax) as INamedTypeSymbol;
+
+        if (classSymbol == null)
+        {
+            return null; // or handle this case appropriately
+        }
+
+        return classSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+    }
+
     public static string? GetFullyQualifiedName(this GeneratorExecutionContext context, MemberDeclarationSyntax syntax)
     {
         var semanticModel = context.Compilation.GetSemanticModel(syntax.SyntaxTree);
+
+        var classSymbol = semanticModel.GetDeclaredSymbol(syntax) as INamedTypeSymbol;
+
+        if (classSymbol == null)
+        {
+            return null; // or handle this case appropriately
+        }
+
+        return classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+    }
+
+    public static string? GetFullyQualifiedName(this Compilation compilation, MemberDeclarationSyntax syntax)
+    {
+        var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
 
         var classSymbol = semanticModel.GetDeclaredSymbol(syntax) as INamedTypeSymbol;
 
