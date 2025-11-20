@@ -59,10 +59,10 @@ public static class Extensions
         return symbol.GetAttributes().Any(x => x.AttributeClass?.Name.EndsWithOneOf(AttributeExtensions.GetAttributeNamesForComparison<TAttribute>()) ?? false);
     }
 
-    public static bool TryGetAttribute<TAttribute>(this ISymbol symbol, out AttributeData attributeData)
+    public static bool TryGetAttribute<TAttribute>(this ISymbol symbol, out AttributeData? attributeData)
         where TAttribute : Attribute
     {
-        attributeData = symbol.GetAttributes().FirstOrDefault(ad => ad.AttributeClass?.Name == typeof(TAttribute).Name)!;
+        attributeData = symbol.GetAttributes().FirstOrDefault(ad => ad.AttributeClass?.Name == typeof(TAttribute).Name);
 
         return attributeData != null;
     }

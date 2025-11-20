@@ -101,37 +101,7 @@ public partial class CommandLineArgsGenerator
                     {
                         using (cb.AddBlock("if (args.Length == 0)"))
                         {
-                            var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
-
-                            if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
-                            {
-                                var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
-
-                                int c = 0;
-                                if (primaryMethods != null)
-                                {
-                                    foreach (var primaryMethod in primaryMethods)
-                                    {
-                                        if (c++ > 0)
-                                        {
-                                            // if there are more than 1 primary attributes defined, we should throw a diagnostic error.
-                                        }
-                                        else
-                                        {
-                                            // we want to use this method as the one to call.
-                                            var actionInvokeMethodName = $"{classDecl.Identifier.Text}{primaryMethod.Name}";
-                                            cb.AppendLine(primaryMethod.MapAsync(
-                                                    () => $"await Process{actionInvokeMethodName}Async(args);",
-                                                    () => $"Process{actionInvokeMethodName}(args);"));
-                                        }
-                                    }
-                                }
-
-                                if (c == 0)
-                                {
-                                    cb.AppendLine("throw new Exception();");
-                                }
-                            }
+                            GeneratePrimaryMethodInvocation(cb, compilation, classDecl, throwOnNoPrimary: true);
                         }
                         using (cb.AddBlock("else"))
                         {
@@ -147,36 +117,8 @@ public partial class CommandLineArgsGenerator
 
                                 using (cb.AddBlock("default:"))
                                 {
-                                    var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
-                                    if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
-                                    {
-                                        var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
-
-                                        int c = 0;
-                                        if (primaryMethods != null)
-                                        {
-                                            foreach (var primaryMethod in primaryMethods)
-                                            {
-                                                if (c++ > 0)
-                                                {
-                                                    // if there are more than 1 primary attributes defined, we should throw a diagnostic error.
-                                                }
-                                                else
-                                                {
-                                                    // we want to use this method as the one to call.
-                                                    var actionInvokeMethodName = $"{classDecl.Identifier.Text}{primaryMethod.Name}";
-                                                    cb.AppendLine(primaryMethod.MapAsync(
-                                                            () => $"await Process{actionInvokeMethodName}Async(args);",
-                                                            () => $"Process{actionInvokeMethodName}(args);"));
-                                                }
-                                            }
-                                        }
-
-                                        if (c == 0)
-                                        {
-                                            cb.AppendLine("Console.WriteLine($\"Unknown action: {action}\");");
-                                        }
-                                    }
+                                    GeneratePrimaryMethodInvocation(cb, compilation, classDecl, throwOnNoPrimary: false);
+                                    cb.AppendLine("Console.WriteLine($\"Unknown action: {action}\");");
                                     cb.AppendLine("break;");
                                 }
                             }
@@ -205,11 +147,48 @@ public partial class CommandLineArgsGenerator
         // Logic to extract command name from attributes
         var commandAttribute = classDecl.GetAttribute<CommandAttribute>();
 
-        if (commandAttribute != null)
+        if (commandAttribute?.ArgumentList?.Arguments.Count > 0)
         {
-            return commandAttribute.ArgumentList!.Arguments.First().ToString().Trim('"');
+            return commandAttribute.ArgumentList.Arguments.First().ToString().Trim('"');
         }
         return null;
+    }
+
+    private void GeneratePrimaryMethodInvocation(CodeBuilder cb, Compilation compilation, ClassDeclarationSyntax classDecl, bool throwOnNoPrimary)
+    {
+        var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
+
+        if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
+        {
+            var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
+
+            int count = 0;
+            if (primaryMethods != null)
+            {
+                foreach (var primaryMethod in primaryMethods)
+                {
+                    if (count++ > 0)
+                    {
+                        // Multiple primary attributes defined - this should be reported as a diagnostic
+                        // For now, we silently ignore additional primary attributes and use the first one
+                        break;
+                    }
+                    else
+                    {
+                        // Use this method as the primary action
+                        var actionInvokeMethodName = $"{classDecl.Identifier.Text}{primaryMethod.Name}";
+                        cb.AppendLine(primaryMethod.MapAsync(
+                                () => $"await Process{actionInvokeMethodName}Async(args);",
+                                () => $"Process{actionInvokeMethodName}(args);"));
+                    }
+                }
+            }
+
+            if (count == 0 && throwOnNoPrimary)
+            {
+                cb.AppendLine($"""throw new InvalidOperationException("No primary action defined for command '{GetCommandName(classDecl)}'. Use --help for available actions.");""");
+            }
+        }
     }
 
 }
