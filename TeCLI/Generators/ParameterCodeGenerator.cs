@@ -60,13 +60,30 @@ internal static class ParameterCodeGenerator
             {
                 using (var tb = cb.AddTry())
                 {
-                    cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{variableName}Index + 1], typeof({sourceInfo.DisplayType}));");
+                    if (sourceInfo.IsEnum)
+                    {
+                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), args[{variableName}Index + 1], ignoreCase: true);");
+                    }
+                    else
+                    {
+                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{variableName}Index + 1], typeof({sourceInfo.DisplayType}));");
+                    }
+
                     if (sourceInfo.Optional)
                     {
                         cb.AppendLine($"{variableName}Set = true;");
                     }
                     tb.Catch();
-                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+
+                    if (sourceInfo.IsEnum)
+                    {
+                        cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for option '--{sourceInfo.Name}'. Valid values are: {{1}}", args[{variableName}Index + 1], validValues));""");
+                    }
+                    else
+                    {
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+                    }
                 }
             }
 
@@ -105,11 +122,27 @@ internal static class ParameterCodeGenerator
                             cb.AppendLine($"var trimmedVal = val.Trim();");
                             using (cb.AddBlock($"if (!string.IsNullOrWhiteSpace(trimmedVal))"))
                             {
-                                cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})Convert.ChangeType(trimmedVal, typeof({sourceInfo.ElementType})));");
+                                if (sourceInfo.IsElementEnum)
+                                {
+                                    cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})System.Enum.Parse(typeof({sourceInfo.ElementType}), trimmedVal, ignoreCase: true));");
+                                }
+                                else
+                                {
+                                    cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})Convert.ChangeType(trimmedVal, typeof({sourceInfo.ElementType})));");
+                                }
                             }
                         }
                         tb.Catch();
-                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+
+                        if (sourceInfo.IsElementEnum)
+                        {
+                            cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value for option '--{sourceInfo.Name}'. Valid values are: {{0}}", validValues));""");
+                        }
+                        else
+                        {
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+                        }
                     }
                 }
             }
@@ -168,9 +201,25 @@ internal static class ParameterCodeGenerator
             {
                 using (var tb = cb.AddTry())
                 {
-                    cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{sourceInfo.ArgumentIndex}], typeof({sourceInfo.DisplayType}));");
+                    if (sourceInfo.IsEnum)
+                    {
+                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), args[{sourceInfo.ArgumentIndex}], ignoreCase: true);");
+                    }
+                    else
+                    {
+                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{sourceInfo.ArgumentIndex}], typeof({sourceInfo.DisplayType}));");
+                    }
                     tb.Catch();
-                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+
+                    if (sourceInfo.IsEnum)
+                    {
+                        cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for argument '{sourceInfo.Name}'. Valid values are: {{1}}", args[{sourceInfo.ArgumentIndex}], validValues));""");
+                    }
+                    else
+                    {
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+                    }
                 }
             }
         }
@@ -197,11 +246,27 @@ internal static class ParameterCodeGenerator
                             cb.AppendLine($"var trimmedVal = val.Trim();");
                             using (cb.AddBlock("if (!string.IsNullOrWhiteSpace(trimmedVal))"))
                             {
-                                cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})Convert.ChangeType(trimmedVal, typeof({sourceInfo.ElementType})));");
+                                if (sourceInfo.IsElementEnum)
+                                {
+                                    cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})System.Enum.Parse(typeof({sourceInfo.ElementType}), trimmedVal, ignoreCase: true));");
+                                }
+                                else
+                                {
+                                    cb.AppendLine($"{variableName}Values.Add(({sourceInfo.ElementType})Convert.ChangeType(trimmedVal, typeof({sourceInfo.ElementType})));");
+                                }
                             }
                         }
                         tb.Catch();
-                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+
+                        if (sourceInfo.IsElementEnum)
+                        {
+                            cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value for argument '{sourceInfo.Name}'. Valid values are: {{0}}", validValues));""");
+                        }
+                        else
+                        {
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+                        }
                     }
                 }
                 cb.AppendLine($"{variableName}ArgCount++;");

@@ -216,10 +216,16 @@ public static class Extensions
             return true;
         }
 
-        // Check if it's a collection of primitive types
+        // Check if it's an enum type
+        if (IsEnumType(typeSymbol))
+        {
+            return true;
+        }
+
+        // Check if it's a collection of primitive types or enums
         if (IsCollectionType(typeSymbol, out var elementType))
         {
-            return IsPrimitiveType(elementType);
+            return IsPrimitiveType(elementType) || IsEnumType(elementType);
         }
 
         return false;
@@ -245,6 +251,24 @@ public static class Extensions
             SpecialType.System_String => true,
             _ => false
         };
+    }
+
+    public static bool IsEnumType(this ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.TypeKind == TypeKind.Enum;
+    }
+
+    public static bool IsFlagsEnum(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol.TypeKind != TypeKind.Enum)
+        {
+            return false;
+        }
+
+        // Check if the enum has the [Flags] attribute
+        return typeSymbol.GetAttributes().Any(attr =>
+            attr.AttributeClass?.Name == "FlagsAttribute" &&
+            attr.AttributeClass?.ContainingNamespace?.ToDisplayString() == "System");
     }
 
     public static bool IsCollectionType(this ITypeSymbol typeSymbol, out ITypeSymbol? elementType)

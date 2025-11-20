@@ -49,10 +49,10 @@ public void Process(
 ---
 
 ### 🎯 Enum Support
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** High
 
-Enable parsing of enum types with automatic validation:
+TeCLI now supports enum types with automatic validation! This enables scenarios like:
 ```csharp
 public enum LogLevel { Debug, Info, Warning, Error }
 
@@ -60,14 +60,25 @@ public enum LogLevel { Debug, Info, Warning, Error }
 public void Run([Option("log-level")] LogLevel level = LogLevel.Info)
 {
     // myapp run --log-level Debug
+    // myapp run --log-level debug  (case-insensitive)
 }
 ```
 
-**Features:**
-- Case-insensitive enum parsing
-- Automatic validation with helpful error messages
-- Help text shows valid enum values
-- Support for `[Flags]` enums
+**Implemented Features:**
+- ✅ Case-insensitive enum parsing
+- ✅ Automatic validation with helpful error messages showing valid enum values
+- ✅ Support for `[Flags]` enums with comma-separated values
+- ✅ Enum collections (arrays and lists of enums)
+- ✅ Enum support for both options and arguments
+- ✅ Comprehensive test coverage
+
+**Files Changed:**
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Added enum tracking properties
+- `TeCLI.Tools/Extensions.cs` - Added enum type detection methods
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Added enum detection logic
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Implemented enum parsing with Enum.Parse
+- `TeCLI.Tests/TestCommands/EnumCommand.cs` - Test command for enums
+- `TeCLI.Tests/EnumSupportTests.cs` - Comprehensive integration tests
 
 ---
 
@@ -802,10 +813,10 @@ This section will be populated based on GitHub issues and community feedback.
 Based on impact and feasibility, the next release should focus on:
 
 1. ✅ Array/Collection Support (High impact, moderate complexity) - **COMPLETED**
-2. **Enum Support** (High impact, low complexity) - **NEXT PRIORITY**
-3. Required Options (High impact, low complexity)
-4. Automatic Version Flag (Medium impact, low complexity)
-5. ✅ Improved Error Messages with Suggestions (High impact, moderate complexity) - **COMPLETED**
+2. ✅ Enum Support (High impact, low complexity) - **COMPLETED**
+3. ✅ Improved Error Messages with Suggestions (High impact, moderate complexity) - **COMPLETED**
+4. **Required Options** (High impact, low complexity) - **NEXT PRIORITY**
+5. **Automatic Version Flag** (Medium impact, low complexity)
 
 ## Priorities for Future Releases
 

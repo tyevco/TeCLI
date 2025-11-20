@@ -81,12 +81,26 @@ internal static class ParameterInfoExtractor
             psi.SpecialType = parameterSymbol.Type.SpecialType;
             psi.DisplayType = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+            // Check if this is an enum type
+            if (parameterSymbol.Type.IsEnumType())
+            {
+                psi.IsEnum = true;
+                psi.IsFlags = parameterSymbol.Type.IsFlagsEnum();
+            }
+
             // Check if this is a collection type
             if (parameterSymbol.Type.IsCollectionType(out var elementType))
             {
                 psi.IsCollection = true;
                 psi.ElementType = elementType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 psi.ElementSpecialType = elementType?.SpecialType ?? SpecialType.None;
+
+                // Check if the element type is an enum
+                if (elementType?.IsEnumType() == true)
+                {
+                    psi.IsElementEnum = true;
+                    psi.IsElementFlags = elementType.IsFlagsEnum();
+                }
             }
 
             if (parameterSymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute))
@@ -136,12 +150,26 @@ internal static class ParameterInfoExtractor
             psi.SpecialType = propertySymbol.Type.SpecialType;
             psi.DisplayType = propertySymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+            // Check if this is an enum type
+            if (propertySymbol.Type.IsEnumType())
+            {
+                psi.IsEnum = true;
+                psi.IsFlags = propertySymbol.Type.IsFlagsEnum();
+            }
+
             // Check if this is a collection type
             if (propertySymbol.Type.IsCollectionType(out var elementType))
             {
                 psi.IsCollection = true;
                 psi.ElementType = elementType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 psi.ElementSpecialType = elementType?.SpecialType ?? SpecialType.None;
+
+                // Check if the element type is an enum
+                if (elementType?.IsEnumType() == true)
+                {
+                    psi.IsElementEnum = true;
+                    psi.IsElementFlags = elementType.IsFlagsEnum();
+                }
             }
 
             if (propertySymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute))
