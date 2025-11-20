@@ -249,31 +249,73 @@ public void Connect(
 ## Subcommand and Command Organization
 
 ### 🎯 Nested Subcommands
-**Status:** Research Needed
+**Status:** ✅ Completed
 **Priority:** High
 
-Support hierarchical command structures like Git:
+TeCLI now supports hierarchical command structures with unlimited nesting depth! This enables scenarios like Git's command structure:
 ```csharp
 [Command("git")]
 public class GitCommand
 {
+    [Action("status")]
+    public void Status() { }
+
     [Command("remote")]
     public class RemoteCommand
     {
         [Action("add")]
-        public void Add(string name, string url) { }
+        public void Add(
+            [Argument] string name,
+            [Argument] string url) { }
 
         [Action("remove")]
-        public void Remove(string name) { }
+        public void Remove([Argument] string name) { }
+    }
+
+    [Command("config")]
+    public class ConfigCommand
+    {
+        [Action("get")]
+        public void Get([Argument] string key) { }
+
+        // 3-level nesting example
+        [Command("user")]
+        public class UserCommand
+        {
+            [Action("name")]
+            public void Name([Argument] string name) { }
+        }
     }
 }
-// Usage: myapp git remote add origin https://...
+// Usage:
+// myapp git status
+// myapp git remote add origin https://...
+// myapp git config user name "John Doe"
 ```
 
-**Challenges:**
-- Source generator complexity
-- Help text generation for nested structures
-- Backward compatibility
+**Implemented Features:**
+- ✅ Unlimited nesting depth (2-level, 3-level, N-level)
+- ✅ Hierarchical command dispatch with proper routing
+- ✅ Subcommand aliases work at all levels
+- ✅ Action aliases within nested subcommands
+- ✅ Help text generation showing full command paths
+- ✅ Subcommands and actions can coexist in the same command
+- ✅ Backward compatibility - existing flat commands work unchanged
+- ✅ Comprehensive test coverage (25+ integration tests)
+- ✅ Proper error handling with suggestions at all levels
+
+**Architecture:**
+- `CommandSourceInfo` class tracks hierarchical command structures
+- Recursive extraction of nested classes with `[Command]` attribute
+- Hierarchical dispatch methods generate multi-level routing
+- Help text displays subcommands separately from actions
+
+**Files Changed:**
+- `TeCLI.Tools/Generators/CommandSourceInfo.cs` - New infrastructure for command hierarchy
+- `TeCLI/Generators/CommandLineArgsGenerator.Commands.cs` - Updated to build and dispatch hierarchies
+- `TeCLI/Generators/CommandLineArgsGenerator.Help.cs` - Enhanced help generation for nested structures
+- `TeCLI.Tests/TestCommands/NestedCommand.cs` - Test command with 2-level and 3-level nesting
+- `TeCLI.Tests/NestedCommandTests.cs` - Comprehensive integration tests
 
 ---
 
@@ -927,11 +969,11 @@ Based on impact and feasibility, the next release should focus on:
 
 The following high-priority items should be considered next:
 
-1. **Nested Subcommands** (🎯 High Priority, Research Needed) - Support hierarchical command structures
-2. **Interactive Mode** (📊 Medium Priority) - Prompt users for missing required arguments
-3. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
-4. **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells
-5. **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks
+1. **Interactive Mode** (📊 Medium Priority) - Prompt users for missing required arguments
+2. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
+3. **Shell Completion Generation** (📊 Medium Priority) - Generate tab completion scripts for various shells
+4. **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks
+5. **Global Options** (📊 Medium Priority) - Options available across all commands
 
 ---
 
