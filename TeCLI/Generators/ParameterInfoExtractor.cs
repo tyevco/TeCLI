@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TeCLI.Attributes;
 using TeCLI.Attributes.Validation;
+using TeCLI.TypeConversion;
 using TeCLI.Extensions;
 using TeCLI.Generators;
 
@@ -137,6 +138,9 @@ internal static class ParameterInfoExtractor
 
             // Extract validation attributes
             ExtractValidationInfo(psi, parameterSymbol);
+
+            // Extract custom type converter
+            ExtractCustomConverterInfo(psi, parameterSymbol);
         }
 
         return psi;
@@ -223,6 +227,9 @@ internal static class ParameterInfoExtractor
 
             // Extract validation attributes
             ExtractValidationInfo(psi, propertySymbol);
+
+            // Extract custom type converter
+            ExtractCustomConverterInfo(psi, propertySymbol);
         }
 
         return psi;
@@ -391,6 +398,35 @@ internal static class ParameterInfoExtractor
                 AttributeTypeName = "DirectoryExists",
                 ValidationCode = validationCode
             });
+        }
+    }
+
+    private static void ExtractCustomConverterInfo(ParameterSourceInfo psi, ISymbol symbol)
+    {
+        var attributes = symbol.GetAttributes();
+
+        // Check for TypeConverterAttribute
+        var converterAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(TypeConverterAttribute));
+        if (converterAttr != null && converterAttr.ConstructorArguments.Length >= 1)
+        {
+            var converterTypeSymbol = converterAttr.ConstructorArguments[0].Value as INamedTypeSymbol;
+            if (converterTypeSymbol != null)
+            {
+                var converterType = converterTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                if (psi.IsCollection)
+                {
+                    // For collections, the converter is for the element type
+                    psi.HasElementCustomConverter = true;
+                    psi.ElementCustomConverterType = converterType;
+                }
+                else
+                {
+                    // For non-collections, the converter is for the parameter type
+                    psi.HasCustomConverter = true;
+                    psi.CustomConverterType = converterType;
+                }
+            }
         }
     }
 }
