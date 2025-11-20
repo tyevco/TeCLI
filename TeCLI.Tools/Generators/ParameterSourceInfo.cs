@@ -45,6 +45,10 @@ namespace TeCLI.Generators
         public bool HasElementCustomConverter { get; set; }
         public string? ElementCustomConverterType { get; set; }
 
+        // Interactive prompting support
+        public string? Prompt { get; set; }
+        public bool SecurePrompt { get; set; }
+
         public bool Optional => !Required;
     }
 

@@ -156,10 +156,14 @@ internal static class ParameterCodeGenerator
                             }
                         }
                     }
-                    // If required and no env var found
-                    if (sourceInfo.Required)
+                    // Check if we should prompt for the value
+                    using (cb.AddBlock("else"))
                     {
-                        using (cb.AddBlock("else"))
+                        if (!string.IsNullOrEmpty(sourceInfo.Prompt))
+                        {
+                            GeneratePromptCode(cb, sourceInfo, variableName);
+                        }
+                        else if (sourceInfo.Required)
                         {
                             cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
                         }
@@ -167,9 +171,15 @@ internal static class ParameterCodeGenerator
                 }
                 else
                 {
-                    // No environment variable, check if required
-                    if (sourceInfo.Required)
+                    // No environment variable
+                    if (!string.IsNullOrEmpty(sourceInfo.Prompt))
                     {
+                        // Prompt for value
+                        GeneratePromptCode(cb, sourceInfo, variableName);
+                    }
+                    else if (sourceInfo.Required)
+                    {
+                        // No prompt, but required - error
                         cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
                     }
                 }
@@ -335,7 +345,15 @@ internal static class ParameterCodeGenerator
         {
             using (cb.AddBlock($"if (args.Length < {sourceInfo.ArgumentIndex + 1})"))
             {
-                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
+                // Check if we should prompt for the value
+                if (!string.IsNullOrEmpty(sourceInfo.Prompt))
+                {
+                    GeneratePromptCode(cb, sourceInfo, variableName);
+                }
+                else
+                {
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
+                }
             }
             using (cb.AddBlock("else"))
             {
@@ -462,6 +480,98 @@ internal static class ParameterCodeGenerator
             {
                 cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
             }
+        }
+    }
+
+    private static void GeneratePromptCode(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName)
+    {
+        cb.AppendLine($"// Prompt for missing {(sourceInfo.ParameterType == ParameterType.Option ? "option" : "argument")}");
+        cb.AppendLine($"System.Console.Write(\"{sourceInfo.Prompt}: \");");
+
+        if (sourceInfo.SecurePrompt)
+        {
+            // For secure input, read character by character and mask with asterisks
+            cb.AppendLine($"var {variableName}Input = new System.Text.StringBuilder();");
+            using (cb.AddBlock("while (true)"))
+            {
+                cb.AppendLine($"var key = System.Console.ReadKey(intercept: true);");
+                using (cb.AddBlock("if (key.Key == System.ConsoleKey.Enter)"))
+                {
+                    cb.AppendLine("System.Console.WriteLine();");
+                    cb.AppendLine("break;");
+                }
+                using (cb.AddBlock($"else if (key.Key == System.ConsoleKey.Backspace && {variableName}Input.Length > 0)"))
+                {
+                    cb.AppendLine($"{variableName}Input.Length--;");
+                    cb.AppendLine("System.Console.Write(\"\\b \\b\");");
+                }
+                using (cb.AddBlock("else if (!char.IsControl(key.KeyChar))"))
+                {
+                    cb.AppendLine($"{variableName}Input.Append(key.KeyChar);");
+                    cb.AppendLine("System.Console.Write(\"*\");");
+                }
+            }
+            cb.AppendLine($"var {variableName}PromptValue = {variableName}Input.ToString();");
+        }
+        else
+        {
+            cb.AppendLine($"var {variableName}PromptValue = System.Console.ReadLine();");
+        }
+
+        // Now parse the prompted value
+        using (cb.AddBlock($"if (!string.IsNullOrEmpty({variableName}PromptValue))"))
+        {
+            using (var tb = cb.AddTry())
+            {
+                if (sourceInfo.IsEnum)
+                {
+                    cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), {variableName}PromptValue, ignoreCase: true);");
+                }
+                else if (sourceInfo.HasCustomConverter && !string.IsNullOrEmpty(sourceInfo.CustomConverterType))
+                {
+                    cb.AppendLine($"var {variableName}Converter = new {sourceInfo.CustomConverterType}();");
+                    cb.AppendLine($"{variableName} = {variableName}Converter.Convert({variableName}PromptValue);");
+                }
+                else if (sourceInfo.IsCommonType && !string.IsNullOrEmpty(sourceInfo.CommonTypeParseMethod))
+                {
+                    cb.AppendLine($"{variableName} = {string.Format(sourceInfo.CommonTypeParseMethod, $"{variableName}PromptValue")};");
+                }
+                else
+                {
+                    cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType({variableName}PromptValue, typeof({sourceInfo.DisplayType}));");
+                }
+
+                if (sourceInfo.Optional)
+                {
+                    cb.AppendLine($"{variableName}Set = true;");
+                }
+                tb.Catch();
+
+                if (sourceInfo.IsEnum)
+                {
+                    cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for {(sourceInfo.ParameterType == ParameterType.Option ? "option '--{sourceInfo.Name}'" : $"argument '{sourceInfo.Name}'")}. Valid values are: {{1}}", {variableName}PromptValue, validValues));""");
+                }
+                else
+                {
+                    var errorMsg = sourceInfo.ParameterType == ParameterType.Option
+                        ? $"\"Invalid value for option '--{sourceInfo.Name}'\""
+                        : $"\"{ErrorMessages.InvalidArgumentSyntax}\", \"{sourceInfo.Name}\"";
+                    cb.AppendLine($"throw new ArgumentException(string.Format({errorMsg}));");
+                }
+            }
+        }
+        using (cb.AddBlock("else"))
+        {
+            // Empty input
+            if (sourceInfo.Required)
+            {
+                var errorMsg = sourceInfo.ParameterType == ParameterType.Option
+                    ? $"\"{ErrorMessages.RequiredOptionNotProvided}\", \"{sourceInfo.Name}\""
+                    : $"\"{ErrorMessages.RequiredArgumentNotProvided}\", \"{sourceInfo.Name}\"";
+                cb.AppendLine($"throw new ArgumentException(string.Format({errorMsg}));");
+            }
+            // Otherwise, use default value (already set)
         }
     }
 
