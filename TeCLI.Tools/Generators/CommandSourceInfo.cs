@@ -59,6 +59,13 @@ namespace TeCLI.Generators
         public bool HasActions => Actions.Count > 0;
 
         /// <summary>
+        /// Hooks applied at the command level (inherited by all actions)
+        /// </summary>
+        public List<HookInfo> BeforeExecuteHooks { get; set; } = new();
+        public List<HookInfo> AfterExecuteHooks { get; set; } = new();
+        public List<HookInfo> OnErrorHooks { get; set; } = new();
+
+        /// <summary>
         /// Full command path (e.g., "git remote")
         /// </summary>
         public string GetFullCommandPath()
