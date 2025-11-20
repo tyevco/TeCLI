@@ -115,27 +115,46 @@ public void Deploy(
 ---
 
 ### 📊 Custom Type Converters
-**Status:** Planned
+**Status:** ✅ Partially Completed (Built-in Types)
 **Priority:** Medium
 
-Allow users to register custom parsers for complex types:
-```csharp
-public class UriConverter : ITypeConverter<Uri>
-{
-    public Uri Parse(string value) => new Uri(value);
-}
+TeCLI now has built-in support for common .NET types! Custom converter registration via `ITypeConverter<T>` is planned for future releases.
 
+```csharp
 [Action("fetch")]
 public void Fetch([Option("url")] Uri endpoint)
 {
-    // Custom parsing handles Uri type
+    // Automatic parsing for Uri!
+    // myapp fetch --url https://example.com
 }
 ```
 
-**Features:**
-- `ITypeConverter<T>` interface
+**Implemented Features:**
+- ✅ Built-in support for common types:
+  - `Uri` - Web URLs and URIs
+  - `DateTime` - Date and time values
+  - `DateTimeOffset` - Timezone-aware timestamps
+  - `TimeSpan` - Duration values (e.g., "2.14:30:00")
+  - `Guid` - Unique identifiers
+  - `FileInfo` - File paths
+  - `DirectoryInfo` - Directory paths
+- ✅ Works with options, arguments, and collections
+- ✅ Automatic type detection and appropriate parsing
+- ✅ Clear error messages for invalid values
+- ✅ Comprehensive test coverage
+
+**Future Enhancements:**
+- `ITypeConverter<T>` interface for custom types
 - Registration mechanism (attribute or global registry)
-- Support for common types (Uri, DateTime, TimeSpan, FileInfo, DirectoryInfo)
+- User-defined type converters
+
+**Files Changed:**
+- `TeCLI.Tools/Extensions.cs` - Type detection and parse method mapping
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Common type properties
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Detect and store common type info
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Generate parsing code
+- `TeCLI.Tests/TestCommands/CommonTypesCommand.cs` - Test command
+- `TeCLI.Tests/CommonTypesTests.cs` - Integration tests
 
 ---
 

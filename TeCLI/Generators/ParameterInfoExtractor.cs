@@ -88,6 +88,13 @@ internal static class ParameterInfoExtractor
                 psi.IsFlags = parameterSymbol.Type.IsFlagsEnum();
             }
 
+            // Check if this is a common convertible type
+            if (parameterSymbol.Type.IsCommonConvertibleType())
+            {
+                psi.IsCommonType = true;
+                psi.CommonTypeParseMethod = parameterSymbol.Type.GetCommonTypeParseMethod();
+            }
+
             // Check if this is a collection type
             if (parameterSymbol.Type.IsCollectionType(out var elementType))
             {
@@ -100,6 +107,13 @@ internal static class ParameterInfoExtractor
                 {
                     psi.IsElementEnum = true;
                     psi.IsElementFlags = elementType.IsFlagsEnum();
+                }
+
+                // Check if the element type is a common convertible type
+                if (elementType?.IsCommonConvertibleType() == true)
+                {
+                    psi.IsElementCommonType = true;
+                    psi.ElementCommonTypeParseMethod = elementType.GetCommonTypeParseMethod();
                 }
             }
 
@@ -157,6 +171,13 @@ internal static class ParameterInfoExtractor
                 psi.IsFlags = propertySymbol.Type.IsFlagsEnum();
             }
 
+            // Check if this is a common convertible type
+            if (propertySymbol.Type.IsCommonConvertibleType())
+            {
+                psi.IsCommonType = true;
+                psi.CommonTypeParseMethod = propertySymbol.Type.GetCommonTypeParseMethod();
+            }
+
             // Check if this is a collection type
             if (propertySymbol.Type.IsCollectionType(out var elementType))
             {
@@ -169,6 +190,13 @@ internal static class ParameterInfoExtractor
                 {
                     psi.IsElementEnum = true;
                     psi.IsElementFlags = elementType.IsFlagsEnum();
+                }
+
+                // Check if the element type is a common convertible type
+                if (elementType?.IsCommonConvertibleType() == true)
+                {
+                    psi.IsElementCommonType = true;
+                    psi.ElementCommonTypeParseMethod = elementType.GetCommonTypeParseMethod();
                 }
             }
 

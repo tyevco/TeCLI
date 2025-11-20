@@ -222,13 +222,53 @@ public static class Extensions
             return true;
         }
 
-        // Check if it's a collection of primitive types or enums
+        // Check if it's a common convertible type
+        if (IsCommonConvertibleType(typeSymbol))
+        {
+            return true;
+        }
+
+        // Check if it's a collection of primitive types, enums, or common types
         if (IsCollectionType(typeSymbol, out var elementType))
         {
-            return IsPrimitiveType(elementType) || IsEnumType(elementType);
+            return IsPrimitiveType(elementType) || IsEnumType(elementType) || IsCommonConvertibleType(elementType);
         }
 
         return false;
+    }
+
+    public static bool IsCommonConvertibleType(this ITypeSymbol typeSymbol)
+    {
+        var fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        return fullTypeName switch
+        {
+            "global::System.Uri" => true,
+            "global::System.DateTime" => true,
+            "global::System.DateTimeOffset" => true,
+            "global::System.TimeSpan" => true,
+            "global::System.Guid" => true,
+            "global::System.IO.FileInfo" => true,
+            "global::System.IO.DirectoryInfo" => true,
+            _ => false
+        };
+    }
+
+    public static string? GetCommonTypeParseMethod(this ITypeSymbol typeSymbol)
+    {
+        var fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        return fullTypeName switch
+        {
+            "global::System.Uri" => "new System.Uri({0})",
+            "global::System.DateTime" => "System.DateTime.Parse({0})",
+            "global::System.DateTimeOffset" => "System.DateTimeOffset.Parse({0})",
+            "global::System.TimeSpan" => "System.TimeSpan.Parse({0})",
+            "global::System.Guid" => "System.Guid.Parse({0})",
+            "global::System.IO.FileInfo" => "new System.IO.FileInfo({0})",
+            "global::System.IO.DirectoryInfo" => "new System.IO.DirectoryInfo({0})",
+            _ => null
+        };
     }
 
     public static bool IsPrimitiveType(this ITypeSymbol typeSymbol)
