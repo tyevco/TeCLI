@@ -37,6 +37,15 @@ public partial class CommandLineArgsGenerator
                     {
                         cb.AddBlankLine();
 
+                        // Check for help flag
+                        using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
+                        {
+                            cb.AppendLine("DisplayApplicationHelp();");
+                            cb.AppendLine("return;");
+                        }
+
+                        cb.AddBlankLine();
+
                         cb.AppendLine("string command = args[0].ToLower();");
                         cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
 
@@ -104,6 +113,15 @@ public partial class CommandLineArgsGenerator
                 {
                     using (cb.AddBlock($"private async Task {methodName}(string[] args)"))
                     {
+                        // Check for help flag first
+                        using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
+                        {
+                            cb.AppendLine($"DisplayCommand{classDecl.Identifier.Text}Help();");
+                            cb.AppendLine("return;");
+                        }
+
+                        cb.AddBlankLine();
+
                         using (cb.AddBlock("if (args.Length == 0)"))
                         {
                             GeneratePrimaryMethodInvocation(cb, compilation, classDecl, throwOnNoPrimary: true);
