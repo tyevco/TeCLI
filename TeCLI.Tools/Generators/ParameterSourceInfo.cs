@@ -29,6 +29,12 @@ namespace TeCLI.Generators
         public bool IsElementEnum { get; set; }
         public bool IsElementFlags { get; set; }
 
+        // Common convertible types support (Uri, DateTime, TimeSpan, etc.)
+        public bool IsCommonType { get; set; }
+        public bool IsElementCommonType { get; set; }
+        public string? CommonTypeParseMethod { get; set; }
+        public string? ElementCommonTypeParseMethod { get; set; }
+
         public bool Optional => !Required;
     }
 

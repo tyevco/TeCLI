@@ -64,6 +64,10 @@ internal static class ParameterCodeGenerator
                     {
                         cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), args[{variableName}Index + 1], ignoreCase: true);");
                     }
+                    else if (sourceInfo.IsCommonType && !string.IsNullOrEmpty(sourceInfo.CommonTypeParseMethod))
+                    {
+                        cb.AppendLine($"{variableName} = {string.Format(sourceInfo.CommonTypeParseMethod, $"args[{variableName}Index + 1]")};");
+                    }
                     else
                     {
                         cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{variableName}Index + 1], typeof({sourceInfo.DisplayType}));");
