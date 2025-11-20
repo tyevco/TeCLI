@@ -40,7 +40,7 @@ public partial class CommandLineArgsGenerator
                 else
                 {
                     // there were not enough parameters specified. the help text should be displayed for this action.
-                    cb.AppendLine($"throw new Exception();");
+                    cb.AppendLine($"""throw new ArgumentException("Required parameters not provided. Use --help for usage information.");""");
                 }
             }
 
@@ -175,23 +175,6 @@ public partial class CommandLineArgsGenerator
         }
 
         return items;
-    }
-
-    private static void GenerateCodeForParameter(CodeBuilder cb, IParameterSymbol parameter, int index)
-    {
-        // Assume args is the input array of strings from the command line
-        var parameterType = parameter.Type;
-
-        if (parameter.GetAttributes().Any(a => a.AttributeClass!.Name == "OptionAttribute" || a.AttributeClass.Name == "ArgumentAttribute"))
-        {
-            // Example for simple types, expand this logic based on your needs
-            cb.AppendLine($"Convert.ChangeType(args[{index}], typeof({parameterType})),");
-        }
-        else
-        {
-            // Default handling for types without specific attributes
-            cb.AppendLine($"default({parameterType}), // Placeholder, implement actual parsing logic here");
-        }
     }
 
     private static ParameterSourceInfo? BuildParameterSourceInfo(IParameterSymbol parameterSymbol, ref int paramIndex, ref int argumentCount)
@@ -353,7 +336,7 @@ public partial class CommandLineArgsGenerator
             }
             else if (sourceInfo.ParameterType == ParameterType.Container)
             {
-                // cb.AppendLine($"{variableName} = default;");
+                // Container parameters are handled by their nested properties
             }
         }
     }
@@ -377,7 +360,16 @@ public partial class CommandLineArgsGenerator
             cb.AppendLine($"var {variableName}Index = Array.FindIndex(args, arg => {optionCheck});");
             using (cb.AddBlock($"if ({variableName}Index != -1 && args.Length > {variableName}Index + 1)"))
             {
-                cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{variableName}Index + 1], typeof({sourceInfo.DisplayType}));");
+                using (var tb = cb.AddTry())
+                {
+                    cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{variableName}Index + 1], typeof({sourceInfo.DisplayType}));");
+                    if (sourceInfo.Optional)
+                    {
+                        cb.AppendLine($"{variableName}Set = true;");
+                    }
+                    tb.Catch();
+                    cb.AppendLine($"""throw new ArgumentException("Invalid value provided for option '--{sourceInfo.Name}'.");""");
+                }
             }
 
             // if the field is required, we want to throw an exception if it is not provided.
@@ -405,14 +397,6 @@ public partial class CommandLineArgsGenerator
                 tb.Catch();
                 cb.AppendLine($"""throw new ArgumentException("Invalid syntax provided for argument '{sourceInfo.Name}'.");""");
             }
-            // if the field is required, we want to throw an exception if it is not provided.
-            //if (sourceInfo.Required)
-            //{
-            //    using (cb.AddBlock("else"))
-            //    {
-            //        cb.AppendLine($"""throw new ArgumentException("Required option '--{sourceInfo.Name}' not provided.");""");
-            //    }
-            //}
         }
     }
 

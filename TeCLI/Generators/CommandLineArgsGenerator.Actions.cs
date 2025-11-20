@@ -21,20 +21,21 @@ public partial class CommandLineArgsGenerator
 
             foreach (var actionMethod in actionMethods)
             {
+                var actionAttribute = actionMethod.GetAttribute<ActionAttribute>();
+                if (actionAttribute == null || actionAttribute.ConstructorArguments.Length == 0)
+                {
+                    continue; // Skip actions without valid ActionAttribute
+                }
+
                 ActionSourceInfo asi = new()
                 {
                     Method = actionMethod,
+                    DisplayName = actionAttribute.ConstructorArguments[0].Value?.ToString() ?? actionMethod.Name,
+                    ActionName = actionMethod.Name,
+                    InvokerMethodName = $"{classDecl.Identifier.Text}{actionMethod.Name}"
                 };
 
-                var actionAttribute = actionMethod.GetAttribute<ActionAttribute>();
-                asi.DisplayName = actionAttribute!.ConstructorArguments[0]!.Value!.ToString();
-                asi.ActionName = actionMethod.Name;
-                asi.InvokerMethodName = $"{classDecl.Identifier.Text}{actionMethod.Name}";
-
-                if (asi != null)
-                {
-                    actions.Add(asi);
-                }
+                actions.Add(asi);
             }
         }
 
