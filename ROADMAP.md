@@ -237,22 +237,49 @@ public class GitCommand
 ---
 
 ### 📊 Command Aliases
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Allow commands and actions to have multiple names:
+TeCLI now supports multiple names for commands and actions!
+
 ```csharp
 [Command("remove", Aliases = new[] { "rm", "delete" })]
-public class RemoveCommand { }
-
-[Action("list", Aliases = new[] { "ls" })]
-public void List() { }
+public class RemoveCommand
+{
+    [Action("list", Aliases = new[] { "ls", "show" })]
+    public void List() { }
+}
+// Usage: All of these work!
+// myapp remove list
+// myapp rm ls
+// myapp delete show
 ```
+
+**Implemented Features:**
+- ✅ Command aliases - multiple names for commands
+- ✅ Action aliases - multiple names for actions
+- ✅ Unlimited aliases per command/action
+- ✅ Case-insensitive alias matching
+- ✅ Aliases work in command/action suggestions
+- ✅ Help text displays aliases alongside names
+- ✅ Full dispatcher support for aliases
+- ✅ Comprehensive test coverage (17+ tests)
 
 **Use Cases:**
 - Short/long command names (`rm` vs `remove`)
 - Backward compatibility when renaming commands
-- Common abbreviations
+- Common abbreviations (`ls` for `list`, `dir` for `directory`)
+- User-friendly alternatives (`delete` as alias for `remove`)
+
+**Files Changed:**
+- `TeCLI.Core/CommandAttribute.cs` - Added Aliases property
+- `TeCLI.Core/ActionAttribute.cs` - Added Aliases property
+- `TeCLI.Tools/Generators/ActionSourceInfo.cs` - Track aliases
+- `TeCLI/Generators/CommandLineArgsGenerator.Commands.cs` - Command dispatch with aliases
+- `TeCLI/Generators/CommandLineArgsGenerator.Actions.cs` - Action dispatch with aliases
+- `TeCLI/Generators/CommandLineArgsGenerator.Help.cs` - Help text with aliases
+- `TeCLI.Tests/TestCommands/AliasesCommand.cs` - Test command
+- `TeCLI.Tests/AliasesTests.cs` - Integration tests
 
 ---
 

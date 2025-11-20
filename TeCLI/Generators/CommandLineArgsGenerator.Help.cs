@@ -89,6 +89,20 @@ public partial class CommandLineArgsGenerator
         string commandName = commandAttr.ConstructorArguments[0].Value?.ToString() ?? classDecl.Identifier.Text;
         string? commandDesc = commandAttr.NamedArguments.FirstOrDefault(na => na.Key == "Description").Value.Value?.ToString();
 
+        // Extract command aliases
+        var commandAliases = new List<string>();
+        var aliasesArg = commandAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Aliases");
+        if (!aliasesArg.Value.IsNull && aliasesArg.Value.Kind == TypedConstantKind.Array)
+        {
+            foreach (var value in aliasesArg.Value.Values)
+            {
+                if (value.Value is string alias)
+                {
+                    commandAliases.Add(alias);
+                }
+            }
+        }
+
         CodeBuilder cb = new CodeBuilder("System", "System.Linq");
 
         using (cb.AddBlock("namespace TeCLI"))
@@ -97,8 +111,16 @@ public partial class CommandLineArgsGenerator
             {
                 using (cb.AddBlock($"public static void DisplayCommand{classDecl.Identifier.Text}Help(string actionName = null)"))
                 {
-                    // Display command header
-                    cb.AppendLine($"Console.WriteLine(\"Command: {commandName}\");");
+                    // Display command header with aliases
+                    if (commandAliases.Count > 0)
+                    {
+                        var aliasesStr = string.Join(", ", commandAliases.Select(a => $"\"{a}\""));
+                        cb.AppendLine($"Console.WriteLine(\"Command: {commandName} (aliases: {aliasesStr})\");");
+                    }
+                    else
+                    {
+                        cb.AppendLine($"Console.WriteLine(\"Command: {commandName}\");");
+                    }
                     if (!string.IsNullOrEmpty(commandDesc))
                     {
                         cb.AppendLine($"Console.WriteLine(\"Description: {commandDesc}\");");
@@ -149,13 +171,35 @@ public partial class CommandLineArgsGenerator
                                 string actionName = actionAttr.ConstructorArguments[0].Value?.ToString() ?? action.Name;
                                 string? actionDesc = actionAttr.NamedArguments.FirstOrDefault(na => na.Key == "Description").Value.Value?.ToString();
 
+                                // Extract action aliases
+                                var actionAliases = new List<string>();
+                                var actionAliasesArg = actionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Aliases");
+                                if (!actionAliasesArg.Value.IsNull && actionAliasesArg.Value.Kind == TypedConstantKind.Array)
+                                {
+                                    foreach (var value in actionAliasesArg.Value.Values)
+                                    {
+                                        if (value.Value is string alias)
+                                        {
+                                            actionAliases.Add(alias);
+                                        }
+                                    }
+                                }
+
+                                // Build action display name with aliases
+                                string actionDisplay = actionName;
+                                if (actionAliases.Count > 0)
+                                {
+                                    var aliasesStr = string.Join(", ", actionAliases);
+                                    actionDisplay = $"{actionName} ({aliasesStr})";
+                                }
+
                                 if (!string.IsNullOrEmpty(actionDesc))
                                 {
-                                    cb.AppendLine($"Console.WriteLine(\"  {actionName.PadRight(20)} {actionDesc}\");");
+                                    cb.AppendLine($"Console.WriteLine(\"  {actionDisplay.PadRight(30)} {actionDesc}\");");
                                 }
                                 else
                                 {
-                                    cb.AppendLine($"Console.WriteLine(\"  {actionName}\");");
+                                    cb.AppendLine($"Console.WriteLine(\"  {actionDisplay}\");");
                                 }
                             }
                         }

@@ -65,8 +65,10 @@ public partial class CommandLineArgsGenerator
                             foreach (var commandClass in commandClasses)
                             {
                                 var commandName = GetCommandName(commandClass);
+                                var commandAliases = GetCommandAliases(compilation, commandClass);
                                 var methodName = $"Dispatch{commandClass.Identifier.Text}Async";
 
+                                // Generate case for primary name
                                 using (cb.AddBlock($"case \"{commandName!.ToLower()}\":"))
                                 {
                                     cb.AppendLine($"await {methodName}(remainingArgs);");
@@ -74,6 +76,18 @@ public partial class CommandLineArgsGenerator
                                 }
 
                                 cb.AddBlankLine();
+
+                                // Generate cases for aliases
+                                foreach (var alias in commandAliases)
+                                {
+                                    using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
+                                    {
+                                        cb.AppendLine($"await {methodName}(remainingArgs);");
+                                        cb.AppendLine("break;");
+                                    }
+
+                                    cb.AddBlankLine();
+                                }
 
                                 if (!dispatchMap.TryGetValue(commandClass, out var dispatchs))
                                 {
@@ -85,15 +99,23 @@ public partial class CommandLineArgsGenerator
 
                             using (cb.AddBlock("default:"))
                             {
-                                // Build list of available commands for suggestions
+                                // Build list of available commands (including aliases) for suggestions
                                 cb.AppendLine("var availableCommands = new[] {");
                                 bool first = true;
                                 foreach (var commandClass in commandClasses)
                                 {
                                     var commandName = GetCommandName(commandClass);
+                                    var commandAliases = GetCommandAliases(compilation, commandClass);
+
                                     if (!first) cb.Append(", ");
                                     cb.Append($"\"{commandName!.ToLower()}\"");
                                     first = false;
+
+                                    // Add aliases to the suggestion list
+                                    foreach (var alias in commandAliases)
+                                    {
+                                        cb.Append($", \"{alias.ToLower()}\"");
+                                    }
                                 }
                                 cb.AppendLine(" };");
 
@@ -171,7 +193,7 @@ public partial class CommandLineArgsGenerator
                                 {
                                     GeneratePrimaryMethodInvocation(cb, compilation, classDecl, throwOnNoPrimary: false);
 
-                                    // Build list of available actions for suggestions
+                                    // Build list of available actions (including aliases) for suggestions
                                     cb.AppendLine("var availableActions = new[] {");
                                     bool first = true;
                                     foreach (var action in actionMap)
@@ -179,6 +201,12 @@ public partial class CommandLineArgsGenerator
                                         if (!first) cb.Append(", ");
                                         cb.Append($"\"{action.ActionName.ToLower()}\"");
                                         first = false;
+
+                                        // Add aliases to the suggestion list
+                                        foreach (var alias in action.Aliases)
+                                        {
+                                            cb.Append($", \"{alias.ToLower()}\"");
+                                        }
                                     }
                                     cb.AppendLine(" };");
 
@@ -224,6 +252,33 @@ public partial class CommandLineArgsGenerator
             return commandAttribute.ArgumentList.Arguments.First().ToString().Trim('"');
         }
         return null;
+    }
+
+    private List<string> GetCommandAliases(Compilation compilation, ClassDeclarationSyntax classDecl)
+    {
+        var aliases = new List<string>();
+        var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
+
+        if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
+        {
+            var commandAttr = classSymbol.GetAttribute<CommandAttribute>();
+            if (commandAttr != null)
+            {
+                var aliasesArg = commandAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Aliases");
+                if (!aliasesArg.Value.IsNull && aliasesArg.Value.Kind == TypedConstantKind.Array)
+                {
+                    foreach (var value in aliasesArg.Value.Values)
+                    {
+                        if (value.Value is string alias)
+                        {
+                            aliases.Add(alias);
+                        }
+                    }
+                }
+            }
+        }
+
+        return aliases;
     }
 
     private void GeneratePrimaryMethodInvocation(CodeBuilder cb, Compilation compilation, ClassDeclarationSyntax classDecl, bool throwOnNoPrimary)
