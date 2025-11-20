@@ -210,6 +210,18 @@ internal static class ParameterInfoExtractor
         var shortName = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ShortName").Value;
         psi.ShortName = !shortName.IsNull && shortName.Value is char ch ? ch : '\0';
 
+        // Extract the Required property from the attribute
+        var required = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Required").Value;
+        if (!required.IsNull && required.Value is bool isRequired)
+        {
+            psi.Required = isRequired;
+        }
+        else
+        {
+            // If Required is not explicitly set in the attribute, keep the default behavior
+            // (based on whether there's a default value)
+        }
+
         bool isBoolean = typeSpecialType == SpecialType.System_Boolean;
         if (isBoolean)
         {
