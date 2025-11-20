@@ -45,6 +45,20 @@ public class CommandAttribute : Attribute
     public string? Description { get; set; }
 
     /// <summary>
+    /// Gets or sets alternative names (aliases) for this command.
+    /// </summary>
+    /// <value>
+    /// An array of alternative command names. Can be null or empty if no aliases are needed.
+    /// </value>
+    /// <example>
+    /// <code>
+    /// [Command("remove", Aliases = new[] { "rm", "delete" })]
+    /// </code>
+    /// This allows the command to be invoked as "remove", "rm", or "delete".
+    /// </example>
+    public string[]? Aliases { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="CommandAttribute"/> class.
     /// </summary>
     /// <param name="name">The name of the command as it appears on the command line.</param>

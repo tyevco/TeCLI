@@ -35,6 +35,19 @@ public partial class CommandLineArgsGenerator
                     InvokerMethodName = $"{classDecl.Identifier.Text}{actionMethod.Name}"
                 };
 
+                // Extract aliases from the ActionAttribute
+                var aliasesArg = actionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Aliases");
+                if (!aliasesArg.Value.IsNull && aliasesArg.Value.Kind == TypedConstantKind.Array)
+                {
+                    foreach (var value in aliasesArg.Value.Values)
+                    {
+                        if (value.Value is string alias)
+                        {
+                            asi.Aliases.Add(alias);
+                        }
+                    }
+                }
+
                 actions.Add(asi);
             }
         }
@@ -44,6 +57,7 @@ public partial class CommandLineArgsGenerator
 
     private void GenerateCommandActions(Compilation compilation, CodeBuilder codeBuilder, ClassDeclarationSyntax classDecl, ActionSourceInfo actionInfo)
     {
+        // Generate case for primary name
         using (codeBuilder.AddBlock($"case \"{actionInfo.DisplayName}\":"))
         {
             codeBuilder.AppendLine(
@@ -51,6 +65,23 @@ public partial class CommandLineArgsGenerator
                         () => $"await Process{actionInfo.InvokerMethodName}Async(remainingArgs);",
                         () => $"Process{actionInfo.InvokerMethodName}(remainingArgs);"));
             codeBuilder.AppendLine("break;");
+        }
+
+        codeBuilder.AddBlankLine();
+
+        // Generate cases for aliases
+        foreach (var alias in actionInfo.Aliases)
+        {
+            using (codeBuilder.AddBlock($"case \"{alias}\":"))
+            {
+                codeBuilder.AppendLine(
+                    actionInfo.Method.MapAsync(
+                            () => $"await Process{actionInfo.InvokerMethodName}Async(remainingArgs);",
+                            () => $"Process{actionInfo.InvokerMethodName}(remainingArgs);"));
+                codeBuilder.AppendLine("break;");
+            }
+
+            codeBuilder.AddBlankLine();
         }
     }
 

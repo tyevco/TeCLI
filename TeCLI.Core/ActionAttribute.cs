@@ -46,6 +46,20 @@ public class ActionAttribute : Attribute
     public string? Description { get; set; }
 
     /// <summary>
+    /// Gets or sets alternative names (aliases) for this action.
+    /// </summary>
+    /// <value>
+    /// An array of alternative action names. Can be null or empty if no aliases are needed.
+    /// </value>
+    /// <example>
+    /// <code>
+    /// [Action("list", Aliases = new[] { "ls", "show" })]
+    /// </code>
+    /// This allows the action to be invoked as "list", "ls", or "show".
+    /// </example>
+    public string[]? Aliases { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ActionAttribute"/> class.
     /// </summary>
     /// <param name="name">The name of the action as it appears on the command line.</param>
