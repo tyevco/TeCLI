@@ -307,7 +307,7 @@ public partial class CommandLineArgsGenerator
                 foreach (var action in commandInfo.Actions)
                 {
                     cb.AddBlankLine();
-                    GenerateActionCode(cb, action, globalOptions);
+                    GenerateActionCode(cb, action, commandInfo, globalOptions);
                 }
 
                 cb.AddBlankLine();
@@ -387,12 +387,18 @@ public partial class CommandLineArgsGenerator
                     {
                         var actionInvokeMethodName = $"{commandInfo.TypeSymbol.Name}{action.Method!.Name}";
 
+                        // Check if action has hooks - if so, always use async version
+                        bool hasHooks = ActionHasHooks(action, commandInfo);
+                        string actionCall = hasHooks
+                            ? $"await Process{actionInvokeMethodName}Async(remainingArgs);"
+                            : action.Method.MapAsync(
+                                () => $"await Process{actionInvokeMethodName}Async(remainingArgs);",
+                                () => $"Process{actionInvokeMethodName}(remainingArgs);");
+
                         // Primary action name
                         using (cb.AddBlock($"case \"{action.ActionName!.ToLower()}\":"))
                         {
-                            cb.AppendLine(action.Method.MapAsync(
-                                () => $"await Process{actionInvokeMethodName}Async(remainingArgs);",
-                                () => $"Process{actionInvokeMethodName}(remainingArgs);"));
+                            cb.AppendLine(actionCall);
                             cb.AppendLine("break;");
                         }
 
@@ -403,9 +409,7 @@ public partial class CommandLineArgsGenerator
                         {
                             using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
                             {
-                                cb.AppendLine(action.Method.MapAsync(
-                                    () => $"await Process{actionInvokeMethodName}Async(remainingArgs);",
-                                    () => $"Process{actionInvokeMethodName}(remainingArgs);"));
+                                cb.AppendLine(actionCall);
                                 cb.AppendLine("break;");
                             }
 
