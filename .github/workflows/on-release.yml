@@ -79,8 +79,40 @@ jobs:
         name: ${{ matrix.project }}
         path: ${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
 
-  push-nupkg:
+  test:
     needs: build-libs
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - uses: actions/download-artifact@v4
+      with:
+        path: ./.packages
+        merge-multiple: true
+
+    - name: Restore dependencies
+      run: dotnet restore TeCLI.Tests/TeCLI.Tests.csproj
+
+    - name: Run tests with coverage
+      run: dotnet test TeCLI.Tests/TeCLI.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage --logger "trx;LogFileName=test-results.trx" --no-restore
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/**/coverage.cobertura.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  push-nupkg:
+    needs: test
 
     runs-on: ubuntu-latest
 
