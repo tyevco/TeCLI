@@ -8,18 +8,34 @@ namespace TeCLI.Generators;
 
 public partial class CommandLineArgsGenerator
 {
-    public void GenerateParameterCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName)
+    public void GenerateParameterCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName, GlobalOptionsSourceInfo? globalOptions = null)
     {
         var parameterDetails = ParameterInfoExtractor.GetParameterDetails(methodSymbol.Parameters);
+
+        // Check if any parameter is the global options type
+        ParameterSourceInfo? globalOptionsParam = null;
+        if (globalOptions != null)
+        {
+            globalOptionsParam = parameterDetails.FirstOrDefault(p =>
+                p.Type == globalOptions.FullTypeName ||
+                p.DisplayType == globalOptions.TypeName);
+
+            // Remove global options parameter from parameterDetails since we'll handle it separately
+            if (globalOptionsParam != null)
+            {
+                parameterDetails.Remove(globalOptionsParam);
+            }
+        }
 
         // need to figure out if there are any arguments or required options.
         if (parameterDetails.Count == 0)
         {
-            // no parameters were specified, so this action can be called.
+            // no parameters were specified (other than possibly global options), so this action can be called.
+            var globalOptionsArg = globalOptionsParam != null ? "_globalOptions" : "";
             cb.AppendLine(
                     methodSymbol.MapAsync(
-                        () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}());",
-                        () => $"{methodInvokerName}(command => command.{methodSymbol.Name}());"));
+                        () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({globalOptionsArg}));",
+                        () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({globalOptionsArg}));"));
         }
         else
         {
@@ -28,10 +44,11 @@ public partial class CommandLineArgsGenerator
                 if (!parameterDetails.Any(p => p.Required))
                 {
                     // no parameters were required, so this action can be called.
+                    var globalOptionsArg = globalOptionsParam != null ? "_globalOptions" : "";
                     cb.AppendLine(
                         methodSymbol.MapAsync(
-                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}());",
-                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}());"));
+                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({globalOptionsArg}));",
+                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({globalOptionsArg}));"));
                 }
                 else
                 {
@@ -104,6 +121,12 @@ public partial class CommandLineArgsGenerator
                     // Build the complete parameter list with all parameters (required and optional)
                     List<string> allParams = [];
 
+                    // Add global options first if present
+                    if (globalOptionsParam != null)
+                    {
+                        allParams.Add($"{globalOptionsParam.ParameterName}: _globalOptions");
+                    }
+
                     foreach (var param in parameterDetails)
                     {
                         if (param.Required)
@@ -133,10 +156,19 @@ public partial class CommandLineArgsGenerator
                 else
                 {
                     cb.AppendLine($"// Now invoke the method with the parsed parameters");
+
+                    // Build parameter list
+                    var invokeParams = new List<string>();
+                    if (globalOptionsParam != null)
+                    {
+                        invokeParams.Add("_globalOptions");
+                    }
+                    invokeParams.AddRange(parameterDetails.Select(p => $"p{p.ParameterIndex}"));
+
                     cb.AppendLine(
                             methodSymbol.MapAsync(
-                                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", parameterDetails.Select(p => $"p{p.ParameterIndex}"))}));",
-                                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", parameterDetails.Select(p => $"p{p.ParameterIndex}"))}));"));
+                                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", invokeParams)}));",
+                                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", invokeParams)}));"));
                 }
             }
         }

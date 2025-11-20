@@ -85,7 +85,7 @@ public partial class CommandLineArgsGenerator
         }
     }
 
-    private void GenerateActionCode(CodeBuilder cb, ActionSourceInfo actionInfo)
+    private void GenerateActionCode(CodeBuilder cb, ActionSourceInfo actionInfo, GlobalOptionsSourceInfo? globalOptions = null)
     {
 
         using (cb.AddBlock(
@@ -95,11 +95,12 @@ public partial class CommandLineArgsGenerator
         {
             // parse all the remaining arguments.
             GenerateParameterCode(
-                cb, 
-                actionInfo.Method, 
+                cb,
+                actionInfo.Method,
                 actionInfo.Method.MapAsync(
                     () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
-                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"));
+                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+                globalOptions);
         }
     }
 }
