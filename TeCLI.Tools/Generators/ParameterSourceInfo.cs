@@ -22,6 +22,7 @@ namespace TeCLI.Generators
         public bool IsCollection { get; set; }
         public string? ElementType { get; set; }
         public SpecialType ElementSpecialType { get; set; }
+        public string? EnvVar { get; set; }
 
         // Enum support
         public bool IsEnum { get; set; }
