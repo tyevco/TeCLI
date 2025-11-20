@@ -713,26 +713,113 @@ myapp deploy --profile prod
 ## Advanced Features
 
 ### 📊 Middleware/Hooks System
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Pre and post-execution hooks:
+TeCLI now supports a comprehensive middleware/hooks system with pre-execution, post-execution, and error handling hooks! This enables scenarios like:
+
 ```csharp
+// Hook interfaces
+public class AuthenticationHook : IBeforeExecuteHook
+{
+    public Task BeforeExecuteAsync(HookContext context)
+    {
+        // Validate authentication before action executes
+        if (!IsAuthenticated())
+        {
+            context.IsCancelled = true;
+            context.CancellationMessage = "Authentication required";
+        }
+        return Task.CompletedTask;
+    }
+}
+
+public class LoggingHook : IAfterExecuteHook
+{
+    public Task AfterExecuteAsync(HookContext context, object? result)
+    {
+        // Log action execution
+        Console.WriteLine($"Executed: {context.ActionName}");
+        return Task.CompletedTask;
+    }
+}
+
+public class ErrorHandlerHook : IOnErrorHook
+{
+    public Task<bool> OnErrorAsync(HookContext context, Exception exception)
+    {
+        // Handle or log errors
+        Console.WriteLine($"Error: {exception.Message}");
+        return Task.FromResult(true); // true = handled, false = propagate
+    }
+}
+
+// Apply hooks at command level (inherited by all actions)
 [Command("api")]
-[BeforeExecute(typeof(AuthenticationMiddleware))]
-[AfterExecute(typeof(LoggingMiddleware))]
+[BeforeExecute(typeof(AuthenticationHook))]
+[AfterExecute(typeof(LoggingHook))]
+[OnError(typeof(ErrorHandlerHook))]
 public class ApiCommand
 {
+    // This action inherits command-level hooks
     [Action("call")]
     public void Call() { }
+
+    // This action has both command-level and action-level hooks
+    [Action("admin")]
+    [BeforeExecute(typeof(AdminAuthHook), Order = 10)]
+    public void Admin() { }
 }
 ```
 
+**Implemented Features:**
+- ✅ Three hook types: `IBeforeExecuteHook`, `IAfterExecuteHook`, `IOnErrorHook`
+- ✅ `HookContext` for sharing data and execution context between hooks
+- ✅ Command-level hooks (inherited by all actions in the command)
+- ✅ Action-level hooks (specific to individual actions)
+- ✅ Hook ordering with `Order` property
+- ✅ Cancellation support via `HookContext.IsCancelled`
+- ✅ Error handling with option to suppress exceptions
+- ✅ Multiple hooks per action with ordered execution
+- ✅ Comprehensive test coverage
+
+**Hook Interfaces:**
+- `IBeforeExecuteHook` - Execute before action, can cancel execution
+- `IAfterExecuteHook` - Execute after successful action completion
+- `IOnErrorHook` - Execute when action throws exception, can handle or propagate
+
+**Hook Attributes:**
+- `[BeforeExecute(Type, Order = 0)]` - Apply before-execution hook
+- `[AfterExecute(Type, Order = 0)]` - Apply after-execution hook
+- `[OnError(Type, Order = 0)]` - Apply error-handling hook
+
+**HookContext Properties:**
+- `CommandName` - The command being executed
+- `ActionName` - The action being executed
+- `Arguments` - The command-line arguments
+- `Data` - Dictionary for sharing data between hooks
+- `IsCancelled` - Set to true to cancel action execution
+- `CancellationMessage` - Message to display when cancelled
+
 **Use Cases:**
-- Authentication/authorization
-- Logging and telemetry
+- Authentication/authorization before action execution
+- Logging and telemetry for all actions
 - Resource initialization/cleanup
 - Transaction management
+- Error logging and handling
+- Validation before execution
+- Performance monitoring
+
+**Files Changed:**
+- `TeCLI.Core/Hooks/HookInterfaces.cs` - Hook interfaces and context
+- `TeCLI.Core/Hooks/HookAttributes.cs` - Hook attributes
+- `TeCLI.Tools/Generators/ActionSourceInfo.cs` - Hook tracking in actions
+- `TeCLI.Tools/Generators/CommandSourceInfo.cs` - Hook tracking in commands
+- `TeCLI/Generators/CommandLineArgsGenerator.Actions.cs` - Hook code generation
+- `TeCLI/Generators/CommandLineArgsGenerator.Commands.cs` - Hook extraction and dispatch
+- `TeCLI.Tests/TestHooks/TestHooks.cs` - Test hook implementations
+- `TeCLI.Tests/TestCommands/HooksCommand.cs` - Test commands with hooks
+- `TeCLI.Tests/HooksTests.cs` - Comprehensive integration tests
 
 ---
 
