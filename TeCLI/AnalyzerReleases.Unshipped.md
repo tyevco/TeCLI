@@ -14,3 +14,6 @@ CLI006 | Usage | Error | CommandOptionNameValidationAnalyzer - Empty name not al
 CLI007 | Usage | Error | DuplicateNameAnalyzer - Duplicate action name
 CLI008 | Usage | Error | DuplicateNameAnalyzer - Duplicate option name
 CLI009 | Usage | Error | DuplicateNameAnalyzer - Conflicting argument positions
+CLI010 | Usage | Error | ConflictingShortNameAnalyzer - Conflicting option short names
+CLI011 | Usage | Warning | AsyncMethodReturnTypeAnalyzer - Async method must return Task
+CLI012 | Usage | Warning | AsyncVoidActionAnalyzer - Avoid async void in action methods
