@@ -21,10 +21,18 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Auto-approve minor and patch updates
-        # Auto-approve patch and minor updates
+      - name: Comment on minor and patch updates
+        # Comment on patch and minor updates to inform about auto-merge
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
-        run: gh pr review --approve "$PR_URL"
+        run: |
+          gh pr comment "$PR_URL" --body "✅ This is a **${{ steps.metadata.outputs.update-type }}** update.
+
+          **Package:** ${{ steps.metadata.outputs.dependency-names }}
+          **Update Type:** ${{ steps.metadata.outputs.update-type }}
+
+          This PR will be automatically merged once all CI checks pass.
+
+          To prevent auto-merge, add the \`keep-open\` label or close the PR."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +53,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge for minor and patch updates
-        # Auto-merge patch and minor updates after CI passes
+        # Auto-merge patch and minor updates after CI passes (no approval needed)
+        # GitHub Actions can enable auto-merge even without approval permissions
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
@@ -64,15 +73,3 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Wait for CI checks before auto-merging
-  wait-for-ci:
-    runs-on: ubuntu-latest
-    needs: dependabot
-    if: github.actor == 'dependabot[bot]'
-
-    steps:
-      - name: Wait for CI checks
-        run: |
-          echo "Waiting for CI checks to complete before auto-merge..."
-          echo "Auto-merge will proceed once all required checks pass."
