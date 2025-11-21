@@ -1,4 +1,4 @@
-using TeCLI.Core.Hooks;
+using TeCLI.Hooks;
 
 namespace TeCLI.Tests.TestHooks;
 

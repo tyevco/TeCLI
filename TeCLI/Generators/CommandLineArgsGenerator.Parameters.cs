@@ -17,7 +17,7 @@ public partial class CommandLineArgsGenerator
         if (globalOptions != null)
         {
             globalOptionsParam = parameterDetails.FirstOrDefault(p =>
-                p.Type == globalOptions.FullTypeName ||
+                p.DisplayType == globalOptions.FullTypeName ||
                 p.DisplayType == globalOptions.TypeName);
 
             // Remove global options parameter from parameterDetails since we'll handle it separately

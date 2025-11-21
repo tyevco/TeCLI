@@ -229,7 +229,7 @@ public static class Extensions
         }
 
         // Check if it's a collection of primitive types, enums, or common types
-        if (IsCollectionType(typeSymbol, out var elementType))
+        if (IsCollectionType(typeSymbol, out var elementType) && elementType != null)
         {
             return IsPrimitiveType(elementType) || IsEnumType(elementType) || IsCommonConvertibleType(elementType);
         }

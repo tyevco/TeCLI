@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.Linq;
 using TeCLI.Attributes;
 using TeCLI.Extensions;
 
@@ -131,7 +132,7 @@ public partial class CommandLineArgsGenerator
                 // Generate hook context creation
                 cb.AppendLine("// Create hook context");
                 cb.AppendLine("var hookContext = new TeCLI.Core.Hooks.HookContext");
-                using (cb.AddBlock("{", "};"))
+                using (cb.AddBlock("", 4, "{", "};"))
                 {
                     cb.AppendLine($"CommandName = \"{commandInfo?.CommandName ?? ""}\",");
                     cb.AppendLine($"ActionName = \"{actionInfo.DisplayName}\",");

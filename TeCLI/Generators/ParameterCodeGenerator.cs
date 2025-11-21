@@ -103,7 +103,7 @@ internal static class ParameterCodeGenerator
                     if (sourceInfo.IsEnum)
                     {
                         cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                        cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for option '--{sourceInfo.Name}'. Valid values are: {{1}}", args[{variableName}Index + 1], validValues));""");
+                        cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{1}}", args[{{variableName}}Index + 1], validValues));""");
                     }
                     else
                     {
@@ -148,11 +148,11 @@ internal static class ParameterCodeGenerator
                             if (sourceInfo.IsEnum)
                             {
                                 cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                                cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'. Valid values are: {{1}}", {variableName}EnvValue, validValues));""");
+                                cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{1}}", {{variableName}}EnvValue, validValues));""");
                             }
                             else
                             {
-                                cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'", {variableName}EnvValue));""");
+                                cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'", {{variableName}}EnvValue));""");
                             }
                         }
                     }
@@ -235,7 +235,7 @@ internal static class ParameterCodeGenerator
                         if (sourceInfo.IsElementEnum)
                         {
                             cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
-                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value for option '--{sourceInfo.Name}'. Valid values are: {{0}}", validValues));""");
+                            cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value for option '--{{sourceInfo.Name}}'. Valid values are: {{0}}", validValues));""");
                         }
                         else
                         {
@@ -287,7 +287,7 @@ internal static class ParameterCodeGenerator
                         if (sourceInfo.IsElementEnum)
                         {
                             cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
-                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value in environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'. Valid values are: {{0}}", validValues));""");
+                            cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value in environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{0}}", validValues));""");
                         }
                         else
                         {
@@ -381,7 +381,7 @@ internal static class ParameterCodeGenerator
                     if (sourceInfo.IsEnum)
                     {
                         cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                        cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for argument '{sourceInfo.Name}'. Valid values are: {{1}}", args[{sourceInfo.ArgumentIndex}], validValues));""");
+                        cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for argument '{{sourceInfo.Name}}'. Valid values are: {{1}}", args[{{sourceInfo.ArgumentIndex}}], validValues));""");
                     }
                     else
                     {
@@ -432,7 +432,7 @@ internal static class ParameterCodeGenerator
                         if (sourceInfo.IsElementEnum)
                         {
                             cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
-                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value for argument '{sourceInfo.Name}'. Valid values are: {{0}}", validValues));""");
+                            cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value for argument '{{sourceInfo.Name}}'. Valid values are: {{0}}", validValues));""");
                         }
                         else
                         {
@@ -550,7 +550,7 @@ internal static class ParameterCodeGenerator
                 if (sourceInfo.IsEnum)
                 {
                     cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                    cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for {(sourceInfo.ParameterType == ParameterType.Option ? "option '--{sourceInfo.Name}'" : $"argument '{sourceInfo.Name}'")}. Valid values are: {{1}}", {variableName}PromptValue, validValues));""");
+                    cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for {{(sourceInfo.ParameterType == ParameterType.Option ? "option '--{{sourceInfo.Name}}'" : $"argument '{{sourceInfo.Name}}'")}}.  Valid values are: {{1}}", {{variableName}}PromptValue, validValues));""");
                 }
                 else
                 {

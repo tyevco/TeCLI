@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using TeCLI.Attributes;
 using TeCLI.Extensions;
@@ -186,7 +187,6 @@ public partial class CommandLineArgsGenerator
 
                 // Generate completion support methods
                 GenerateCompletionSupport(cb, commandHierarchies, globalOptions);
-                }
             }
         }
 
@@ -762,19 +762,30 @@ public partial class CommandLineArgsGenerator
                 var paramInfo = new ParameterSourceInfo
                 {
                     Name = property.Name,
-                    Type = property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    Optional = property.NullableAnnotation == NullableAnnotation.Annotated || property.Type.IsValueType == false,
-                    ParameterType = ParameterType.Option
+                    DisplayType = property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    Required = !(property.NullableAnnotation == NullableAnnotation.Annotated || property.Type.IsValueType == false),
+                    ParameterType = ParameterType.Option,
+                    SpecialType = property.Type.SpecialType
                 };
 
                 // Detect collection types
-                paramInfo.DetectCollectionType(property.Type);
+                if (property.Type is INamedTypeSymbol namedType && namedType.IsGenericType)
+                {
+                    var typeArgs = namedType.TypeArguments;
+                    if (typeArgs.Length == 1)
+                    {
+                        paramInfo.IsCollection = true;
+                        paramInfo.ElementType = typeArgs[0].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        paramInfo.ElementSpecialType = typeArgs[0].SpecialType;
+                    }
+                }
 
                 // Detect enum types
-                paramInfo.DetectEnumType(property.Type);
-
-                // Detect common built-in types
-                paramInfo.DetectCommonTypes(property.Type);
+                if (property.Type.TypeKind == TypeKind.Enum)
+                {
+                    paramInfo.IsEnum = true;
+                    paramInfo.DisplayType = property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                }
 
                 // Extract option name, short name, required, envvar from attribute
                 var optionName = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
@@ -830,8 +841,7 @@ public partial class CommandLineArgsGenerator
             cb.AppendLine($"// Parse global option: {option.Name}");
 
             // Look for the option in args
-            cb.AppendLine($"for (int i = 0; i < args.Length; i++)");
-            using (cb.AddBlock())
+            using (cb.AddBlock($"for (int i = 0; i < args.Length; i++)"))
             {
                 cb.AppendLine($"var arg = args[i];");
 
@@ -871,11 +881,11 @@ public partial class CommandLineArgsGenerator
                                 cb.AppendLine($"var converter_{option.Name} = new {option.CustomConverterType}();");
                                 cb.AppendLine($"_globalOptions.{option.Name} = converter_{option.Name}.Convert(args[i + 1]);");
                             }
-                            else if (option.IsCommonType && !string.IsNullOrEmpty(option.CommonTypeParser))
+                            else if (option.IsCommonType && !string.IsNullOrEmpty(option.CommonTypeParseMethod))
                             {
-                                cb.AppendLine($"_globalOptions.{option.Name} = {option.CommonTypeParser}(args[i + 1]);");
+                                cb.AppendLine($"_globalOptions.{option.Name} = {option.CommonTypeParseMethod}(args[i + 1]);");
                             }
-                            else if (option.Type == "string" || option.Type == "global::System.String")
+                            else if (option.DisplayType == "string" || option.DisplayType == "global::System.String")
                             {
                                 cb.AppendLine($"_globalOptions.{option.Name} = args[i + 1];");
                             }

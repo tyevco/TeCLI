@@ -67,8 +67,10 @@ public class ConflictingShortNameAnalyzer : DiagnosticAnalyzer
         }
 
         // Report conflicts
-        foreach (var (shortName, parameters) in shortNames)
+        foreach (var kvp in shortNames)
         {
+            var shortName = kvp.Key;
+            var parameters = kvp.Value;
             if (parameters.Count > 1)
             {
                 // Report diagnostic for all but the first parameter

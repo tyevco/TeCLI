@@ -30,13 +30,13 @@ namespace TeCLI
                     // Remove "using " prefix if present
                     if (value.StartsWith("using ", StringComparison.Ordinal))
                     {
-                        value = value[6..]; // Use range operator instead of Substring
+                        value = value.Substring(6);
                     }
 
                     // Remove trailing semicolon if present
-                    if (value.EndsWith(';'))
+                    if (value.EndsWith(";"))
                     {
-                        value = value[..^1]; // Use range operator instead of Substring
+                        value = value.Substring(0, value.Length - 1);
                     }
 
                     if (!string.IsNullOrWhiteSpace(value))
@@ -128,6 +128,11 @@ namespace TeCLI
                 if (IndentLevel < 0)
                     IndentLevel = 0;
             });
+        }
+
+        public void Append(string text)
+        {
+            Builder.Append(text);
         }
 
         public void AppendLine(string line)

@@ -101,8 +101,8 @@ public partial class CommandLineArgsGenerator
             {
                 foreach (var option in globalOptions.Options)
                 {
-                    cb.Append($" --{option.LongName}");
-                    if (!string.IsNullOrEmpty(option.ShortName))
+                    cb.Append($" --{option.Name}");
+                    if (!(option.ShortName == '\0'))
                     {
                         cb.Append($" -{option.ShortName}");
                     }
@@ -231,9 +231,9 @@ public partial class CommandLineArgsGenerator
             {
                 foreach (var option in globalOptions.Options)
                 {
-                    var shortPart = !string.IsNullOrEmpty(option.ShortName) ? $"-{option.ShortName}," : "";
-                    var desc = option.Description ?? option.LongName ?? "";
-                    cb.AppendLine($"        '({shortPart}--{option.LongName})'{{{shortPart}--{option.LongName}}}'[{desc}]' \\\\");
+                    var shortPart = !(option.ShortName == '\0') ? $"-{option.ShortName}," : "";
+                    var desc = option.Description.IsNull ? (option.Name ?? "") : (option.Description.Value?.ToString() ?? "");
+                    cb.AppendLine($"        '({shortPart}--{option.Name})'{{{shortPart}--{option.Name}}}'[{desc}]' \\\\");
                 }
             }
 
@@ -334,9 +334,9 @@ public partial class CommandLineArgsGenerator
             {
                 foreach (var option in globalOptions.Options)
                 {
-                    var desc = option.Description ?? "";
-                    cb.AppendLine($"        @{{ Name = '--{option.LongName}'; Description = '{desc}' }}");
-                    if (!string.IsNullOrEmpty(option.ShortName))
+                    var desc = option.Description.IsNull ? "" : (option.Description.Value?.ToString() ?? "");
+                    cb.AppendLine($"        @{{ Name = '--{option.Name}'; Description = '{desc}' }}");
+                    if (!(option.ShortName == '\0'))
                     {
                         cb.AppendLine($"        @{{ Name = '-{option.ShortName}'; Description = '{desc}' }}");
                     }
@@ -382,9 +382,9 @@ public partial class CommandLineArgsGenerator
                 cb.AppendLine("");
                 foreach (var option in globalOptions.Options)
                 {
-                    var desc = option.Description ?? "";
-                    var shortPart = !string.IsNullOrEmpty(option.ShortName) ? $" -s {option.ShortName}" : "";
-                    cb.AppendLine($"complete -c \" + appName + @\"{shortPart} -l {option.LongName} -d '{desc}'");
+                    var desc = option.Description.IsNull ? "" : (option.Description.Value?.ToString() ?? "");
+                    var shortPart = !(option.ShortName == '\0') ? $" -s {option.ShortName}" : "";
+                    cb.AppendLine($"complete -c \" + appName + @\"{shortPart} -l {option.Name} -d '{desc}'");
                 }
             }
 

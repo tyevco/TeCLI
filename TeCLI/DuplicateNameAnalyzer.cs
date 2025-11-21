@@ -95,8 +95,10 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
         }
 
         // Report duplicates
-        foreach (var (name, methods) in actionNames)
+        foreach (var kvp in actionNames)
         {
+            var name = kvp.Key;
+            var methods = kvp.Value;
             if (methods.Count > 1)
             {
                 // Report diagnostic for all methods after the first
@@ -172,8 +174,10 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
             }
 
             // Report duplicate option names
-            foreach (var (name, parameters) in optionNames)
+            foreach (var kvp in optionNames)
             {
+                var name = kvp.Key;
+                var parameters = kvp.Value;
                 if (parameters.Count > 1)
                 {
                     foreach (var param in parameters.Skip(1))
@@ -192,8 +196,10 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
             }
 
             // Report argument position conflicts
-            foreach (var (index, parameters) in argumentIndices)
+            foreach (var kvp in argumentIndices)
             {
+                var index = kvp.Key;
+                var parameters = kvp.Value;
                 if (parameters.Count > 1)
                 {
                     foreach (var param in parameters.Skip(1))

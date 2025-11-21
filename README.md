@@ -388,7 +388,11 @@ myapp git push --force
 
 ## Framework Support
 
-TeCLI supports .NET 6.0, 7.0, 8.0, and 9.0.
+TeCLI supports .NET 6.0, 7.0, 8.0, 9.0, and 10.0.
+
+**Core Library:** Targets netstandard2.0 for maximum compatibility with source generators.
+
+**Test & Example Projects:** Support .NET 8.0, 9.0, and 10.0.
 
 ## Contributing
 
