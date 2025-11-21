@@ -30,6 +30,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -54,9 +56,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    # Build the solution
+    # Build the solution in Debug mode (avoids needing GitVersion)
     - name: Build
-      run: dotnet build --no-restore --configuration Release
+      run: dotnet build --no-restore --configuration Debug
 
     # Perform CodeQL Analysis (automatically uploads results)
     - name: Perform CodeQL Analysis
@@ -97,4 +99,4 @@ jobs:
     # Security audit using dotnet format analyzers
     - name: Run .NET Security Analyzers
       run: |
-        dotnet build --configuration Release /p:EnableNETAnalyzers=true /p:AnalysisLevel=latest /p:EnforceCodeStyleInBuild=true
+        dotnet build --configuration Debug /p:EnableNETAnalyzers=true /p:AnalysisLevel=latest /p:EnforceCodeStyleInBuild=true
