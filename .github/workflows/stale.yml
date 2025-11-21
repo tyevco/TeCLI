@@ -1,0 +1,60 @@
+name: Mark Stale Issues and PRs
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark stale issues and pull requests
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Issue settings
+          days-before-issue-stale: 60
+          days-before-issue-close: 7
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had any activity for 60 days.
+            It will be closed in 7 days if no further activity occurs.
+
+            If this issue is still relevant, please comment to keep it open.
+            Thank you for your contributions!
+          close-issue-message: |
+            This issue was automatically closed due to inactivity.
+            If you believe this is still relevant, please feel free to reopen it or create a new issue.
+          stale-issue-label: 'stale'
+
+          # PR settings
+          days-before-pr-stale: 45
+          days-before-pr-close: 14
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had any activity for 45 days.
+            It will be closed in 14 days if no further activity occurs.
+
+            If you're still working on this, please comment or push new commits to keep it open.
+            Thank you for your contribution!
+          close-pr-message: |
+            This pull request was automatically closed due to inactivity.
+            If you'd like to continue working on this, please feel free to reopen it or create a new PR.
+          stale-pr-label: 'stale'
+
+          # Exempt labels - issues/PRs with these labels will never become stale
+          exempt-issue-labels: 'keep-open,bug,critical,security,enhancement,good-first-issue,help-wanted'
+          exempt-pr-labels: 'keep-open,work-in-progress,blocked,waiting-for-review'
+
+          # Exempt milestones
+          exempt-all-milestones: false
+
+          # Other settings
+          operations-per-run: 100
+          remove-stale-when-updated: true
+          ascending: false

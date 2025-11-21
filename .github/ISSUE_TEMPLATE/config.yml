@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions & Discussions
+    url: https://github.com/TylerCode/TeCLI/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: Documentation
+    url: https://github.com/TylerCode/TeCLI#readme
+    about: Read the documentation and examples
+  - name: Security Vulnerability
+    url: https://github.com/TylerCode/TeCLI/security/advisories/new
+    about: Report a security vulnerability (private)

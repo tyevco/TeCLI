@@ -1,0 +1,65 @@
+# Dependabot configuration for TeCLI
+version: 2
+updates:
+  # NuGet package updates
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "TylerCode"
+    labels:
+      - "dependencies"
+      - "automated"
+    ignore:
+      # Ignore major version updates for stable packages
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Group .NET runtime/SDK updates
+      dotnet:
+        patterns:
+          - "Microsoft.NET.*"
+          - "System.*"
+      # Group test framework updates
+      testing:
+        patterns:
+          - "xunit*"
+          - "Microsoft.NET.Test.Sdk"
+          - "coverlet.collector"
+      # Group benchmark updates
+      benchmarking:
+        patterns:
+          - "BenchmarkDotNet*"
+
+  # GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "TylerCode"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+
+  # npm updates (if applicable)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "TylerCode"
+    labels:
+      - "dependencies"
+      - "npm"
+      - "automated"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

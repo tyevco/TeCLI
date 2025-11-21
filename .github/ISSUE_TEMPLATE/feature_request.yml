@@ -1,0 +1,115 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for TeCLI
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees:
+  - TylerCode
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature! Please provide as much detail as possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: I'm frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: I would like TeCLI to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you've considered
+      placeholder: I also considered...
+    validations:
+      required: false
+
+  - type: textarea
+    id: example
+    attributes:
+      label: Example Usage
+      description: Show how you envision this feature being used
+      placeholder: |
+        ```csharp
+        [CliCommand]
+        [NewFeature(option: "value")]
+        public class MyCommand
+        {
+            // Example usage
+        }
+        ```
+      render: csharp
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Nice to have
+        - Would be helpful
+        - Important for my use case
+        - Critical / Blocking
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Feature Scope
+      description: What area does this feature affect?
+      options:
+        - Core library (TeCLI.Core)
+        - Source generators (TeCLI)
+        - Tools/utilities (TeCLI.Tools)
+        - Documentation
+        - Examples
+        - Testing
+        - Multiple areas
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other information about the feature request
+      placeholder: Related features, similar implementations in other libraries, etc.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to contribute this feature?
+      options:
+        - label: I would be willing to implement this feature and submit a PR
+          required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues and feature requests to ensure this is not a duplicate
+          required: true
+        - label: I have provided a clear description of the problem and proposed solution
+          required: true

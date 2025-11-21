@@ -1,0 +1,77 @@
+# Auto-labeler configuration for TeCLI
+# Automatically labels PRs based on files changed
+
+# Documentation changes
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.md', 'docs/**/*', '.github/**/*.md']
+
+# Core library changes
+core:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI.Core/**/*']
+
+# Main CLI/Generator changes
+cli:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI/**/*', '!TeCLI.Core/**/*', '!TeCLI.Tests/**/*']
+
+# Tools library changes
+tools:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI.Tools/**/*']
+
+# Test changes
+tests:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI.Tests/**/*', 'TeCLI.Benchmarks/**/*', '**/*.Tests/**/*']
+
+# Benchmark changes
+benchmarks:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI.Benchmarks/**/*']
+
+# Example changes
+examples:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI.Example/**/*', '**/examples/**/*']
+
+# Dependencies
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.csproj', '**/packages.lock.json', 'Directory.Build.props', 'Directory.Packages.props']
+
+# CI/CD changes
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file: ['.github/workflows/**/*', '.github/actions/**/*']
+
+# Build configuration
+build:
+  - changed-files:
+    - any-glob-to-any-file: ['*.props', '*.targets', 'Directory.Build.*']
+
+# Source generators
+source-generators:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI/Generators/**/*', 'TeCLI/**/*Generator*.cs']
+
+# Analyzers
+analyzers:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI/**/*Analyzer*.cs']
+
+# Hooks/Middleware
+hooks:
+  - changed-files:
+    - any-glob-to-any-file: ['**/Hooks/**/*', '**/*Hook*.cs', '**/*Middleware*.cs']
+
+# Completion features
+completion:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*Completion*.cs']
+
+# Breaking changes (based on file patterns)
+breaking-change:
+  - changed-files:
+    - any-glob-to-any-file: ['TeCLI.Core/Attributes/**/*', 'TeCLI.Core/Interfaces/**/*']

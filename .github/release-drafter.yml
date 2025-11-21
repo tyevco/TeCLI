@@ -1,0 +1,145 @@
+# Release Drafter configuration for TeCLI
+# Automatically generates release notes from merged PRs
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'enhancement'
+      - 'feature'
+      - 'new-feature'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'bug'
+      - 'bugfix'
+      - 'fix'
+  - title: '⚡ Performance'
+    labels:
+      - 'performance'
+      - 'optimization'
+  - title: '🔒 Security'
+    labels:
+      - 'security'
+      - 'vulnerability'
+  - title: '💥 Breaking Changes'
+    labels:
+      - 'breaking-change'
+  - title: '📚 Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '🧹 Maintenance'
+    labels:
+      - 'maintenance'
+      - 'chore'
+      - 'refactoring'
+  - title: '🏗️ Build & CI'
+    labels:
+      - 'build'
+      - 'ci-cd'
+      - 'github-actions'
+  - title: '📦 Dependencies'
+    labels:
+      - 'dependencies'
+      - 'npm'
+  - title: '🧪 Tests'
+    labels:
+      - 'tests'
+      - 'testing'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # Escape markdown special characters
+
+version-resolver:
+  major:
+    labels:
+      - 'breaking-change'
+      - 'major'
+  minor:
+    labels:
+      - 'enhancement'
+      - 'feature'
+      - 'minor'
+  patch:
+    labels:
+      - 'bug'
+      - 'bugfix'
+      - 'fix'
+      - 'patch'
+      - 'security'
+      - 'dependencies'
+  default: patch
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+  ## Installation
+
+  ```bash
+  dotnet add package TeCLI --version $RESOLVED_VERSION
+  ```
+
+  ## Contributors
+
+  Thanks to all contributors! 🎉
+
+autolabeler:
+  - label: 'documentation'
+    files:
+      - '**/*.md'
+      - 'docs/**/*'
+    branch:
+      - '/docs{0,1}\/.+/'
+  - label: 'bug'
+    branch:
+      - '/fix\/.+/'
+      - '/bugfix\/.+/'
+    title:
+      - '/fix/i'
+      - '/bug/i'
+  - label: 'enhancement'
+    branch:
+      - '/feat(ure){0,1}\/.+/'
+    title:
+      - '/feature/i'
+      - '/enhancement/i'
+  - label: 'breaking-change'
+    title:
+      - '/\[breaking\]/i'
+      - '/breaking change/i'
+  - label: 'security'
+    title:
+      - '/security/i'
+      - '/vulnerability/i'
+  - label: 'performance'
+    title:
+      - '/perf/i'
+      - '/performance/i'
+  - label: 'tests'
+    files:
+      - '**/*.Tests/**/*'
+      - 'TeCLI.Tests/**/*'
+      - 'TeCLI.Benchmarks/**/*'
+  - label: 'dependencies'
+    files:
+      - '**/*.csproj'
+      - '**/packages.lock.json'
+  - label: 'build'
+    files:
+      - '*.props'
+      - '*.targets'
+      - 'Directory.Build.*'
+  - label: 'ci-cd'
+    files:
+      - '.github/workflows/**/*'
+
+exclude-labels:
+  - 'skip-changelog'
+  - 'invalid'
+  - 'wontfix'

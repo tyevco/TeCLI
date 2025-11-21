@@ -1,0 +1,57 @@
+# CODEOWNERS for TeCLI
+# Defines code ownership and automatically requests reviews from appropriate teams
+
+# Default owners for everything in the repo
+# These owners will be requested for review when someone opens a PR
+*       @TylerCode
+
+# Core library - critical changes
+/TeCLI.Core/                    @TylerCode
+/TeCLI.Core/Attributes/         @TylerCode
+/TeCLI.Core/Interfaces/         @TylerCode
+/TeCLI.Core/Hooks/              @TylerCode
+
+# Source generators - requires expertise in Roslyn
+/TeCLI/Generators/              @TylerCode
+/TeCLI/**/*Generator*.cs        @TylerCode
+
+# Analyzers - code quality and diagnostics
+/TeCLI/**/*Analyzer*.cs         @TylerCode
+
+# Tools library
+/TeCLI.Tools/                   @TylerCode
+
+# CLI implementation
+/TeCLI/                         @TylerCode
+
+# Tests - ensure test coverage is maintained
+/TeCLI.Tests/                   @TylerCode
+**/*.Tests/                     @TylerCode
+
+# Benchmarks - performance implications
+/TeCLI.Benchmarks/              @TylerCode
+
+# Examples - user-facing code
+/TeCLI.Example/                 @TylerCode
+
+# Documentation - ensure accuracy
+*.md                            @TylerCode
+/docs/                          @TylerCode
+
+# Build configuration - impacts all developers
+*.props                         @TylerCode
+*.targets                       @TylerCode
+Directory.Build.*               @TylerCode
+**/*.csproj                     @TylerCode
+
+# GitHub workflows and CI/CD
+/.github/                       @TylerCode
+/.github/workflows/             @TylerCode
+
+# Security-related files
+/.github/SECURITY.md            @TylerCode
+/.github/dependabot.yml         @TylerCode
+
+# Package management
+**/packages.lock.json           @TylerCode
+Directory.Packages.props        @TylerCode
