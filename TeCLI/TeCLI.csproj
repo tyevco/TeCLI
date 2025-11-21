@@ -18,21 +18,13 @@
 		<RootNamespace>$(RootNamespaceId)$(NamespaceSuffix)</RootNamespace>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<PackageReference Include="TeCLI.Core" Version="$(GitVersion_SemVer)" GeneratePathProperty="true" />
-		<PackageReference Include="TeCLI.Tools" Version="$(GitVersion_SemVer)" GeneratePathProperty="true" PrivateAssets="all" />
+	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
-	</ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" />
-
-		<ProjectReference Include="..\TeCLI.Core\TeCLI.Core.csproj" OutputItemType="Analyzer" />
-		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\TeCLI.Core\TeCLI.Core.csproj" />
+		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -43,11 +35,19 @@
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
 		<None Include="TeCLI.props" Pack="true" PackagePath="build/" />
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgTeCLI_Core)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="$(PkgTeCLI_Tools)\lib\netstandard2.0\**\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\TeCLI.Core\bin\$(Configuration)\netstandard2.0\TeCLI.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\TeCLI.Tools\bin\$(Configuration)\netstandard2.0\TeCLI.Tools.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<None Include="../README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
+
+	<!-- Ensure dependent DLLs are available to the analyzer -->
+	<Target Name="GetAnalyzerAssembliesToCopy" AfterTargets="ResolveAssemblyReferences">
+		<ItemGroup>
+			<_AnalyzerAssemblies Include="$(OutputPath)TeCLI.Tools.dll" />
+			<_AnalyzerAssemblies Include="$(OutputPath)TeCLI.Core.dll" />
+		</ItemGroup>
+	</Target>
 </Project>
