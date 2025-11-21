@@ -14,14 +14,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TeCLI" Version="$(GitVersion_SemVer)" Condition="'$(Configuration)' == 'Release'" />
-		<PackageReference Include="TeCLI.Extensions.DependencyInjection" Version="$(GitVersion_SemVer)" Condition="'$(Configuration)' == 'Release'" />
+		<!-- Runtime reference to TeCLI.Core for attributes -->
+		<ProjectReference Include="..\TeCLI.Core\TeCLI.Core.csproj" />
+
+		<!-- Analyzer dependencies - these DLLs must be available to the generators -->
+		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" Private="false" />
+
+		<!-- Source generators -->
+		<ProjectReference Include="..\TeCLI\TeCLI.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\TeCLI\TeCLI.csproj" OutputItemType="Analyzer" Condition="'$(Configuration)' == 'Debug'" />
-		<ProjectReference Include="..\TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.csproj" OutputItemType="Analyzer" Condition="'$(Configuration)' == 'Debug'" />
-	</ItemGroup>
-
-	<Import Project="..\TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.props" Condition="'$(Configuration)' == 'Debug'" />
+	<Import Project="..\TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.props" />
 </Project>
