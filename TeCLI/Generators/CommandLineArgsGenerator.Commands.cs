@@ -31,7 +31,7 @@ public partial class CommandLineArgsGenerator
         // Build command hierarchies
         var commandHierarchies = BuildCommandHierarchies(compilation, commandClasses);
 
-        var cb = new CodeBuilder("System", "System.Linq");
+        var cb = new CodeBuilder("System", "System.Linq", "System.Threading.Tasks");
 
         // Add namespace for global options if present
         if (globalOptions != null && !string.IsNullOrEmpty(globalOptions.Namespace))
