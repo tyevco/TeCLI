@@ -123,7 +123,7 @@ jobs:
       run: dotnet test TeCLI.Tests/TeCLI.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage --logger "trx;LogFileName=test-results.trx" --no-restore
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         files: ./coverage/**/coverage.cobertura.xml
         flags: unittests
