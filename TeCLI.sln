@@ -1,17 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.9.34728.123
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11205.157 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeCLI", "TeCLI\TeCLI.csproj", "{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeCLI.Example", "TeCLI.Example\TeCLI.Example.csproj", "{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{6571797F-FDBD-4684-A982-FAD260B78748}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{6571797F-FDBD-4684-A982-FAD260B78748}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeCLI.Core", "TeCLI.Core\TeCLI.Core.csproj", "{5C171546-1393-41A0-86EB-DAA2882A265C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Miscelleanous", "Miscelleanous", "{1BFDD9CB-8C4C-47D1-BE44-683E8DDE5140}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{1BFDD9CB-8C4C-47D1-BE44-683E8DDE5140}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		Directory.Build.props = Directory.Build.props
@@ -21,13 +21,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Miscelleanous", "Miscellean
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{A8593842-A694-4F6B-9A93-F5E8E5C919C0}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extensions", "extensions", "{A8593842-A694-4F6B-9A93-F5E8E5C919C0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeCLI.Extensions.DependencyInjection", "TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.csproj", "{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Components", "Components", "{ECE043CB-0CC7-4875-B54D-05BFE8708EDB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeCLI.Tools", "TeCLI.Tools\TeCLI.Tools.csproj", "{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{42964818-BF6A-4B27-90CA-5EAB6BE27866}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeCLI.Tests", "TeCLI.Tests\TeCLI.Tests.csproj", "{C9FB29FF-8405-51A0-2A13-40E21A35368C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F34BAEAA-45B9-49CD-96B6-5331B239C8EC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "github", "github", "{7D5A21EC-3233-4003-82EF-D034F8FAC0B8}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,15 +64,22 @@ Global
 		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9FB29FF-8405-51A0-2A13-40E21A35368C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9FB29FF-8405-51A0-2A13-40E21A35368C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9FB29FF-8405-51A0-2A13-40E21A35368C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9FB29FF-8405-51A0-2A13-40E21A35368C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868} = {F34BAEAA-45B9-49CD-96B6-5331B239C8EC}
 		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD} = {6571797F-FDBD-4684-A982-FAD260B78748}
-		{5C171546-1393-41A0-86EB-DAA2882A265C} = {ECE043CB-0CC7-4875-B54D-05BFE8708EDB}
+		{5C171546-1393-41A0-86EB-DAA2882A265C} = {F34BAEAA-45B9-49CD-96B6-5331B239C8EC}
 		{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E} = {A8593842-A694-4F6B-9A93-F5E8E5C919C0}
-		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD} = {ECE043CB-0CC7-4875-B54D-05BFE8708EDB}
+		{F2C5F9BC-81DD-476A-875D-3B3240BBA8BD} = {F34BAEAA-45B9-49CD-96B6-5331B239C8EC}
+		{C9FB29FF-8405-51A0-2A13-40E21A35368C} = {42964818-BF6A-4B27-90CA-5EAB6BE27866}
+		{7D5A21EC-3233-4003-82EF-D034F8FAC0B8} = {1BFDD9CB-8C4C-47D1-BE44-683E8DDE5140}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {62D33D7F-99A1-4114-8A97-0289533DF055}
