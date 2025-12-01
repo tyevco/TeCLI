@@ -461,7 +461,7 @@ public partial class CommandLineArgsGenerator
                 }
                 else if (option.IsCommonType && !string.IsNullOrEmpty(option.CommonTypeParseMethod))
                 {
-                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = {option.CommonTypeParseMethod}(args[i + 1]);"));
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = {string.Format(option.CommonTypeParseMethod, "args[i + 1]")};"));
                 }
                 else if (option.DisplayType == "string" || option.DisplayType == "global::System.String")
                 {

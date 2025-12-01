@@ -386,7 +386,9 @@ internal static class ParameterInfoExtractor
             {
                 // Also escape error message in case it contains curly braces
                 var errorMsg = errorMessage.Value.ToString()?.Replace("{", "{{").Replace("}", "}}") ?? "";
-                validationCode = $"new TeCLI.Attributes.Validation.RegularExpressionAttribute(@\"{escapedPattern}\") {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
+                // Use quadruple braces for the object initializer syntax: {{{{ becomes {{ in stored string,
+                // which becomes { after string.Format processes it
+                validationCode = $"new TeCLI.Attributes.Validation.RegularExpressionAttribute(@\"{escapedPattern}\") {{{{ ErrorMessage = \"{errorMsg}\" }}}}.Validate({{0}}, \"{psi.Name}\")";
             }
             else
             {
@@ -411,7 +413,8 @@ internal static class ParameterInfoExtractor
             {
                 // Escape error message in case it contains curly braces
                 var errorMsg = errorMessage.Value.ToString()?.Replace("{", "{{").Replace("}", "}}") ?? "";
-                validationCode = $"new TeCLI.Attributes.Validation.FileExistsAttribute() {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
+                // Use quadruple braces for the object initializer syntax
+                validationCode = $"new TeCLI.Attributes.Validation.FileExistsAttribute() {{{{ ErrorMessage = \"{errorMsg}\" }}}}.Validate({{0}}, \"{psi.Name}\")";
             }
             else
             {
@@ -436,7 +439,8 @@ internal static class ParameterInfoExtractor
             {
                 // Escape error message in case it contains curly braces
                 var errorMsg = errorMessage.Value.ToString()?.Replace("{", "{{").Replace("}", "}}") ?? "";
-                validationCode = $"new TeCLI.Attributes.Validation.DirectoryExistsAttribute() {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
+                // Use quadruple braces for the object initializer syntax
+                validationCode = $"new TeCLI.Attributes.Validation.DirectoryExistsAttribute() {{{{ ErrorMessage = \"{errorMsg}\" }}}}.Validate({{0}}, \"{psi.Name}\")";
             }
             else
             {
