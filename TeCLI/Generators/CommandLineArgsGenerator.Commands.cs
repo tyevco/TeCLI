@@ -134,7 +134,6 @@ public partial class CommandLineArgsGenerator
             Block(
                 ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
                 ReturnStatement())));
-#endif
 
         // Parse global options if present
         if (globalOptions != null && globalOptions.Options.Count > 0)
