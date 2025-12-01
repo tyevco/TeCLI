@@ -583,7 +583,7 @@ public partial class CommandLineArgsGenerator
                                     cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(action, availableActions);");
                                     using (cb.AddBlock("if (suggestion != null)"))
                                     {
-                                        cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownActionWithSuggestion}", action, suggestion));""");
+                                        cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownActionWithSuggestion.Replace("\n", "\\n")}", action, suggestion));""");
                                     }
                                     using (cb.AddBlock("else"))
                                     {
@@ -788,7 +788,7 @@ public partial class CommandLineArgsGenerator
                         cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(subcommandOrAction, availableOptions.ToArray());");
                         using (cb.AddBlock("if (suggestion != null)"))
                         {
-                            cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownActionWithSuggestion}", subcommandOrAction, suggestion));""");
+                            cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownActionWithSuggestion.Replace("\n", "\\n")}", subcommandOrAction, suggestion));""");
                         }
                         using (cb.AddBlock("else"))
                         {

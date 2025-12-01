@@ -127,7 +127,7 @@ public partial class CommandLineArgsGenerator
                         cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(arg, optionNames);");
                         using (cb.AddBlock("if (suggestion != null)"))
                         {
-                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.UnknownOptionWithSuggestion}", arg, suggestion));""");
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.UnknownOptionWithSuggestion.Replace("\n", "\\n")}", arg, suggestion));""");
                         }
                         using (cb.AddBlock("else"))
                         {
@@ -279,7 +279,7 @@ public partial class CommandLineArgsGenerator
                             cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(arg, optionNames);");
                             using (cb.AddBlock("if (suggestion != null)"))
                             {
-                                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.UnknownOptionWithSuggestion}", arg, suggestion));""");
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.UnknownOptionWithSuggestion.Replace("\n", "\\n")}", arg, suggestion));""");
                             }
                             using (cb.AddBlock("else"))
                             {
