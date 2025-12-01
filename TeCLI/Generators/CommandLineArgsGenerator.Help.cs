@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -284,5 +285,82 @@ else
         }
 
         return usage.ToString();
+    }
+
+    /// <summary>
+    /// Generates documentation/help source file for a specific command.
+    /// Called by Commands.cs to add help methods to the dispatcher.
+    /// </summary>
+    private void GenerateCommandDocumentation(SourceProductionContext context, Compilation compilation, CommandSourceInfo commandInfo)
+    {
+        // Build usings
+        var usings = new List<UsingDirectiveSyntax>
+        {
+            UsingDirective(ParseName("System"))
+        };
+
+        // Build the class members - generate the help method for this command
+        var classMembers = new List<MemberDeclarationSyntax>
+        {
+            GenerateCommandHelpMethod(commandInfo, compilation)
+        };
+
+        // Build the class declaration
+        var classDecl = ClassDeclaration("CommandDispatcher")
+            .WithModifiers(TokenList(
+                Token(SyntaxKind.PublicKeyword),
+                Token(SyntaxKind.PartialKeyword)))
+            .WithMembers(List(classMembers));
+
+        // Build the namespace
+        var namespaceDecl = FileScopedNamespaceDeclaration(ParseName("TeCLI"))
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(classDecl));
+
+        // Build the compilation unit
+        var compilationUnit = CompilationUnit()
+            .WithUsings(List(usings))
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(namespaceDecl))
+            .NormalizeWhitespace();
+
+        context.AddSource($"CommandDispatcher.Help.{commandInfo.TypeSymbol!.Name}.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
+    }
+
+    /// <summary>
+    /// Generates application-level documentation/help source file.
+    /// Called by Commands.cs to add DisplayApplicationHelp and DisplayVersion methods to the dispatcher.
+    /// </summary>
+    private void GenerateApplicationDocumentation(SourceProductionContext context, Compilation compilation)
+    {
+        // Build usings
+        var usings = new List<UsingDirectiveSyntax>
+        {
+            UsingDirective(ParseName("System"))
+        };
+
+        // Build the class members - generate the application-level help methods
+        var classMembers = new List<MemberDeclarationSyntax>
+        {
+            GenerateDisplayApplicationHelpMethod(),
+            GenerateDisplayVersionMethod()
+        };
+
+        // Build the class declaration
+        var classDecl = ClassDeclaration("CommandDispatcher")
+            .WithModifiers(TokenList(
+                Token(SyntaxKind.PublicKeyword),
+                Token(SyntaxKind.PartialKeyword)))
+            .WithMembers(List(classMembers));
+
+        // Build the namespace
+        var namespaceDecl = FileScopedNamespaceDeclaration(ParseName("TeCLI"))
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(classDecl));
+
+        // Build the compilation unit
+        var compilationUnit = CompilationUnit()
+            .WithUsings(List(usings))
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(namespaceDecl))
+            .NormalizeWhitespace();
+
+        context.AddSource("CommandDispatcher.Help.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
     }
 }

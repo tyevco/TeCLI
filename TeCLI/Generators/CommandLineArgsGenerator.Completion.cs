@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace TeCLI.Generators;
@@ -532,5 +534,42 @@ public partial class CommandLineArgsGenerator
         }
 
         return lines;
+    }
+
+    /// <summary>
+    /// Generates the completion support file as a partial CommandDispatcher class.
+    /// Called by Commands.cs to add completion methods to the dispatcher.
+    /// </summary>
+    private void GenerateCompletionSupportFile(SourceProductionContext context, List<CommandSourceInfo> commandHierarchies, GlobalOptionsSourceInfo? globalOptions)
+    {
+        // Build usings
+        var usings = new List<UsingDirectiveSyntax>
+        {
+            UsingDirective(ParseName("System")),
+            UsingDirective(ParseName("System.Linq"))
+        };
+
+        // Build the class members using Roslyn syntax methods
+        var classMembers = new List<MemberDeclarationSyntax>();
+        classMembers.AddRange(GenerateCompletionSupportMembers(commandHierarchies, globalOptions));
+
+        // Build the class declaration
+        var classDecl = ClassDeclaration("CommandDispatcher")
+            .WithModifiers(TokenList(
+                Token(SyntaxKind.PublicKeyword),
+                Token(SyntaxKind.PartialKeyword)))
+            .WithMembers(List(classMembers));
+
+        // Build the namespace
+        var namespaceDecl = FileScopedNamespaceDeclaration(ParseName("TeCLI"))
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(classDecl));
+
+        // Build the compilation unit
+        var compilationUnit = CompilationUnit()
+            .WithUsings(List(usings))
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(namespaceDecl))
+            .NormalizeWhitespace();
+
+        context.AddSource("CommandDispatcher.Completion.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
     }
 }
