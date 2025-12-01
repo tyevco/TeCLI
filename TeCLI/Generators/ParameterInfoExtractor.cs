@@ -24,6 +24,12 @@ internal static class ParameterInfoExtractor
 
         foreach (var parameter in parameters)
         {
+            // Skip CancellationToken parameters - they are handled specially
+            if (parameter.IsCancellationTokenParameter())
+            {
+                continue;
+            }
+
             ParameterSourceInfo? psi = BuildParameterSourceInfo(parameter, ref paramIndex, ref argumentCount);
             if (psi != null)
             {

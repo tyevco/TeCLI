@@ -162,10 +162,15 @@ public partial class CommandLineArgsGenerator
 
         return MethodDeclaration(returnType, Identifier(methodName))
             .WithModifiers(modifiers)
-            .WithParameterList(ParameterList(SingletonSeparatedList(
+            .WithParameterList(ParameterList(SeparatedList(new[]
+            {
                 Parameter(Identifier("args"))
                     .WithType(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
-                        .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))))))
+                        .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))),
+                Parameter(Identifier("cancellationToken"))
+                    .WithType(ParseTypeName("System.Threading.CancellationToken"))
+                    .WithDefault(EqualsValueClause(DefaultExpression(ParseTypeName("System.Threading.CancellationToken"))))
+            })))
             .WithBody(Block(statements));
     }
 
@@ -184,7 +189,8 @@ public partial class CommandLineArgsGenerator
 {{
     CommandName = ""{commandInfo?.CommandName ?? ""}"",
     ActionName = ""{actionInfo.DisplayName}"",
-    Arguments = args
+    Arguments = args,
+    CancellationToken = cancellationToken
 }};"));
 
         // Generate before execute hooks
@@ -346,10 +352,10 @@ if (!handled)
 
         // Always generate async methods when hooks are present since hooks are async
         string methodSignature = hasAnyHooks
-            ? $"private async System.Threading.Tasks.Task Process{actionInfo.InvokerMethodName}Async(string[] args)"
+            ? $"private async System.Threading.Tasks.Task Process{actionInfo.InvokerMethodName}Async(string[] args, System.Threading.CancellationToken cancellationToken = default)"
             : actionInfo.Method!.MapAsync(
-                () => $"private async System.Threading.Tasks.Task Process{actionInfo.InvokerMethodName}Async(string[] args)",
-                () => $"private void Process{actionInfo.InvokerMethodName}(string[] args)");
+                () => $"private async System.Threading.Tasks.Task Process{actionInfo.InvokerMethodName}Async(string[] args, System.Threading.CancellationToken cancellationToken = default)",
+                () => $"private void Process{actionInfo.InvokerMethodName}(string[] args, System.Threading.CancellationToken cancellationToken = default)");
 
         using (cb.AddBlock(methodSignature))
         {
@@ -362,7 +368,8 @@ if (!handled)
                 {
                     cb.AppendLine($"CommandName = \"{commandInfo?.CommandName ?? ""}\",");
                     cb.AppendLine($"ActionName = \"{actionInfo.DisplayName}\",");
-                    cb.AppendLine("Arguments = args");
+                    cb.AppendLine("Arguments = args,");
+                    cb.AppendLine("CancellationToken = cancellationToken");
                 }
                 cb.AddBlankLine();
 

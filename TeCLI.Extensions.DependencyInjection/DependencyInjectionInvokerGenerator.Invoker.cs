@@ -26,15 +26,17 @@ public partial class DependencyInjectionInvokerGenerator
                 }
 
                 cb.AddBlankLine();
-                using (cb.AddBlock("async Task InvokeCommandActionAsync<TCommand>(Func<TCommand, Task> parameterizedAction)"))
+                using (cb.AddBlock("async Task InvokeCommandActionAsync<TCommand>(Func<TCommand, Task> parameterizedAction, System.Threading.CancellationToken cancellationToken = default)"))
                 {
+                    cb.AppendLine("cancellationToken.ThrowIfCancellationRequested();");
                     cb.AppendLine("var command = ServiceProvider.GetRequiredService<TCommand>();");
                     cb.AppendLine("await parameterizedAction?.Invoke(command);");
                 }
 
                 cb.AddBlankLine();
-                using (cb.AddBlock($"void InvokeCommandAction<TCommand>(Action<TCommand> parameterizedAction)"))
+                using (cb.AddBlock($"void InvokeCommandAction<TCommand>(Action<TCommand> parameterizedAction, System.Threading.CancellationToken cancellationToken = default)"))
                 {
+                    cb.AppendLine("cancellationToken.ThrowIfCancellationRequested();");
                     cb.AppendLine("var command = ServiceProvider.GetRequiredService<TCommand>();");
                     cb.AppendLine("parameterizedAction?.Invoke(command);");
                 }
