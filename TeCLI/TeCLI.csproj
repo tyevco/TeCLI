@@ -34,9 +34,12 @@
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
 		<None Include="TeCLI.props" Pack="true" PackagePath="build/" />
+		<!-- Analyzer assemblies -->
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="..\TeCLI.Core\bin\$(Configuration)\netstandard2.0\TeCLI.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="..\TeCLI.Tools\bin\$(Configuration)\netstandard2.0\TeCLI.Tools.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<!-- Runtime assembly for consumers (contains attributes.StringSimilarity, etc.) -->
+		<None Include="..\TeCLI.Core\bin\$(Configuration)\netstandard2.0\TeCLI.Core.dll" Pack="true" PackagePath="lib/netstandard2.0" Visible="false" />
 	</ItemGroup>
 
 	<ItemGroup>

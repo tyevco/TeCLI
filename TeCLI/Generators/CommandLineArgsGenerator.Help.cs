@@ -343,7 +343,8 @@ else
         // Build usings
         var usings = new List<UsingDirectiveSyntax>
         {
-            UsingDirective(ParseName("System"))
+            UsingDirective(ParseName("System")),
+            UsingDirective(ParseName("System.Reflection"))
         };
 
         // Build the class members - generate the application-level help methods

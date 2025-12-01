@@ -14,10 +14,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- Runtime reference to TeCLI.Core for attributes -->
+		<!-- Runtime reference to TeCLI.Core for attributes and utilities (StringSimilarity, etc.) -->
+		<ProjectReference Include="..\TeCLI.Core\TeCLI.Core.csproj" />
 
 		<!-- Analyzer dependencies - these DLLs must be available to the generators -->
-		<ProjectReference Include="..\TeCLI.Core\TeCLI.Core.csproj" OutputItemType="Analyzer"  />
+		<ProjectReference Include="..\TeCLI.Core\TeCLI.Core.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" Private="false" />
 
 		<!-- Source generators -->
