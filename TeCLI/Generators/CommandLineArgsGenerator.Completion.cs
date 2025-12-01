@@ -536,6 +536,24 @@ public partial class CommandLineArgsGenerator
     }
 
     /// <summary>
+    /// Generates completion support methods in a separate partial class file using CodeBuilder.
+    /// </summary>
+    private void GenerateCompletionSupportFile(SourceProductionContext context, List<CommandSourceInfo> commandHierarchies, GlobalOptionsSourceInfo? globalOptions)
+    {
+        var cb = new CodeBuilder("System");
+
+        using (cb.AddBlock("namespace TeCLI"))
+        {
+            using (cb.AddBlock("public partial class CommandDispatcher"))
+            {
+                GenerateCompletionSupport(cb, commandHierarchies, globalOptions);
+            }
+        }
+
+        context.AddSource("CommandDispatcher.Completion.cs", Microsoft.CodeAnalysis.Text.SourceText.From(cb, System.Text.Encoding.UTF8));
+    }
+
+    /// <summary>
     /// Generates completion support methods in the CommandDispatcher (legacy CodeBuilder version)
     /// </summary>
     private void GenerateCompletionSupport(CodeBuilder cb, List<CommandSourceInfo> commandHierarchies, GlobalOptionsSourceInfo? globalOptions)
