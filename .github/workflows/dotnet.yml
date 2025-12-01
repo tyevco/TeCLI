@@ -120,7 +120,10 @@ jobs:
       run: dotnet restore TeCLI.Tests/TeCLI.Tests.csproj
 
     - name: Run tests with coverage
-      run: dotnet test TeCLI.Tests/TeCLI.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage --logger "trx;LogFileName=test-results.trx" --no-restore
+      run: dotnet test TeCLI.Tests/TeCLI.Tests.csproj --configuration Release --verbosity normal \
+                --report-trx --report-github \
+                --coverage --coverage-output-format cobertura \
+                --no-restore
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
