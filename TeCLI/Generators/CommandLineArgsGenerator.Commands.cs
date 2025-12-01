@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Text;
 using TeCLI.Attributes;
 using TeCLI.Extensions;
 using static TeCLI.Constants;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace TeCLI.Generators;
 
@@ -31,166 +33,62 @@ public partial class CommandLineArgsGenerator
         // Build command hierarchies
         var commandHierarchies = BuildCommandHierarchies(compilation, commandClasses);
 
-        var cb = new CodeBuilder("System", "System.Linq", "System.Threading.Tasks");
+        // Build the compilation unit using Roslyn syntax
+        var usings = new List<UsingDirectiveSyntax>
+        {
+            UsingDirective(ParseName("System")),
+            UsingDirective(ParseName("System.Linq")),
+            UsingDirective(ParseName("System.Threading.Tasks"))
+        };
 
         // Add namespace for global options if present
         if (globalOptions != null && !string.IsNullOrEmpty(globalOptions.Namespace))
         {
-            cb.AddUsing(globalOptions.Namespace);
+            usings.Add(UsingDirective(ParseName(globalOptions.Namespace)));
         }
 
-        using (cb.AddBlock("namespace TeCLI"))
+        // Build the class members
+        var classMembers = new List<MemberDeclarationSyntax>();
+
+        // Add global options field if present
+        if (globalOptions != null)
         {
-            using (cb.AddBlock("public partial class CommandDispatcher"))
-            {
-                // Add global options field if present
-                if (globalOptions != null)
-                {
-                    cb.AppendLine($"private {globalOptions.FullTypeName} _globalOptions = new {globalOptions.FullTypeName}();");
-                    cb.AddBlankLine();
-                }
+            var fieldDecl = FieldDeclaration(
+                VariableDeclaration(ParseTypeName(globalOptions.FullTypeName!))
+                    .WithVariables(SingletonSeparatedList(
+                        VariableDeclarator(Identifier("_globalOptions"))
+                            .WithInitializer(EqualsValueClause(
+                                ObjectCreationExpression(ParseTypeName(globalOptions.FullTypeName!))
+                                    .WithArgumentList(ArgumentList()))))))
+                .WithModifiers(TokenList(Token(SyntaxKind.PrivateKeyword)));
 
-                // make the partial method for the invoker
-                using (cb.AddBlock("public async Task DispatchAsync(string[] args)"))
-                {
-                    using (cb.AddBlock("if (args.Length == 0)"))
-                    {
-                        cb.AppendLine("DisplayApplicationHelp();");
-                        cb.AppendLine("return;");
-                    }
-
-                    cb.AddBlankLine();
-
-                    // Parse global options first if present
-                    if (globalOptions != null && globalOptions.Options.Count > 0)
-                    {
-                        cb.AppendLine("// Parse global options");
-                        cb.AppendLine("var globalOptionsParsed = new System.Collections.Generic.HashSet<int>();");
-                        GenerateGlobalOptionsParsingCode(cb, globalOptions);
-                        cb.AddBlankLine();
-                        cb.AppendLine("// Remove parsed global options from args");
-                        cb.AppendLine("var commandArgs = new System.Collections.Generic.List<string>();");
-                        using (cb.AddBlock("for (int i = 0; i < args.Length; i++)"))
-                        {
-                            using (cb.AddBlock("if (!globalOptionsParsed.Contains(i))"))
-                            {
-                                cb.AppendLine("commandArgs.Add(args[i]);");
-                            }
-                        }
-                        cb.AppendLine("args = commandArgs.ToArray();");
-                        cb.AddBlankLine();
-                    }
-
-                    using (cb.AddBlock("if (args.Length == 0)"))
-                    {
-                        cb.AppendLine("DisplayApplicationHelp();");
-                        cb.AppendLine("return;");
-                    }
-
-                    cb.AddBlankLine();
-
-                    // Check for version flag
-                    using (cb.AddBlock("if (args.Contains(\"--version\"))"))
-                    {
-                        cb.AppendLine("DisplayVersion();");
-                        cb.AppendLine("return;");
-                    }
-
-                    cb.AddBlankLine();
-
-                    // Check for help flag
-                    using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
-                    {
-                        cb.AppendLine("DisplayApplicationHelp();");
-                        cb.AppendLine("return;");
-                    }
-
-                    cb.AddBlankLine();
-
-                    // Check for generate-completion flag
-                    using (cb.AddBlock("if (args[0] == \"--generate-completion\" && args.Length >= 2)"))
-                    {
-                        cb.AppendLine("GenerateCompletion(args[1]);");
-                        cb.AppendLine("return;");
-                    }
-
-                    cb.AddBlankLine();
-
-                    cb.AppendLine("string command = args[0].ToLower();");
-                    cb.AppendLine("string[] remainingArgs = args.Skip(1).ToArray();");
-
-                    cb.AddBlankLine();
-
-                    using (cb.AddBlock("switch (command)"))
-                    {
-                        foreach (var commandInfo in commandHierarchies)
-                        {
-                            var methodName = $"Dispatch{commandInfo.TypeSymbol!.Name}Async";
-
-                            // Generate case for primary name
-                            using (cb.AddBlock($"case \"{commandInfo.CommandName!.ToLower()}\":"))
-                            {
-                                cb.AppendLine($"await {methodName}(remainingArgs);");
-                                cb.AppendLine("break;");
-                            }
-
-                            cb.AddBlankLine();
-
-                            // Generate cases for aliases
-                            foreach (var alias in commandInfo.Aliases)
-                            {
-                                using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
-                                {
-                                    cb.AppendLine($"await {methodName}(remainingArgs);");
-                                    cb.AppendLine("break;");
-                                }
-
-                                cb.AddBlankLine();
-                            }
-                        }
-
-                        using (cb.AddBlock("default:"))
-                        {
-                            // Build list of available commands (including aliases) for suggestions
-                            cb.AppendLine("var availableCommands = new[] {");
-                            bool first = true;
-                            foreach (var commandInfo in commandHierarchies)
-                            {
-                                if (!first) cb.Append(", ");
-                                cb.Append($"\"{commandInfo.CommandName!.ToLower()}\"");
-                                first = false;
-
-                                // Add aliases to the suggestion list
-                                foreach (var alias in commandInfo.Aliases)
-                                {
-                                    cb.Append($", \"{alias.ToLower()}\"");
-                                }
-                            }
-                            cb.AppendLine(" };");
-
-                            cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(command, availableCommands);");
-                            using (cb.AddBlock("if (suggestion != null)"))
-                            {
-                                cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownCommandWithSuggestion}", args[0], suggestion));""");
-                            }
-                            using (cb.AddBlock("else"))
-                            {
-                                cb.AppendLine($"""Console.WriteLine(string.Format("{ErrorMessages.UnknownCommand}", args[0]));""");
-                            }
-                            cb.AppendLine("DisplayApplicationHelp();");
-                            cb.AppendLine("break;");
-                        }
-                    }
-                }
-
-                cb.AddBlankLine();
-
-                // Generate completion support methods
-                GenerateCompletionSupport(cb, commandHierarchies, globalOptions);
-            }
+            classMembers.Add(fieldDecl);
         }
 
-        context.AddSource("CommandDispatcher.cs", SourceText.From(cb, Encoding.UTF8));
+        // Generate the DispatchAsync method
+        classMembers.Add(GenerateDispatchAsyncMethod(commandHierarchies, globalOptions));
+
+        // Generate completion support methods
+        classMembers.AddRange(GenerateCompletionSupportMembers(commandHierarchies, globalOptions));
+
+        // Build the class declaration
+        var classDecl = ClassDeclaration("CommandDispatcher")
+            .WithModifiers(TokenList(
+                Token(SyntaxKind.PublicKeyword),
+                Token(SyntaxKind.PartialKeyword)))
+            .WithMembers(List(classMembers));
+
+        // Build the namespace
+        var namespaceDecl = FileScopedNamespaceDeclaration(ParseName("TeCLI"))
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(classDecl));
+
+        // Build the compilation unit
+        var compilationUnit = CompilationUnit()
+            .WithUsings(List(usings))
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(namespaceDecl))
+            .NormalizeWhitespace();
+
+        context.AddSource("CommandDispatcher.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
 
         // Generate dispatch methods for all commands in the hierarchies
         foreach (var commandInfo in commandHierarchies)
@@ -200,6 +98,425 @@ public partial class CommandLineArgsGenerator
         }
 
         GenerateApplicationDocumentation(context, compilation);
+    }
+
+    private MethodDeclarationSyntax GenerateDispatchAsyncMethod(List<CommandSourceInfo> commandHierarchies, GlobalOptionsSourceInfo? globalOptions)
+    {
+        var statements = new List<StatementSyntax>();
+
+        // if (args.Length == 0) { DisplayApplicationHelp(); return; }
+        statements.Add(IfStatement(
+            BinaryExpression(
+                SyntaxKind.EqualsExpression,
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName("args"),
+                    IdentifierName("Length")),
+                LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))),
+            Block(
+                ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
+                ReturnStatement())));
+
+        // Parse global options if present
+        if (globalOptions != null && globalOptions.Options.Count > 0)
+        {
+            statements.Add(ParseStatement("// Parse global options"));
+            statements.Add(ParseStatement("var globalOptionsParsed = new System.Collections.Generic.HashSet<int>();"));
+            statements.AddRange(GenerateGlobalOptionsParsingStatements(globalOptions));
+
+            statements.Add(ParseStatement("// Remove parsed global options from args"));
+            statements.Add(ParseStatement("var commandArgs = new System.Collections.Generic.List<string>();"));
+
+            // for loop to filter out global options
+            statements.Add(ForStatement(
+                Block(
+                    IfStatement(
+                        PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
+                            InvocationExpression(
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    IdentifierName("globalOptionsParsed"),
+                                    IdentifierName("Contains")))
+                            .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("i")))))),
+                        Block(ExpressionStatement(
+                            InvocationExpression(
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    IdentifierName("commandArgs"),
+                                    IdentifierName("Add")))
+                            .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                                Argument(ElementAccessExpression(IdentifierName("args"))
+                                    .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(Argument(IdentifierName("i")))))))))))))
+                .WithDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword)))
+                    .WithVariables(SingletonSeparatedList(
+                        VariableDeclarator(Identifier("i"))
+                            .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)))))))
+                .WithCondition(BinaryExpression(SyntaxKind.LessThanExpression,
+                    IdentifierName("i"),
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("args"), IdentifierName("Length"))))
+                .WithIncrementors(SingletonSeparatedList<ExpressionSyntax>(
+                    PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, IdentifierName("i"))))));
+
+            statements.Add(ParseStatement("args = commandArgs.ToArray();"));
+        }
+
+        // if (args.Length == 0) { DisplayApplicationHelp(); return; }
+        statements.Add(IfStatement(
+            BinaryExpression(
+                SyntaxKind.EqualsExpression,
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName("args"),
+                    IdentifierName("Length")),
+                LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))),
+            Block(
+                ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
+                ReturnStatement())));
+
+        // Check for version flag
+        statements.Add(IfStatement(
+            InvocationExpression(
+                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName("args"),
+                    IdentifierName("Contains")))
+                .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                    Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("--version")))))),
+            Block(
+                ExpressionStatement(InvocationExpression(IdentifierName("DisplayVersion"))),
+                ReturnStatement())));
+
+        // Check for help flag
+        statements.Add(IfStatement(
+            BinaryExpression(SyntaxKind.LogicalOrExpression,
+                InvocationExpression(
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("args"),
+                        IdentifierName("Contains")))
+                    .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                        Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("--help")))))),
+                InvocationExpression(
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("args"),
+                        IdentifierName("Contains")))
+                    .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                        Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("-h"))))))),
+            Block(
+                ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
+                ReturnStatement())));
+
+        // Check for generate-completion flag
+        statements.Add(IfStatement(
+            BinaryExpression(SyntaxKind.LogicalAndExpression,
+                BinaryExpression(SyntaxKind.EqualsExpression,
+                    ElementAccessExpression(IdentifierName("args"))
+                        .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(
+                            Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)))))),
+                    LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("--generate-completion"))),
+                BinaryExpression(SyntaxKind.GreaterThanOrEqualExpression,
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("args"), IdentifierName("Length")),
+                    LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(2)))),
+            Block(
+                ExpressionStatement(
+                    InvocationExpression(IdentifierName("GenerateCompletion"))
+                        .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                            Argument(ElementAccessExpression(IdentifierName("args"))
+                                .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(
+                                    Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1))))))))))),
+                ReturnStatement())));
+
+        // string command = args[0].ToLower();
+        statements.Add(LocalDeclarationStatement(
+            VariableDeclaration(PredefinedType(Token(SyntaxKind.StringKeyword)))
+                .WithVariables(SingletonSeparatedList(
+                    VariableDeclarator(Identifier("command"))
+                        .WithInitializer(EqualsValueClause(
+                            InvocationExpression(
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    ElementAccessExpression(IdentifierName("args"))
+                                        .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(
+                                            Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)))))),
+                                    IdentifierName("ToLower")))))))));
+
+        // string[] remainingArgs = args.Skip(1).ToArray();
+        statements.Add(LocalDeclarationStatement(
+            VariableDeclaration(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
+                .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression())))))
+                .WithVariables(SingletonSeparatedList(
+                    VariableDeclarator(Identifier("remainingArgs"))
+                        .WithInitializer(EqualsValueClause(
+                            InvocationExpression(
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    InvocationExpression(
+                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            IdentifierName("args"),
+                                            IdentifierName("Skip")))
+                                        .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                                            Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1)))))),
+                                    IdentifierName("ToArray")))))))));
+
+        // Build switch statement for commands
+        var switchSections = new List<SwitchSectionSyntax>();
+
+        foreach (var commandInfo in commandHierarchies)
+        {
+            var methodName = $"Dispatch{commandInfo.TypeSymbol!.Name}Async";
+
+            // Primary command name case
+            switchSections.Add(SwitchSection()
+                .WithLabels(SingletonList<SwitchLabelSyntax>(
+                    CaseSwitchLabel(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(commandInfo.CommandName!.ToLower())))))
+                .WithStatements(List(new StatementSyntax[]
+                {
+                    ExpressionStatement(AwaitExpression(
+                        InvocationExpression(IdentifierName(methodName))
+                            .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("remainingArgs"))))))),
+                    BreakStatement()
+                })));
+
+            // Alias cases
+            foreach (var alias in commandInfo.Aliases)
+            {
+                switchSections.Add(SwitchSection()
+                    .WithLabels(SingletonList<SwitchLabelSyntax>(
+                        CaseSwitchLabel(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(alias.ToLower())))))
+                    .WithStatements(List(new StatementSyntax[]
+                    {
+                        ExpressionStatement(AwaitExpression(
+                            InvocationExpression(IdentifierName(methodName))
+                                .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("remainingArgs"))))))),
+                        BreakStatement()
+                    })));
+            }
+        }
+
+        // Default case with suggestion
+        var defaultStatements = new List<StatementSyntax>();
+
+        // Build available commands array
+        var availableCommandsElements = new List<ExpressionSyntax>();
+        foreach (var commandInfo in commandHierarchies)
+        {
+            availableCommandsElements.Add(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(commandInfo.CommandName!.ToLower())));
+            foreach (var alias in commandInfo.Aliases)
+            {
+                availableCommandsElements.Add(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(alias.ToLower())));
+            }
+        }
+
+        defaultStatements.Add(LocalDeclarationStatement(
+            VariableDeclaration(IdentifierName("var"))
+                .WithVariables(SingletonSeparatedList(
+                    VariableDeclarator(Identifier("availableCommands"))
+                        .WithInitializer(EqualsValueClause(
+                            ImplicitArrayCreationExpression(
+                                InitializerExpression(SyntaxKind.ArrayInitializerExpression,
+                                    SeparatedList(availableCommandsElements)))))))));
+
+        defaultStatements.Add(LocalDeclarationStatement(
+            VariableDeclaration(IdentifierName("var"))
+                .WithVariables(SingletonSeparatedList(
+                    VariableDeclarator(Identifier("suggestion"))
+                        .WithInitializer(EqualsValueClause(
+                            InvocationExpression(
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                        IdentifierName("TeCLI"),
+                                        IdentifierName("StringSimilarity")),
+                                    IdentifierName("FindMostSimilar")))
+                            .WithArgumentList(ArgumentList(SeparatedList(new[]
+                            {
+                                Argument(IdentifierName("command")),
+                                Argument(IdentifierName("availableCommands"))
+                            })))))))));
+
+        // if (suggestion != null) with error message
+        defaultStatements.Add(IfStatement(
+            BinaryExpression(SyntaxKind.NotEqualsExpression,
+                IdentifierName("suggestion"),
+                LiteralExpression(SyntaxKind.NullLiteralExpression)),
+            Block(ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("Console"),
+                        IdentifierName("WriteLine")))
+                .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                    Argument(InvocationExpression(
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            PredefinedType(Token(SyntaxKind.StringKeyword)),
+                            IdentifierName("Format")))
+                        .WithArgumentList(ArgumentList(SeparatedList(new[]
+                        {
+                            Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(ErrorMessages.UnknownCommandWithSuggestion))),
+                            Argument(ElementAccessExpression(IdentifierName("args"))
+                                .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(
+                                    Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))))),
+                            Argument(IdentifierName("suggestion"))
+                        }))))))))),
+            ElseClause(Block(ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("Console"),
+                        IdentifierName("WriteLine")))
+                .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                    Argument(InvocationExpression(
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            PredefinedType(Token(SyntaxKind.StringKeyword)),
+                            IdentifierName("Format")))
+                        .WithArgumentList(ArgumentList(SeparatedList(new[]
+                        {
+                            Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(ErrorMessages.UnknownCommand))),
+                            Argument(ElementAccessExpression(IdentifierName("args"))
+                                .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(
+                                    Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)))))))
+                        }))))))))))));
+
+        defaultStatements.Add(ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))));
+        defaultStatements.Add(BreakStatement());
+
+        switchSections.Add(SwitchSection()
+            .WithLabels(SingletonList<SwitchLabelSyntax>(DefaultSwitchLabel()))
+            .WithStatements(List(defaultStatements)));
+
+        statements.Add(SwitchStatement(IdentifierName("command"))
+            .WithSections(List(switchSections)));
+
+        return MethodDeclaration(
+            GenericName(Identifier("Task"))
+                .WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>())),
+            Identifier("DispatchAsync"))
+            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword)))
+            .WithParameterList(ParameterList(SingletonSeparatedList(
+                Parameter(Identifier("args"))
+                    .WithType(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
+                        .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))))))
+            .WithBody(Block(statements));
+    }
+
+    private List<StatementSyntax> GenerateGlobalOptionsParsingStatements(GlobalOptionsSourceInfo globalOptions)
+    {
+        var statements = new List<StatementSyntax>();
+
+        foreach (var option in globalOptions.Options)
+        {
+            statements.Add(ParseStatement($"// Parse global option: {option.Name}"));
+
+            // Build condition for option matching
+            var conditions = new List<ExpressionSyntax>
+            {
+                BinaryExpression(SyntaxKind.EqualsExpression,
+                    IdentifierName("arg"),
+                    LiteralExpression(SyntaxKind.StringLiteralExpression, Literal($"--{option.Name}")))
+            };
+
+            if (option.ShortName != '\0')
+            {
+                conditions.Add(BinaryExpression(SyntaxKind.EqualsExpression,
+                    IdentifierName("arg"),
+                    LiteralExpression(SyntaxKind.StringLiteralExpression, Literal($"-{option.ShortName}"))));
+            }
+
+            var combinedCondition = conditions.Count == 1
+                ? conditions[0]
+                : BinaryExpression(SyntaxKind.LogicalOrExpression, conditions[0], conditions[1]);
+
+            var ifBodyStatements = new List<StatementSyntax>
+            {
+                ExpressionStatement(
+                    InvocationExpression(
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("globalOptionsParsed"),
+                            IdentifierName("Add")))
+                    .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("i"))))))
+            };
+
+            if (option.IsSwitch)
+            {
+                ifBodyStatements.Add(ExpressionStatement(
+                    AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("_globalOptions"),
+                            IdentifierName(option.Name!)),
+                        LiteralExpression(SyntaxKind.TrueLiteralExpression))));
+            }
+            else
+            {
+                var parseStatements = new List<StatementSyntax>
+                {
+                    ExpressionStatement(
+                        InvocationExpression(
+                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                IdentifierName("globalOptionsParsed"),
+                                IdentifierName("Add")))
+                        .WithArgumentList(ArgumentList(SingletonSeparatedList(
+                            Argument(BinaryExpression(SyntaxKind.AddExpression,
+                                IdentifierName("i"),
+                                LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1))))))))
+                };
+
+                // Add parsing based on type
+                if (option.IsEnum)
+                {
+                    parseStatements.Add(ParseStatement(
+                        $"_globalOptions.{option.Name} = ({option.DisplayType})System.Enum.Parse(typeof({option.DisplayType}), args[i + 1], ignoreCase: true);"));
+                }
+                else if (option.HasCustomConverter && !string.IsNullOrEmpty(option.CustomConverterType))
+                {
+                    parseStatements.Add(ParseStatement($"var converter_{option.Name} = new {option.CustomConverterType}();"));
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = converter_{option.Name}.Convert(args[i + 1]);"));
+                }
+                else if (option.IsCommonType && !string.IsNullOrEmpty(option.CommonTypeParseMethod))
+                {
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = {option.CommonTypeParseMethod}(args[i + 1]);"));
+                }
+                else if (option.DisplayType == "string" || option.DisplayType == "global::System.String")
+                {
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = args[i + 1];"));
+                }
+                else
+                {
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = {option.DisplayType}.Parse(args[i + 1]);"));
+                }
+
+                // Add validation if present
+                foreach (var validation in option.Validations)
+                {
+                    var validationCode = string.Format(validation.ValidationCode, $"_globalOptions.{option.Name}");
+                    parseStatements.Add(ParseStatement($"{validationCode};"));
+                }
+
+                ifBodyStatements.Add(IfStatement(
+                    BinaryExpression(SyntaxKind.LessThanExpression,
+                        BinaryExpression(SyntaxKind.AddExpression,
+                            IdentifierName("i"),
+                            LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1))),
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("args"),
+                            IdentifierName("Length"))),
+                    Block(parseStatements)));
+            }
+
+            ifBodyStatements.Add(BreakStatement());
+
+            // Build the for loop
+            statements.Add(ForStatement(
+                Block(
+                    LocalDeclarationStatement(
+                        VariableDeclaration(IdentifierName("var"))
+                            .WithVariables(SingletonSeparatedList(
+                                VariableDeclarator(Identifier("arg"))
+                                    .WithInitializer(EqualsValueClause(
+                                        ElementAccessExpression(IdentifierName("args"))
+                                            .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(
+                                                Argument(IdentifierName("i")))))))))),
+                    IfStatement(combinedCondition, Block(ifBodyStatements))))
+                .WithDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword)))
+                    .WithVariables(SingletonSeparatedList(
+                        VariableDeclarator(Identifier("i"))
+                            .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0)))))))
+                .WithCondition(BinaryExpression(SyntaxKind.LessThanExpression,
+                    IdentifierName("i"),
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("args"), IdentifierName("Length"))))
+                .WithIncrementors(SingletonSeparatedList<ExpressionSyntax>(
+                    PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, IdentifierName("i")))));
+        }
+
+        return statements;
     }
 
     private void GenerateCommandSourceFile(SourceProductionContext context, Compilation compilation, List<string> methodNames, ClassDeclarationSyntax classDecl)
@@ -825,94 +1142,6 @@ public partial class CommandLineArgsGenerator
         }
 
         return globalOptions;
-    }
-
-    /// <summary>
-    /// Generates code to parse global options from command line arguments
-    /// </summary>
-    private void GenerateGlobalOptionsParsingCode(CodeBuilder cb, GlobalOptionsSourceInfo globalOptions)
-    {
-        foreach (var option in globalOptions.Options)
-        {
-            // Generate parsing code for each global option using the same logic as regular options
-            var tempVarName = $"_globalOpt_{option.Name}";
-            var setFlagName = $"{tempVarName}Set";
-
-            cb.AppendLine($"// Parse global option: {option.Name}");
-
-            // Look for the option in args
-            using (cb.AddBlock($"for (int i = 0; i < args.Length; i++)"))
-            {
-                cb.AppendLine($"var arg = args[i];");
-
-                // Build condition to match option name or short name
-                var conditions = new List<string>();
-                conditions.Add($"arg == \"--{option.Name}\"");
-                if (option.ShortName != '\0')
-                {
-                    conditions.Add($"arg == \"-{option.ShortName}\"");
-                }
-
-                var condition = string.Join(" || ", conditions);
-
-                using (cb.AddBlock($"if ({condition})"))
-                {
-                    cb.AppendLine("globalOptionsParsed.Add(i);");
-
-                    if (option.IsSwitch)
-                    {
-                        // Boolean switch - just set to true
-                        cb.AppendLine($"_globalOptions.{option.Name} = true;");
-                    }
-                    else
-                    {
-                        // Regular option - parse the next argument
-                        using (cb.AddBlock("if (i + 1 < args.Length)"))
-                        {
-                            cb.AppendLine("globalOptionsParsed.Add(i + 1);");
-
-                            // Generate parsing code based on type
-                            if (option.IsEnum)
-                            {
-                                cb.AppendLine($"_globalOptions.{option.Name} = ({option.DisplayType})System.Enum.Parse(typeof({option.DisplayType}), args[i + 1], ignoreCase: true);");
-                            }
-                            else if (option.HasCustomConverter && !string.IsNullOrEmpty(option.CustomConverterType))
-                            {
-                                cb.AppendLine($"var converter_{option.Name} = new {option.CustomConverterType}();");
-                                cb.AppendLine($"_globalOptions.{option.Name} = converter_{option.Name}.Convert(args[i + 1]);");
-                            }
-                            else if (option.IsCommonType && !string.IsNullOrEmpty(option.CommonTypeParseMethod))
-                            {
-                                cb.AppendLine($"_globalOptions.{option.Name} = {option.CommonTypeParseMethod}(args[i + 1]);");
-                            }
-                            else if (option.DisplayType == "string" || option.DisplayType == "global::System.String")
-                            {
-                                cb.AppendLine($"_globalOptions.{option.Name} = args[i + 1];");
-                            }
-                            else
-                            {
-                                // Default parsing using the type's Parse method
-                                cb.AppendLine($"_globalOptions.{option.Name} = {option.DisplayType}.Parse(args[i + 1]);");
-                            }
-
-                            // Generate validation if present
-                            if (option.Validations.Count > 0)
-                            {
-                                foreach (var validation in option.Validations)
-                                {
-                                    var validationCode = string.Format(validation.ValidationCode, $"_globalOptions.{option.Name}");
-                                    cb.AppendLine($"{validationCode};");
-                                }
-                            }
-                        }
-                    }
-
-                    cb.AppendLine("break;");
-                }
-            }
-
-            cb.AddBlankLine();
-        }
     }
 
     /// <summary>
