@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TeCLI.Attributes;
 using TeCLI.Extensions;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace TeCLI.Generators;
 
@@ -56,6 +57,242 @@ public partial class CommandLineArgsGenerator
         return actions;
     }
 
+    /// <summary>
+    /// Generates switch sections for command actions (Roslyn syntax version)
+    /// </summary>
+    private IEnumerable<SwitchSectionSyntax> GenerateCommandActionSwitchSections(ActionSourceInfo actionInfo)
+    {
+        var sections = new List<SwitchSectionSyntax>();
+
+        var invokeStatement = actionInfo.Method.MapAsync(
+            () => $"await Process{actionInfo.InvokerMethodName}Async(remainingArgs);",
+            () => $"Process{actionInfo.InvokerMethodName}(remainingArgs);");
+
+        // Generate case for primary name
+        sections.Add(SwitchSection()
+            .WithLabels(SingletonList<SwitchLabelSyntax>(
+                CaseSwitchLabel(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(actionInfo.DisplayName!)))))
+            .WithStatements(List(new StatementSyntax[]
+            {
+                ParseStatement(invokeStatement),
+                BreakStatement()
+            })));
+
+        // Generate cases for aliases
+        foreach (var alias in actionInfo.Aliases)
+        {
+            sections.Add(SwitchSection()
+                .WithLabels(SingletonList<SwitchLabelSyntax>(
+                    CaseSwitchLabel(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(alias)))))
+                .WithStatements(List(new StatementSyntax[]
+                {
+                    ParseStatement(invokeStatement),
+                    BreakStatement()
+                })));
+        }
+
+        return sections;
+    }
+
+    private bool ActionHasHooks(ActionSourceInfo actionInfo, CommandSourceInfo? commandInfo = null)
+    {
+        if (actionInfo.BeforeExecuteHooks.Count > 0 || actionInfo.AfterExecuteHooks.Count > 0 || actionInfo.OnErrorHooks.Count > 0)
+            return true;
+
+        if (commandInfo != null &&
+            (commandInfo.BeforeExecuteHooks.Count > 0 || commandInfo.AfterExecuteHooks.Count > 0 || commandInfo.OnErrorHooks.Count > 0))
+            return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Generates action processing method (Roslyn syntax version)
+    /// </summary>
+    private MethodDeclarationSyntax GenerateActionMethod(ActionSourceInfo actionInfo, CommandSourceInfo? commandInfo = null, GlobalOptionsSourceInfo? globalOptions = null)
+    {
+        // Combine command-level hooks with action-level hooks
+        var allBeforeHooks = new List<HookInfo>();
+        var allAfterHooks = new List<HookInfo>();
+        var allErrorHooks = new List<HookInfo>();
+
+        if (commandInfo != null)
+        {
+            allBeforeHooks.AddRange(commandInfo.BeforeExecuteHooks);
+            allAfterHooks.AddRange(commandInfo.AfterExecuteHooks);
+            allErrorHooks.AddRange(commandInfo.OnErrorHooks);
+        }
+
+        allBeforeHooks.AddRange(actionInfo.BeforeExecuteHooks);
+        allAfterHooks.AddRange(actionInfo.AfterExecuteHooks);
+        allErrorHooks.AddRange(actionInfo.OnErrorHooks);
+
+        bool hasAnyHooks = allBeforeHooks.Count > 0 || allAfterHooks.Count > 0 || allErrorHooks.Count > 0;
+
+        // Determine method signature
+        bool isAsync = hasAnyHooks || actionInfo.Method.IsAsync();
+        string methodName = isAsync
+            ? $"Process{actionInfo.InvokerMethodName}Async"
+            : $"Process{actionInfo.InvokerMethodName}";
+
+        var statements = new List<StatementSyntax>();
+
+        if (hasAnyHooks)
+        {
+            GenerateHookStatements(statements, actionInfo, commandInfo, allBeforeHooks, allAfterHooks, allErrorHooks, globalOptions);
+        }
+        else
+        {
+            // No hooks, generate normal code
+            GenerateParameterStatements(statements, actionInfo.Method,
+                actionInfo.Method.MapAsync(
+                    () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
+                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+                globalOptions);
+        }
+
+        // Build method declaration
+        var returnType = isAsync
+            ? ParseTypeName("System.Threading.Tasks.Task")
+            : PredefinedType(Token(SyntaxKind.VoidKeyword));
+
+        var modifiers = isAsync
+            ? TokenList(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.AsyncKeyword))
+            : TokenList(Token(SyntaxKind.PrivateKeyword));
+
+        return MethodDeclaration(returnType, Identifier(methodName))
+            .WithModifiers(modifiers)
+            .WithParameterList(ParameterList(SingletonSeparatedList(
+                Parameter(Identifier("args"))
+                    .WithType(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
+                        .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))))))
+            .WithBody(Block(statements));
+    }
+
+    private void GenerateHookStatements(
+        List<StatementSyntax> statements,
+        ActionSourceInfo actionInfo,
+        CommandSourceInfo? commandInfo,
+        List<HookInfo> allBeforeHooks,
+        List<HookInfo> allAfterHooks,
+        List<HookInfo> allErrorHooks,
+        GlobalOptionsSourceInfo? globalOptions)
+    {
+        // Generate hook context creation
+        statements.Add(ParseStatement("// Create hook context"));
+        statements.Add(ParseStatement($@"var hookContext = new TeCLI.Core.Hooks.HookContext
+{{
+    CommandName = ""{commandInfo?.CommandName ?? ""}"",
+    ActionName = ""{actionInfo.DisplayName}"",
+    Arguments = args
+}};"));
+
+        // Generate before execute hooks
+        if (allBeforeHooks.Count > 0)
+        {
+            statements.Add(ParseStatement("// Before execute hooks"));
+            statements.Add(ParseStatement("var beforeHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IBeforeExecuteHook>();"));
+            foreach (var hook in allBeforeHooks)
+            {
+                statements.Add(ParseStatement($"beforeHooks.Add(new {hook.HookTypeName}());"));
+            }
+
+            statements.Add(ParseStatement(@"foreach (var hook in beforeHooks)
+{
+    await hook.BeforeExecuteAsync(hookContext);
+    if (hookContext.IsCancelled)
+    {
+        if (!string.IsNullOrEmpty(hookContext.CancellationMessage))
+        {
+            System.Console.WriteLine(hookContext.CancellationMessage);
+        }
+        return;
+    }
+}"));
+        }
+
+        // Wrap action execution in try-catch if there are after or error hooks
+        if (allAfterHooks.Count > 0 || allErrorHooks.Count > 0)
+        {
+            var tryStatements = new List<StatementSyntax>();
+
+            // Generate parameter parsing and action invocation
+            GenerateParameterStatements(tryStatements, actionInfo.Method,
+                actionInfo.Method.MapAsync(
+                    () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
+                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+                globalOptions);
+
+            // Generate after execute hooks
+            if (allAfterHooks.Count > 0)
+            {
+                tryStatements.Add(ParseStatement("// After execute hooks"));
+                tryStatements.Add(ParseStatement("var afterHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IAfterExecuteHook>();"));
+                foreach (var hook in allAfterHooks)
+                {
+                    tryStatements.Add(ParseStatement($"afterHooks.Add(new {hook.HookTypeName}());"));
+                }
+                tryStatements.Add(ParseStatement(@"foreach (var hook in afterHooks)
+{
+    await hook.AfterExecuteAsync(hookContext, null);
+}"));
+            }
+
+            // Build try block
+            var tryBlock = Block(tryStatements);
+
+            // Build catch block for error hooks
+            if (allErrorHooks.Count > 0)
+            {
+                var catchStatements = new List<StatementSyntax>();
+                catchStatements.Add(ParseStatement("// Error hooks"));
+                catchStatements.Add(ParseStatement("var errorHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IOnErrorHook>();"));
+                foreach (var hook in allErrorHooks)
+                {
+                    catchStatements.Add(ParseStatement($"errorHooks.Add(new {hook.HookTypeName}());"));
+                }
+                catchStatements.Add(ParseStatement(@"bool handled = false;
+foreach (var hook in errorHooks)
+{
+    if (await hook.OnErrorAsync(hookContext, ex))
+    {
+        handled = true;
+        break;
+    }
+}
+
+if (!handled)
+{
+    throw;
+}"));
+
+                var catchClause = CatchClause()
+                    .WithDeclaration(CatchDeclaration(ParseTypeName("System.Exception"), Identifier("ex")))
+                    .WithBlock(Block(catchStatements));
+
+                statements.Add(TryStatement()
+                    .WithBlock(tryBlock)
+                    .WithCatches(SingletonList(catchClause)));
+            }
+            else
+            {
+                // No error hooks, just use try without catch
+                statements.Add(TryStatement()
+                    .WithBlock(tryBlock));
+            }
+        }
+        else
+        {
+            // No after or error hooks, just generate the action code directly
+            GenerateParameterStatements(statements, actionInfo.Method,
+                actionInfo.Method.MapAsync(
+                    () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
+                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+                globalOptions);
+        }
+    }
+
+    // Legacy CodeBuilder version for backward compatibility during transition
     private void GenerateCommandActions(Compilation compilation, CodeBuilder codeBuilder, ClassDeclarationSyntax classDecl, ActionSourceInfo actionInfo)
     {
         // Generate case for primary name
@@ -86,18 +323,7 @@ public partial class CommandLineArgsGenerator
         }
     }
 
-    private bool ActionHasHooks(ActionSourceInfo actionInfo, CommandSourceInfo? commandInfo = null)
-    {
-        if (actionInfo.BeforeExecuteHooks.Count > 0 || actionInfo.AfterExecuteHooks.Count > 0 || actionInfo.OnErrorHooks.Count > 0)
-            return true;
-
-        if (commandInfo != null &&
-            (commandInfo.BeforeExecuteHooks.Count > 0 || commandInfo.AfterExecuteHooks.Count > 0 || commandInfo.OnErrorHooks.Count > 0))
-            return true;
-
-        return false;
-    }
-
+    // Legacy CodeBuilder version for backward compatibility during transition
     private void GenerateActionCode(CodeBuilder cb, ActionSourceInfo actionInfo, CommandSourceInfo? commandInfo = null, GlobalOptionsSourceInfo? globalOptions = null)
     {
         // Combine command-level hooks with action-level hooks
