@@ -119,7 +119,7 @@ internal static class ParameterInfoExtractor
                 }
             }
 
-            if (parameterSymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute))
+            if (parameterSymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute) && optionAttribute != null)
             {
                 ExtractOptionInfo(psi, optionAttribute, parameterSymbol.Name, parameterSymbol.Type.SpecialType);
             }
@@ -208,7 +208,7 @@ internal static class ParameterInfoExtractor
                 }
             }
 
-            if (propertySymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute))
+            if (propertySymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute) && optionAttribute != null)
             {
                 ExtractOptionInfo(psi, optionAttribute, propertySymbol.Name, propertySymbol.Type.SpecialType);
             }
@@ -298,7 +298,7 @@ internal static class ParameterInfoExtractor
         psi.ArgumentIndex = argumentCount++;
         psi.Name = parameterSymbol.Name;
 
-        if (parameterSymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute))
+        if (parameterSymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute) && argumentAttribute != null)
         {
             var optionName = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
             psi.Name = optionName.IsNull ? psi.Name : optionName.Value?.ToString() ?? psi.Name;
@@ -328,7 +328,7 @@ internal static class ParameterInfoExtractor
         psi.ArgumentIndex = argumentCount++;
         psi.Name = propertySymbol.Name;
 
-        if (propertySymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute))
+        if (propertySymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute) && argumentAttribute != null)
         {
             var optionName = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
             psi.Name = optionName.IsNull ? psi.Name : optionName.Value?.ToString() ?? psi.Name;

@@ -14,7 +14,7 @@ public class AsyncMethodReturnTypeAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor Rule = new(
         "CLI011",
         "Async method must return Task or Task<T>",
-        "Action method '{0}' is marked as async but does not return Task, Task<T>, ValueTask, or ValueTask<T>.",
+        "Action method '{0}' is marked as async but does not return Task, Task<T>, ValueTask, or ValueTask<T>",
         "Usage",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,

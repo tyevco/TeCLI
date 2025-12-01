@@ -52,7 +52,8 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
 
                 return classDecl;
             })
-            .Where(static c => c is not null);
+            .Where(static c => c is not null)
+            .Select(static (c, _) => c!);
 
         // Create a pipeline for classes with GlobalOptionsAttribute
         var globalOptionsClassesProvider = context.SyntaxProvider.CreateSyntaxProvider(
@@ -76,7 +77,8 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
 
                 return hasGlobalOptionsAttribute ? classDecl : null;
             })
-            .Where(static c => c is not null);
+            .Where(static c => c is not null)
+            .Select(static (c, _) => c!);
 
         // Collect all command classes and global options classes
         var commandClassesCollected = commandClassesProvider.Collect();
@@ -95,7 +97,7 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
 
             if (commandClasses.Length > 0)
             {
-                GenerateCommandDispatcher(spc, compilation, commandClasses!, globalOptionsClasses);
+                GenerateCommandDispatcher(spc, compilation, commandClasses, globalOptionsClasses);
             }
         });
     }

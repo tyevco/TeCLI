@@ -102,7 +102,7 @@ else
 
         if (!string.IsNullOrEmpty(commandDesc))
         {
-            statements.Add(ParseStatement($@"Console.WriteLine(""Description: {EscapeForStringLiteral(commandDesc)}"");"));
+            statements.Add(ParseStatement($@"Console.WriteLine(""Description: {EscapeForStringLiteral(commandDesc!)}"");"));
         }
         statements.Add(ParseStatement(@"Console.WriteLine();"));
 
@@ -157,7 +157,7 @@ else
 
                 if (!string.IsNullOrEmpty(subcommand.Description))
                 {
-                    statements.Add(ParseStatement($@"Console.WriteLine(""  {subDisplay.PadRight(30)} {EscapeForStringLiteral(subcommand.Description)}"");"));
+                    statements.Add(ParseStatement($@"Console.WriteLine(""  {subDisplay.PadRight(30)} {EscapeForStringLiteral(subcommand.Description!)}"");"));
                 }
                 else
                 {
@@ -203,7 +203,7 @@ else
 
                     if (!string.IsNullOrEmpty(actionDesc))
                     {
-                        statements.Add(ParseStatement($@"Console.WriteLine(""  {actionDisplay.PadRight(30)} {EscapeForStringLiteral(actionDesc)}"");"));
+                        statements.Add(ParseStatement($@"Console.WriteLine(""  {actionDisplay.PadRight(30)} {EscapeForStringLiteral(actionDesc!)}"");"));
                     }
                     else
                     {

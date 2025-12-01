@@ -51,7 +51,7 @@ public class ConflictingShortNameAnalyzer : DiagnosticAnalyzer
 
         foreach (var parameter in methodSymbol.Parameters)
         {
-            if (parameter.TryGetAttribute<OptionAttribute>(out var optionAttr))
+            if (parameter.TryGetAttribute<OptionAttribute>(out var optionAttr) && optionAttr != null)
             {
                 var shortNameArg = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ShortName").Value;
 

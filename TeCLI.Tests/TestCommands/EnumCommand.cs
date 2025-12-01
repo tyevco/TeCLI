@@ -61,7 +61,7 @@ public class EnumCommand
     [Action("batch")]
     public void Batch(
         [Option("levels")] LogLevel[] levels,
-        [Option("priorities")] List<Priority> priorities = null)
+        [Option("priorities")] List<Priority>? priorities = null)
     {
         WasCalled = true;
         CapturedLevels = levels;

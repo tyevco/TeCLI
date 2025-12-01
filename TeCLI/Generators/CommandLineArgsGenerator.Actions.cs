@@ -64,7 +64,7 @@ public partial class CommandLineArgsGenerator
     {
         var sections = new List<SwitchSectionSyntax>();
 
-        var invokeStatement = actionInfo.Method.MapAsync(
+        var invokeStatement = actionInfo.Method!.MapAsync(
             () => $"await Process{actionInfo.InvokerMethodName}Async(remainingArgs);",
             () => $"Process{actionInfo.InvokerMethodName}(remainingArgs);");
 
@@ -130,7 +130,7 @@ public partial class CommandLineArgsGenerator
         bool hasAnyHooks = allBeforeHooks.Count > 0 || allAfterHooks.Count > 0 || allErrorHooks.Count > 0;
 
         // Determine method signature
-        bool isAsync = hasAnyHooks || actionInfo.Method.IsAsync;
+        bool isAsync = hasAnyHooks || actionInfo.Method!.IsAsync;
         string methodName = isAsync
             ? $"Process{actionInfo.InvokerMethodName}Async"
             : $"Process{actionInfo.InvokerMethodName}";
@@ -144,10 +144,10 @@ public partial class CommandLineArgsGenerator
         else
         {
             // No hooks, generate normal code
-            GenerateParameterStatements(statements, actionInfo.Method,
-                actionInfo.Method.MapAsync(
-                    () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
-                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+            GenerateParameterStatements(statements, actionInfo.Method!,
+                actionInfo.Method!.MapAsync(
+                    () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
+                    () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
                 globalOptions);
         }
 
@@ -217,10 +217,10 @@ public partial class CommandLineArgsGenerator
             var tryStatements = new List<StatementSyntax>();
 
             // Generate parameter parsing and action invocation
-            GenerateParameterStatements(tryStatements, actionInfo.Method,
-                actionInfo.Method.MapAsync(
-                    () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
-                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+            GenerateParameterStatements(tryStatements, actionInfo.Method!,
+                actionInfo.Method!.MapAsync(
+                    () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
+                    () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
                 globalOptions);
 
             // Generate after execute hooks
@@ -284,10 +284,10 @@ if (!handled)
         else
         {
             // No after or error hooks, just generate the action code directly
-            GenerateParameterStatements(statements, actionInfo.Method,
-                actionInfo.Method.MapAsync(
-                    () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
-                    () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+            GenerateParameterStatements(statements, actionInfo.Method!,
+                actionInfo.Method!.MapAsync(
+                    () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
+                    () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
                 globalOptions);
         }
     }
@@ -300,7 +300,7 @@ if (!handled)
         using (codeBuilder.AddBlock($"case \"{actionInfo.DisplayName}\":"))
         {
             codeBuilder.AppendLine(
-                actionInfo.Method.MapAsync(
+                actionInfo.Method!.MapAsync(
                         () => $"await Process{actionInfo.InvokerMethodName}Async(remainingArgs);",
                         () => $"Process{actionInfo.InvokerMethodName}(remainingArgs);"));
             codeBuilder.AppendLine("break;");
@@ -314,7 +314,7 @@ if (!handled)
             using (codeBuilder.AddBlock($"case \"{alias}\":"))
             {
                 codeBuilder.AppendLine(
-                    actionInfo.Method.MapAsync(
+                    actionInfo.Method!.MapAsync(
                             () => $"await Process{actionInfo.InvokerMethodName}Async(remainingArgs);",
                             () => $"Process{actionInfo.InvokerMethodName}(remainingArgs);"));
                 codeBuilder.AppendLine("break;");
@@ -347,7 +347,7 @@ if (!handled)
         // Always generate async methods when hooks are present since hooks are async
         string methodSignature = hasAnyHooks
             ? $"private async System.Threading.Tasks.Task Process{actionInfo.InvokerMethodName}Async(string[] args)"
-            : actionInfo.Method.MapAsync(
+            : actionInfo.Method!.MapAsync(
                 () => $"private async System.Threading.Tasks.Task Process{actionInfo.InvokerMethodName}Async(string[] args)",
                 () => $"private void Process{actionInfo.InvokerMethodName}(string[] args)");
 
@@ -400,10 +400,10 @@ if (!handled)
                         // Generate parameter parsing and action invocation
                         GenerateParameterCode(
                             cb,
-                            actionInfo.Method,
-                            actionInfo.Method.MapAsync(
-                                () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
-                                () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+                            actionInfo.Method!,
+                            actionInfo.Method!.MapAsync(
+                                () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
+                                () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
                             globalOptions);
 
                         // Generate after execute hooks
@@ -461,10 +461,10 @@ if (!handled)
                     // No after or error hooks, just generate the action code directly
                     GenerateParameterCode(
                         cb,
-                        actionInfo.Method,
-                        actionInfo.Method.MapAsync(
-                            () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
-                            () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+                        actionInfo.Method!,
+                        actionInfo.Method!.MapAsync(
+                            () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
+                            () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
                         globalOptions);
                 }
             }
@@ -473,10 +473,10 @@ if (!handled)
                 // No hooks, generate normal code
                 GenerateParameterCode(
                     cb,
-                    actionInfo.Method,
-                    actionInfo.Method.MapAsync(
-                        () => $"InvokeCommandActionAsync<{actionInfo.Method.ContainingSymbol.Name}>",
-                        () => $"InvokeCommandAction<{actionInfo.Method.ContainingSymbol.Name}>"),
+                    actionInfo.Method!,
+                    actionInfo.Method!.MapAsync(
+                        () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
+                        () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
                     globalOptions);
             }
         }
