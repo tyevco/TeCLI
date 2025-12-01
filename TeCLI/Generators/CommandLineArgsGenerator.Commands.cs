@@ -152,7 +152,7 @@ public partial class CommandLineArgsGenerator
                     IdentifierName("i"),
                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("args"), IdentifierName("Length"))))
                 .WithIncrementors(SingletonSeparatedList<ExpressionSyntax>(
-                    PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, IdentifierName("i"))))));
+                    PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, IdentifierName("i")))));
 
             statements.Add(ParseStatement("args = commandArgs.ToArray();"));
         }
