@@ -155,19 +155,19 @@ public partial class CommandLineArgsGenerator
                     PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, IdentifierName("i")))));
 
             statements.Add(ParseStatement("args = commandArgs.ToArray();"));
-        }
 
-        // if (args.Length == 0) { DisplayApplicationHelp(); return; }
-        statements.Add(IfStatement(
-            BinaryExpression(
-                SyntaxKind.EqualsExpression,
-                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("args"),
-                    IdentifierName("Length")),
-                LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))),
-            Block(
-                ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
-                ReturnStatement())));
+            // Check again after filtering global options - args might now be empty
+            statements.Add(IfStatement(
+                BinaryExpression(
+                    SyntaxKind.EqualsExpression,
+                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("args"),
+                        IdentifierName("Length")),
+                    LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))),
+                Block(
+                    ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
+                    ReturnStatement())));
+        }
 
         // Check for version flag
         statements.Add(IfStatement(

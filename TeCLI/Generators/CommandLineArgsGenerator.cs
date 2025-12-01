@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using TeCLI.Attributes;
@@ -75,15 +74,6 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(combined, (spc, source) =>
         {
             var ((compilation, commandClasses), globalOptionsClasses) = source;
-
-            // DIAGNOSTIC: Always output debug info to verify generator runs
-            var debugInfo = $@"// TeCLI Generator Diagnostic
-// Generated at: {DateTime.Now}
-// Command classes found: {commandClasses.Length}
-// Global options classes found: {globalOptionsClasses.Length}
-// Assembly name: {compilation.AssemblyName}
-";
-            spc.AddSource("TeCLI.Diagnostic.cs", Microsoft.CodeAnalysis.Text.SourceText.From(debugInfo, System.Text.Encoding.UTF8));
 
             if (commandClasses.Length > 0)
             {
