@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [ 'TeCLI.Tools', 'TeCLI.Core' ]
+        project: [ 'TeCLI.Tools', 'TeCLI' ]
 
     steps:
     - uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [ 'TeCLI.Extensions.DependencyInjection', 'TeCLI' ]
+        project: [ 'TeCLI.Extensions.DependencyInjection', 'TeCLI.Generators' ]
 
     steps:
     - uses: actions/checkout@v4
