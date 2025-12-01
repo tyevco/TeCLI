@@ -13,6 +13,7 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Create a pipeline for classes with CommandAttribute
+        // Only include top-level commands (not nested in another command class)
         var commandClassesProvider = context.SyntaxProvider.CreateSyntaxProvider(
             predicate: static (node, _) => node is ClassDeclarationSyntax { AttributeLists.Count: > 0 },
             transform: static (ctx, _) =>
@@ -32,7 +33,24 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
                         || attrClass?.ToDisplayString() == "TeCLI.Attributes.CommandAttribute";
                 });
 
-                return hasCommandAttribute ? classDecl : null;
+                if (!hasCommandAttribute)
+                    return null;
+
+                // Skip nested command classes - they will be processed when their parent is processed
+                var containingType = classSymbol.ContainingType;
+                if (containingType != null)
+                {
+                    var parentHasCommandAttribute = containingType.GetAttributes().Any(attr =>
+                    {
+                        var attrClass = attr.AttributeClass;
+                        return attrClass?.Name == "CommandAttribute"
+                            || attrClass?.ToDisplayString() == "TeCLI.Attributes.CommandAttribute";
+                    });
+                    if (parentHasCommandAttribute)
+                        return null;
+                }
+
+                return classDecl;
             })
             .Where(static c => c is not null);
 
