@@ -255,7 +255,7 @@ public partial class CommandLineArgsGenerator
 
         foreach (var commandInfo in commandHierarchies)
         {
-            var methodName = $"Dispatch{commandInfo.TypeSymbol!.Name}Async";
+            var methodName = $"Dispatch{GetUniqueTypeName(commandInfo.TypeSymbol)}Async";
 
             // Primary command name case
             switchSections.Add(SwitchSection()
@@ -537,7 +537,7 @@ public partial class CommandLineArgsGenerator
                         // Check for help flag first
                         using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
                         {
-                            cb.AppendLine($"DisplayCommand{classDecl.Identifier.Text}Help();");
+                            cb.AppendLine($"DisplayCommand{GetUniqueTypeName(classDecl)}Help();");
                             cb.AppendLine("return;");
                         }
 
@@ -609,7 +609,7 @@ public partial class CommandLineArgsGenerator
             }
         }
 
-        context.AddSource($"CommandDispatcher.Command.{classDecl.Identifier.Text}.cs", SourceText.From(cb, Encoding.UTF8));
+        context.AddSource($"CommandDispatcher.Command.{GetUniqueTypeName(classDecl)}.cs", SourceText.From(cb, Encoding.UTF8));
     }
 
     /// <summary>
@@ -667,14 +667,15 @@ public partial class CommandLineArgsGenerator
     /// </summary>
     private void GenerateCommandDispatchMethod(CodeBuilder cb, Compilation compilation, CommandSourceInfo commandInfo)
     {
-        var methodName = $"Dispatch{commandInfo.TypeSymbol!.Name}Async";
+        var uniqueTypeName = GetUniqueTypeName(commandInfo.TypeSymbol);
+        var methodName = $"Dispatch{uniqueTypeName}Async";
 
         using (cb.AddBlock($"private async Task {methodName}(string[] args)"))
         {
             // Check for help flag first
             using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
             {
-                cb.AppendLine($"DisplayCommand{commandInfo.TypeSymbol.Name}Help();");
+                cb.AppendLine($"DisplayCommand{uniqueTypeName}Help();");
                 cb.AppendLine("return;");
             }
 
@@ -697,7 +698,7 @@ public partial class CommandLineArgsGenerator
                     // Generate cases for subcommands first (they take precedence)
                     foreach (var subcommand in commandInfo.Subcommands)
                     {
-                        var subMethodName = $"Dispatch{subcommand.TypeSymbol!.Name}Async";
+                        var subMethodName = $"Dispatch{GetUniqueTypeName(subcommand.TypeSymbol)}Async";
 
                         // Primary subcommand name
                         using (cb.AddBlock($"case \"{subcommand.CommandName!.ToLower()}\":"))
@@ -724,7 +725,7 @@ public partial class CommandLineArgsGenerator
                     // Generate cases for actions
                     foreach (var action in commandInfo.Actions)
                     {
-                        var actionInvokeMethodName = $"{commandInfo.TypeSymbol.Name}{action.Method!.Name}";
+                        var actionInvokeMethodName = $"{GetUniqueTypeName(commandInfo.TypeSymbol)}{action.Method!.Name}";
 
                         // Check if action has hooks - if so, always use async version
                         bool hasHooks = ActionHasHooks(action, commandInfo);
@@ -822,7 +823,7 @@ public partial class CommandLineArgsGenerator
                 else
                 {
                     // Use this method as the primary action
-                    var actionInvokeMethodName = $"{commandInfo.TypeSymbol!.Name}{primaryMethod.Name}";
+                    var actionInvokeMethodName = $"{GetUniqueTypeName(commandInfo.TypeSymbol)}{primaryMethod.Name}";
                     cb.AppendLine(primaryMethod.MapAsync(
                             () => $"await Process{actionInvokeMethodName}Async(args);",
                             () => $"Process{actionInvokeMethodName}(args);"));
@@ -897,7 +898,7 @@ public partial class CommandLineArgsGenerator
                     else
                     {
                         // Use this method as the primary action
-                        var actionInvokeMethodName = $"{classDecl.Identifier.Text}{primaryMethod.Name}";
+                        var actionInvokeMethodName = $"{GetUniqueTypeName(classDecl)}{primaryMethod.Name}";
                         cb.AppendLine(primaryMethod.MapAsync(
                                 () => $"await Process{actionInvokeMethodName}Async(args);",
                                 () => $"Process{actionInvokeMethodName}(args);"));
@@ -999,7 +1000,7 @@ public partial class CommandLineArgsGenerator
                     }
 
                     // Set invoker method name
-                    actionInfo.InvokerMethodName = $"{typeSymbol.Name}{method.Name}";
+                    actionInfo.InvokerMethodName = $"{GetUniqueTypeName(typeSymbol)}{method.Name}";
                 }
 
                 // Extract action-level hooks
@@ -1230,6 +1231,48 @@ public partial class CommandLineArgsGenerator
         beforeExecuteHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
         afterExecuteHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
         onErrorHooks.Sort((a, b) => a.Order.CompareTo(b.Order));
+    }
+
+    /// <summary>
+    /// Gets a unique type name for a command that includes containing types for nested classes.
+    /// This prevents method name collisions when different commands have nested classes with the same name.
+    /// </summary>
+    private static string GetUniqueTypeName(INamedTypeSymbol? typeSymbol)
+    {
+        if (typeSymbol == null)
+        {
+            return string.Empty;
+        }
+
+        var typeNameParts = new List<string>();
+        var currentType = typeSymbol;
+        while (currentType != null)
+        {
+            typeNameParts.Insert(0, currentType.Name);
+            currentType = currentType.ContainingType;
+        }
+        return string.Join("_", typeNameParts);
+    }
+
+    /// <summary>
+    /// Gets a unique type name from a ClassDeclarationSyntax by walking up the parent syntax nodes.
+    /// This is used for legacy code paths that work with syntax rather than symbols.
+    /// </summary>
+    private static string GetUniqueTypeName(ClassDeclarationSyntax classDecl)
+    {
+        var typeNameParts = new List<string>();
+        SyntaxNode? currentNode = classDecl;
+
+        while (currentNode != null)
+        {
+            if (currentNode is ClassDeclarationSyntax classSyntax)
+            {
+                typeNameParts.Insert(0, classSyntax.Identifier.Text);
+            }
+            currentNode = currentNode.Parent;
+        }
+
+        return string.Join("_", typeNameParts);
     }
 
 }

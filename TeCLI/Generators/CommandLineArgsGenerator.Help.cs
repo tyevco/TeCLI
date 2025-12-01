@@ -238,7 +238,7 @@ else
         statements.Add(ParseStatement(@"Console.WriteLine(""  --version            Display version information"");"));
         statements.Add(ParseStatement(@"Console.WriteLine();"));
 
-        return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), Identifier($"DisplayCommand{classSymbol.Name}Help"))
+        return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), Identifier($"DisplayCommand{GetUniqueTypeName(classSymbol)}Help"))
             .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword)))
             .WithParameterList(ParameterList(SingletonSeparatedList(
                 Parameter(Identifier("actionName"))

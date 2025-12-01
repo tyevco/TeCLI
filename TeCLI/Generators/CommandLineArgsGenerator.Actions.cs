@@ -34,7 +34,7 @@ public partial class CommandLineArgsGenerator
                     Method = actionMethod,
                     DisplayName = actionAttribute.ConstructorArguments[0].Value?.ToString() ?? actionMethod.Name,
                     ActionName = actionMethod.Name,
-                    InvokerMethodName = $"{classDecl.Identifier.Text}{actionMethod.Name}"
+                    InvokerMethodName = $"{GetUniqueTypeName(classSymbol)}{actionMethod.Name}"
                 };
 
                 // Extract aliases from the ActionAttribute
