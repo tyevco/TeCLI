@@ -8,7 +8,7 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="TeCLI" />
-		<InternalsVisibleTo Include="TeCLI.Core" />
+		<InternalsVisibleTo Include="TeCLI.Generators" />
 		<InternalsVisibleTo Include="TeCLI.Extensions.DependencyInjection" />
 	</ItemGroup>
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -9,41 +9,47 @@
 		<LangVersion>latest</LangVersion>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Configurations>Debug;Release;NugetPackage</Configurations>
-		<RestoreProjectStyle>PackageReference</RestoreProjectStyle>
 	</PropertyGroup>
 
 	<Import Project="../Generator.props" />
 
 	<PropertyGroup>
-		<NamespaceSuffix>.Extensions.DependencyInjection</NamespaceSuffix>
+		<NamespaceSuffix>.Generators</NamespaceSuffix>
 		<RootNamespace>$(RootNamespaceId)$(NamespaceSuffix)</RootNamespace>
 	</PropertyGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
 
+		<ProjectReference Include="..\TeCLI\TeCLI.csproj" />
 		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
 		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<None Include="TeCLI.Extensions.DependencyInjection.props" Pack="true" PackagePath="build/" />
+		<None Include="TeCLI.Generators.props" Pack="true" PackagePath="build/" />
+		<!-- Analyzer assemblies -->
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\TeCLI\bin\$(Configuration)\netstandard2.0\TeCLI.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="..\TeCLI.Tools\bin\$(Configuration)\netstandard2.0\TeCLI.Tools.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<!-- Runtime assembly for consumers (attributes, StringSimilarity, etc.) -->
+		<None Include="..\TeCLI\bin\$(Configuration)\netstandard2.0\TeCLI.dll" Pack="true" PackagePath="lib/netstandard2.0" Visible="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="../README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 
 	<!-- Ensure dependent DLLs are available to the analyzer -->
 	<Target Name="GetAnalyzerAssembliesToCopy" AfterTargets="ResolveAssemblyReferences">
 		<ItemGroup>
+			<_AnalyzerAssemblies Include="$(OutputPath)TeCLI.dll" />
 			<_AnalyzerAssemblies Include="$(OutputPath)TeCLI.Tools.dll" />
 		</ItemGroup>
 	</Target>
