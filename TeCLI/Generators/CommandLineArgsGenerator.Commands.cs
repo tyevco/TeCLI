@@ -105,8 +105,7 @@ public partial class CommandLineArgsGenerator
     {
         // TEMPORARY: Minimal stub to test if generator works
         return MethodDeclaration(
-            GenericName(Identifier("Task"))
-                .WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>())),
+            IdentifierName("Task"),  // Non-generic Task, not Task<>
             Identifier("DispatchAsync"))
             .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword)))
             .WithParameterList(ParameterList(SingletonSeparatedList(
@@ -116,10 +115,9 @@ public partial class CommandLineArgsGenerator
             .WithBody(Block(
                 ExpressionStatement(
                     AwaitExpression(
-                        InvocationExpression(
-                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                IdentifierName("Task"),
-                                IdentifierName("CompletedTask")))))));
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,  // No InvocationExpression - it's a property
+                            IdentifierName("Task"),
+                            IdentifierName("CompletedTask"))))));
 
 #if false
         var statements = new List<StatementSyntax>();
