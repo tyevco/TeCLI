@@ -102,6 +102,25 @@ public partial class CommandLineArgsGenerator
 
     private MethodDeclarationSyntax GenerateDispatchAsyncMethod(List<CommandSourceInfo> commandHierarchies, GlobalOptionsSourceInfo? globalOptions)
     {
+        // TEMPORARY: Minimal stub to test if generator works
+        return MethodDeclaration(
+            GenericName(Identifier("Task"))
+                .WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>())),
+            Identifier("DispatchAsync"))
+            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword)))
+            .WithParameterList(ParameterList(SingletonSeparatedList(
+                Parameter(Identifier("args"))
+                    .WithType(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
+                        .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))))))
+            .WithBody(Block(
+                ExpressionStatement(
+                    AwaitExpression(
+                        InvocationExpression(
+                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                IdentifierName("Task"),
+                                IdentifierName("CompletedTask")))))));
+
+#if false
         var statements = new List<StatementSyntax>();
 
         // if (args.Length == 0) { DisplayApplicationHelp(); return; }
@@ -115,6 +134,7 @@ public partial class CommandLineArgsGenerator
             Block(
                 ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
                 ReturnStatement())));
+#endif
 
         // Parse global options if present
         if (globalOptions != null && globalOptions.Options.Count > 0)
@@ -386,6 +406,7 @@ public partial class CommandLineArgsGenerator
                     .WithType(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
                         .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))))))
             .WithBody(Block(statements));
+#endif
     }
 
     private List<StatementSyntax> GenerateGlobalOptionsParsingStatements(GlobalOptionsSourceInfo globalOptions)
