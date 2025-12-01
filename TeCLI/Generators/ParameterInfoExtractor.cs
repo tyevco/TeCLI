@@ -376,15 +376,21 @@ internal static class ParameterInfoExtractor
             var pattern = regexAttr.ConstructorArguments[0].Value?.ToString() ?? "";
             var errorMessage = regexAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ErrorMessage").Value;
 
+            // Escape curly braces in regex pattern since ValidationCode goes through string.Format later.
+            // This is needed because regex patterns can contain {n} or {n,m} quantifiers like {3,20}
+            // which would be misinterpreted as format placeholders.
+            var escapedPattern = pattern.Replace("{", "{{").Replace("}", "}}");
+
             string validationCode;
             if (!errorMessage.IsNull && errorMessage.Value != null)
             {
-                var errorMsg = errorMessage.Value.ToString();
-                validationCode = $"new TeCLI.Attributes.Validation.RegularExpressionAttribute(@\"{pattern}\") {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
+                // Also escape error message in case it contains curly braces
+                var errorMsg = errorMessage.Value.ToString()?.Replace("{", "{{").Replace("}", "}}") ?? "";
+                validationCode = $"new TeCLI.Attributes.Validation.RegularExpressionAttribute(@\"{escapedPattern}\") {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
             }
             else
             {
-                validationCode = $"new TeCLI.Attributes.Validation.RegularExpressionAttribute(@\"{pattern}\").Validate({{0}}, \"{psi.Name}\")";
+                validationCode = $"new TeCLI.Attributes.Validation.RegularExpressionAttribute(@\"{escapedPattern}\").Validate({{0}}, \"{psi.Name}\")";
             }
 
             psi.Validations.Add(new ValidationInfo
@@ -403,7 +409,8 @@ internal static class ParameterInfoExtractor
             string validationCode;
             if (!errorMessage.IsNull && errorMessage.Value != null)
             {
-                var errorMsg = errorMessage.Value.ToString();
+                // Escape error message in case it contains curly braces
+                var errorMsg = errorMessage.Value.ToString()?.Replace("{", "{{").Replace("}", "}}") ?? "";
                 validationCode = $"new TeCLI.Attributes.Validation.FileExistsAttribute() {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
             }
             else
@@ -427,7 +434,8 @@ internal static class ParameterInfoExtractor
             string validationCode;
             if (!errorMessage.IsNull && errorMessage.Value != null)
             {
-                var errorMsg = errorMessage.Value.ToString();
+                // Escape error message in case it contains curly braces
+                var errorMsg = errorMessage.Value.ToString()?.Replace("{", "{{").Replace("}", "}}") ?? "";
                 validationCode = $"new TeCLI.Attributes.Validation.DirectoryExistsAttribute() {{ ErrorMessage = \"{errorMsg}\" }}.Validate({{0}}, \"{psi.Name}\")";
             }
             else
