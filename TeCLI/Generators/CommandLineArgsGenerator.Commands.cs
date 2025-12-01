@@ -87,11 +87,10 @@ public partial class CommandLineArgsGenerator
 
         context.AddSource("CommandDispatcher.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
 
-        // TEMPORARILY DISABLED: Generate completion support methods in a separate partial class file using CodeBuilder
-        // GenerateCompletionSupportFile(context, commandHierarchies, globalOptions);
+        // Generate completion support methods in a separate partial class file using CodeBuilder
+        GenerateCompletionSupportFile(context, commandHierarchies, globalOptions);
 
-        // TEMPORARILY DISABLED: Generate dispatch methods for all commands in the hierarchies
-        return;
+        // Generate dispatch methods for all commands in the hierarchies
         foreach (var commandInfo in commandHierarchies)
         {
             GenerateCommandSourceFileHierarchical(context, compilation, commandInfo, globalOptions);
@@ -103,23 +102,6 @@ public partial class CommandLineArgsGenerator
 
     private MethodDeclarationSyntax GenerateDispatchAsyncMethod(List<CommandSourceInfo> commandHierarchies, GlobalOptionsSourceInfo? globalOptions)
     {
-        // TEMPORARY: Minimal stub to test if generator works
-        return MethodDeclaration(
-            IdentifierName("Task"),  // Non-generic Task, not Task<>
-            Identifier("DispatchAsync"))
-            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword)))
-            .WithParameterList(ParameterList(SingletonSeparatedList(
-                Parameter(Identifier("args"))
-                    .WithType(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
-                        .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))))))
-            .WithBody(Block(
-                ExpressionStatement(
-                    AwaitExpression(
-                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,  // No InvocationExpression - it's a property
-                            IdentifierName("Task"),
-                            IdentifierName("CompletedTask"))))));
-
-#if false
         var statements = new List<StatementSyntax>();
 
         // if (args.Length == 0) { DisplayApplicationHelp(); return; }
@@ -395,8 +377,7 @@ public partial class CommandLineArgsGenerator
             .WithSections(List(switchSections)));
 
         return MethodDeclaration(
-            GenericName(Identifier("Task"))
-                .WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>())),
+            IdentifierName("Task"),  // Non-generic Task
             Identifier("DispatchAsync"))
             .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword)))
             .WithParameterList(ParameterList(SingletonSeparatedList(
@@ -404,7 +385,6 @@ public partial class CommandLineArgsGenerator
                     .WithType(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
                         .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))))))
             .WithBody(Block(statements));
-#endif
     }
 
     private List<StatementSyntax> GenerateGlobalOptionsParsingStatements(GlobalOptionsSourceInfo globalOptions)
