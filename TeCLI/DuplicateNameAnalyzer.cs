@@ -86,12 +86,12 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
             if (string.IsNullOrWhiteSpace(actionName))
                 continue;
 
-            if (!actionNames.ContainsKey(actionName))
+            if (!actionNames.ContainsKey(actionName!))
             {
-                actionNames[actionName] = new List<IMethodSymbol>();
+                actionNames[actionName!] = new List<IMethodSymbol>();
             }
 
-            actionNames[actionName].Add(method);
+            actionNames[actionName!].Add(method);
         }
 
         // Report duplicates
@@ -135,7 +135,7 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
             foreach (var parameter in method.Parameters)
             {
                 // Check for option duplicates
-                if (parameter.TryGetAttribute<OptionAttribute>(out var optionAttr))
+                if (parameter.TryGetAttribute<OptionAttribute>(out var optionAttr) && optionAttr != null)
                 {
                     string? optionName = null;
 

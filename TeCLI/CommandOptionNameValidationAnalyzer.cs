@@ -33,7 +33,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor EmptyNameRule = new(
         "CLI006",
         "Empty name not allowed",
-        "{0} name cannot be empty or whitespace.",
+        "{0} name cannot be empty or whitespace",
         "Usage",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
@@ -63,7 +63,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
                 var commandName = commandAttr.ConstructorArguments[0].Value?.ToString();
                 if (!string.IsNullOrWhiteSpace(commandName))
                 {
-                    ValidateName(context, classDeclaration.GetLocation(), commandName, "Command", InvalidCommandNameRule);
+                    ValidateName(context, classDeclaration.GetLocation(), commandName!, "Command", InvalidCommandNameRule);
                 }
                 else
                 {
@@ -86,7 +86,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
                 var actionName = actionAttr.ConstructorArguments[0].Value?.ToString();
                 if (!string.IsNullOrWhiteSpace(actionName))
                 {
-                    ValidateName(context, methodDeclaration.GetLocation(), actionName, "Action", InvalidCommandNameRule);
+                    ValidateName(context, methodDeclaration.GetLocation(), actionName!, "Action", InvalidCommandNameRule);
                 }
                 else
                 {
@@ -122,7 +122,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
 
                 if (!string.IsNullOrWhiteSpace(optionName))
                 {
-                    ValidateName(context, propertyDeclaration.GetLocation(), optionName, "Option", InvalidOptionNameRule);
+                    ValidateName(context, propertyDeclaration.GetLocation(), optionName!, "Option", InvalidOptionNameRule);
                 }
                 else if (optionName != null) // Name was explicitly set to empty
                 {
@@ -144,7 +144,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
 
                 if (!string.IsNullOrWhiteSpace(argumentName))
                 {
-                    ValidateName(context, propertyDeclaration.GetLocation(), argumentName, "Argument", InvalidCommandNameRule);
+                    ValidateName(context, propertyDeclaration.GetLocation(), argumentName!, "Argument", InvalidCommandNameRule);
                 }
                 else if (argumentName != null) // Name was explicitly set to empty
                 {

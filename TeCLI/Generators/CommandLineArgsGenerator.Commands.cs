@@ -44,7 +44,7 @@ public partial class CommandLineArgsGenerator
         // Add namespace for global options if present
         if (globalOptions != null && !string.IsNullOrEmpty(globalOptions.Namespace))
         {
-            usings.Add(UsingDirective(ParseName(globalOptions.Namespace)));
+            usings.Add(UsingDirective(ParseName(globalOptions.Namespace!)));
         }
 
         // Build the class members
@@ -569,7 +569,7 @@ public partial class CommandLineArgsGenerator
                                     foreach (var action in actionMap)
                                     {
                                         if (!first) cb.Append(", ");
-                                        cb.Append($"\"{action.ActionName.ToLower()}\"");
+                                        cb.Append($"\"{action.ActionName!.ToLower()}\"");
                                         first = false;
 
                                         // Add aliases to the suggestion list
@@ -822,7 +822,7 @@ public partial class CommandLineArgsGenerator
                 else
                 {
                     // Use this method as the primary action
-                    var actionInvokeMethodName = $"{commandInfo.TypeSymbol.Name}{primaryMethod.Name}";
+                    var actionInvokeMethodName = $"{commandInfo.TypeSymbol!.Name}{primaryMethod.Name}";
                     cb.AppendLine(primaryMethod.MapAsync(
                             () => $"await Process{actionInvokeMethodName}Async(args);",
                             () => $"Process{actionInvokeMethodName}(args);"));

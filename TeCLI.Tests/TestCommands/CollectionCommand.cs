@@ -15,8 +15,8 @@ public class CollectionCommand
     [Action("process")]
     public void Process(
         [Option("files", ShortName = 'f')] string[] files,
-        [Option("ports", ShortName = 'p')] List<int> ports = null,
-        [Option("tags")] IEnumerable<string> tags = null)
+        [Option("ports", ShortName = 'p')] List<int>? ports = null,
+        [Option("tags")] IEnumerable<string>? tags = null)
     {
         WasCalled = true;
         CapturedFiles = files;

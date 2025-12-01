@@ -86,7 +86,7 @@ public class RoslynSyntaxBuilder
 
         if (!string.IsNullOrEmpty(_namespace))
         {
-            var namespaceDecl = FileScopedNamespaceDeclaration(ParseName(_namespace))
+            var namespaceDecl = FileScopedNamespaceDeclaration(ParseName(_namespace!))
                 .WithMembers(List(members));
             members = new MemberDeclarationSyntax[] { namespaceDecl };
         }
@@ -193,7 +193,6 @@ public class MethodBuilder
     private readonly List<SyntaxToken> _modifiers = new();
     private readonly List<ParameterSyntax> _parameters = new();
     private BlockSyntax? _body;
-    private bool _isAsync;
 
     public MethodBuilder(string name)
     {
@@ -228,7 +227,6 @@ public class MethodBuilder
 
     public MethodBuilder Async()
     {
-        _isAsync = true;
         _modifiers.Add(Token(SyntaxKind.AsyncKeyword));
         return this;
     }
