@@ -12,6 +12,9 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // Register embedded attribute definitions
+        RegisterEmbeddedAttributes(context);
+
         // Create a pipeline for classes with CommandAttribute
         // Only include top-level commands (not nested in another command class)
         var commandClassesProvider = context.SyntaxProvider.CreateSyntaxProvider(
