@@ -87,10 +87,11 @@ public partial class CommandLineArgsGenerator
 
         context.AddSource("CommandDispatcher.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
 
-        // Generate completion support methods in a separate partial class file using CodeBuilder
-        GenerateCompletionSupportFile(context, commandHierarchies, globalOptions);
+        // TEMPORARILY DISABLED: Generate completion support methods in a separate partial class file using CodeBuilder
+        // GenerateCompletionSupportFile(context, commandHierarchies, globalOptions);
 
-        // Generate dispatch methods for all commands in the hierarchies
+        // TEMPORARILY DISABLED: Generate dispatch methods for all commands in the hierarchies
+        return;
         foreach (var commandInfo in commandHierarchies)
         {
             GenerateCommandSourceFileHierarchical(context, compilation, commandInfo, globalOptions);
