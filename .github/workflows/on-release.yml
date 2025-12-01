@@ -15,18 +15,18 @@ jobs:
         project: [ 'TeCLI.Tools', 'TeCLI.Core' ]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v1.1.1
+      uses: gittools/actions/gitversion/setup@v4.2.0
       with:
         versionSpec: '5.x'
 
     - name: Determine Version
       id: gitv
-      uses: gittools/actions/gitversion/execute@v1.1.1
+      uses: gittools/actions/gitversion/execute@v4.2.0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
@@ -50,17 +50,17 @@ jobs:
         project: [ 'TeCLI.Extensions.DependencyInjection', 'TeCLI' ]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v1.1.1
+      uses: gittools/actions/gitversion/setup@v4.2.0
       with:
         versionSpec: '5.x'
 
     - name: Determine Version
-      uses: gittools/actions/gitversion/execute@v1.1.1
+      uses: gittools/actions/gitversion/execute@v4.2.0
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
