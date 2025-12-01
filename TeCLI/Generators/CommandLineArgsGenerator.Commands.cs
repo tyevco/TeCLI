@@ -143,7 +143,7 @@ public partial class CommandLineArgsGenerator
                                     IdentifierName("Add")))
                             .WithArgumentList(ArgumentList(SingletonSeparatedList(
                                 Argument(ElementAccessExpression(IdentifierName("args"))
-                                    .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(Argument(IdentifierName("i")))))))))))))
+                                    .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(Argument(IdentifierName("i"))))))))))))))
                 .WithDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword)))
                     .WithVariables(SingletonSeparatedList(
                         VariableDeclarator(Identifier("i"))
