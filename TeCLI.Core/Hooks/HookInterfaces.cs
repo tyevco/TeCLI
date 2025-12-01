@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 #if NETSTANDARD2_0
@@ -45,6 +46,11 @@ namespace TeCLI.Hooks
         /// Optional cancellation message
         /// </summary>
         public string? CancellationMessage { get; set; }
+
+        /// <summary>
+        /// Cancellation token for cooperative cancellation of async operations
+        /// </summary>
+        public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
     }
 
     /// <summary>

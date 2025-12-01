@@ -402,4 +402,37 @@ public static class Extensions
         return (methodSymbol.IsAsync || methodSymbol.HasTaskLikeReturnType()) ? isAsync() : isNotAsync();
     }
 
+    /// <summary>
+    /// Checks if a type symbol represents a CancellationToken
+    /// </summary>
+    public static bool IsCancellationToken(this ITypeSymbol typeSymbol)
+    {
+        var fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        return fullTypeName == "global::System.Threading.CancellationToken";
+    }
+
+    /// <summary>
+    /// Checks if a parameter symbol is a CancellationToken parameter
+    /// </summary>
+    public static bool IsCancellationTokenParameter(this IParameterSymbol parameterSymbol)
+    {
+        return parameterSymbol.Type.IsCancellationToken();
+    }
+
+    /// <summary>
+    /// Checks if a method has a CancellationToken parameter
+    /// </summary>
+    public static bool HasCancellationTokenParameter(this IMethodSymbol methodSymbol)
+    {
+        return methodSymbol.Parameters.Any(p => p.IsCancellationTokenParameter());
+    }
+
+    /// <summary>
+    /// Gets the CancellationToken parameter from a method, if present
+    /// </summary>
+    public static IParameterSymbol? GetCancellationTokenParameter(this IMethodSymbol methodSymbol)
+    {
+        return methodSymbol.Parameters.FirstOrDefault(p => p.IsCancellationTokenParameter());
+    }
+
 }

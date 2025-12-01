@@ -32,19 +32,26 @@ public partial class CommandLineArgsGenerator
             }
         }
 
+        // Check if the method has a CancellationToken parameter
+        bool hasCancellationToken = methodSymbol.HasCancellationTokenParameter();
+
         if (parameterDetails.Count == 0)
         {
-            var globalOptionsArg = globalOptionsParam != null ? "_globalOptions" : "";
+            var methodParams = new List<string>();
+            if (globalOptionsParam != null) methodParams.Add("_globalOptions");
+            if (hasCancellationToken) methodParams.Add("cancellationToken");
+            var methodParamsStr = string.Join(", ", methodParams);
+
             var invokeStatement = methodSymbol.MapAsync(
-                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({globalOptionsArg}));",
-                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({globalOptionsArg}));");
+                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);",
+                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);");
             statements.Add(ParseStatement(invokeStatement));
         }
         else
         {
             // Generate the if/else structure using CodeBuilder internally, then parse the result
             var cb = new CodeBuilder();
-            GenerateParameterCodeInternal(cb, methodSymbol, methodInvokerName, parameterDetails, globalOptionsParam);
+            GenerateParameterCodeInternal(cb, methodSymbol, methodInvokerName, parameterDetails, globalOptionsParam, hasCancellationToken);
 
             // Parse all the statements from the CodeBuilder
             var code = cb.ToString();
@@ -65,17 +72,21 @@ public partial class CommandLineArgsGenerator
     }
 
     private void GenerateParameterCodeInternal(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName,
-        List<ParameterSourceInfo> parameterDetails, ParameterSourceInfo? globalOptionsParam)
+        List<ParameterSourceInfo> parameterDetails, ParameterSourceInfo? globalOptionsParam, bool hasCancellationToken = false)
     {
         using (cb.AddBlock("if (args.Length == 0)"))
         {
             if (!parameterDetails.Any(p => p.Required))
             {
-                var globalOptionsArg = globalOptionsParam != null ? "_globalOptions" : "";
+                var methodParams = new List<string>();
+                if (globalOptionsParam != null) methodParams.Add("_globalOptions");
+                if (hasCancellationToken) methodParams.Add("cancellationToken");
+                var methodParamsStr = string.Join(", ", methodParams);
+
                 cb.AppendLine(
                     methodSymbol.MapAsync(
-                        () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({globalOptionsArg}));",
-                        () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({globalOptionsArg}));"));
+                        () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);",
+                        () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);"));
             }
             else
             {
@@ -166,10 +177,20 @@ public partial class CommandLineArgsGenerator
                     }
                 }
 
+                // Add CancellationToken if the method accepts it
+                if (hasCancellationToken)
+                {
+                    var ctParam = methodSymbol.GetCancellationTokenParameter();
+                    if (ctParam != null)
+                    {
+                        allParams.Add($"{ctParam.Name}: cancellationToken");
+                    }
+                }
+
                 cb.AppendLine(
                         methodSymbol.MapAsync(
-                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", allParams)}));",
-                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", allParams)}));"));
+                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", allParams)}), cancellationToken);",
+                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", allParams)}), cancellationToken);"));
             }
             else
             {
@@ -182,10 +203,16 @@ public partial class CommandLineArgsGenerator
                 }
                 invokeParams.AddRange(parameterDetails.Select(p => $"p{p.ParameterIndex}"));
 
+                // Add CancellationToken if the method accepts it
+                if (hasCancellationToken)
+                {
+                    invokeParams.Add("cancellationToken");
+                }
+
                 cb.AppendLine(
                         methodSymbol.MapAsync(
-                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", invokeParams)}));",
-                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", invokeParams)}));"));
+                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", invokeParams)}), cancellationToken);",
+                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", invokeParams)}), cancellationToken);"));
             }
         }
     }
@@ -209,13 +236,20 @@ public partial class CommandLineArgsGenerator
             }
         }
 
+        // Check if the method has a CancellationToken parameter
+        bool hasCancellationToken = methodSymbol.HasCancellationTokenParameter();
+
         if (parameterDetails.Count == 0)
         {
-            var globalOptionsArg = globalOptionsParam != null ? "_globalOptions" : "";
+            var methodParams = new List<string>();
+            if (globalOptionsParam != null) methodParams.Add("_globalOptions");
+            if (hasCancellationToken) methodParams.Add("cancellationToken");
+            var methodParamsStr = string.Join(", ", methodParams);
+
             cb.AppendLine(
                     methodSymbol.MapAsync(
-                        () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({globalOptionsArg}));",
-                        () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({globalOptionsArg}));"));
+                        () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);",
+                        () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);"));
         }
         else
         {
@@ -223,11 +257,15 @@ public partial class CommandLineArgsGenerator
             {
                 if (!parameterDetails.Any(p => p.Required))
                 {
-                    var globalOptionsArg = globalOptionsParam != null ? "_globalOptions" : "";
+                    var methodParams = new List<string>();
+                    if (globalOptionsParam != null) methodParams.Add("_globalOptions");
+                    if (hasCancellationToken) methodParams.Add("cancellationToken");
+                    var methodParamsStr = string.Join(", ", methodParams);
+
                     cb.AppendLine(
                         methodSymbol.MapAsync(
-                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({globalOptionsArg}));",
-                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({globalOptionsArg}));"));
+                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);",
+                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);"));
                 }
                 else
                 {
@@ -318,10 +356,20 @@ public partial class CommandLineArgsGenerator
                         }
                     }
 
+                    // Add CancellationToken if the method accepts it
+                    if (hasCancellationToken)
+                    {
+                        var ctParam = methodSymbol.GetCancellationTokenParameter();
+                        if (ctParam != null)
+                        {
+                            allParams.Add($"{ctParam.Name}: cancellationToken");
+                        }
+                    }
+
                     cb.AppendLine(
                             methodSymbol.MapAsync(
-                                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", allParams)}));",
-                                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", allParams)}));"));
+                                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", allParams)}), cancellationToken);",
+                                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", allParams)}), cancellationToken);"));
                 }
                 else
                 {
@@ -334,10 +382,16 @@ public partial class CommandLineArgsGenerator
                     }
                     invokeParams.AddRange(parameterDetails.Select(p => $"p{p.ParameterIndex}"));
 
+                    // Add CancellationToken if the method accepts it
+                    if (hasCancellationToken)
+                    {
+                        invokeParams.Add("cancellationToken");
+                    }
+
                     cb.AppendLine(
                             methodSymbol.MapAsync(
-                                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", invokeParams)}));",
-                                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", invokeParams)}));"));
+                                () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({string.Join(", ", invokeParams)}), cancellationToken);",
+                                () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({string.Join(", ", invokeParams)}), cancellationToken);"));
                 }
             }
         }

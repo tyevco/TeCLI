@@ -265,7 +265,11 @@ public partial class CommandLineArgsGenerator
                 {
                     ExpressionStatement(AwaitExpression(
                         InvocationExpression(IdentifierName(methodName))
-                            .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("remainingArgs"))))))),
+                            .WithArgumentList(ArgumentList(SeparatedList(new[]
+                            {
+                                Argument(IdentifierName("remainingArgs")),
+                                Argument(IdentifierName("cancellationToken"))
+                            }))))),
                     BreakStatement()
                 })));
 
@@ -279,7 +283,11 @@ public partial class CommandLineArgsGenerator
                     {
                         ExpressionStatement(AwaitExpression(
                             InvocationExpression(IdentifierName(methodName))
-                                .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("remainingArgs"))))))),
+                                .WithArgumentList(ArgumentList(SeparatedList(new[]
+                                {
+                                    Argument(IdentifierName("remainingArgs")),
+                                    Argument(IdentifierName("cancellationToken"))
+                                }))))),
                         BreakStatement()
                     })));
             }
@@ -380,10 +388,15 @@ public partial class CommandLineArgsGenerator
             IdentifierName("Task"),  // Non-generic Task
             Identifier("DispatchAsync"))
             .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword)))
-            .WithParameterList(ParameterList(SingletonSeparatedList(
+            .WithParameterList(ParameterList(SeparatedList(new[]
+            {
                 Parameter(Identifier("args"))
                     .WithType(ArrayType(PredefinedType(Token(SyntaxKind.StringKeyword)))
-                        .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))))))
+                        .WithRankSpecifiers(SingletonList(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression()))))),
+                Parameter(Identifier("cancellationToken"))
+                    .WithType(ParseTypeName("System.Threading.CancellationToken"))
+                    .WithDefault(EqualsValueClause(DefaultExpression(ParseTypeName("System.Threading.CancellationToken"))))
+            })))
             .WithBody(Block(statements));
     }
 
@@ -670,7 +683,7 @@ public partial class CommandLineArgsGenerator
         var uniqueTypeName = GetUniqueTypeName(commandInfo.TypeSymbol);
         var methodName = $"Dispatch{uniqueTypeName}Async";
 
-        using (cb.AddBlock($"private async Task {methodName}(string[] args)"))
+        using (cb.AddBlock($"private async Task {methodName}(string[] args, System.Threading.CancellationToken cancellationToken = default)"))
         {
             // Check for help flag first
             using (cb.AddBlock("if (args.Contains(\"--help\") || args.Contains(\"-h\"))"))
@@ -703,7 +716,7 @@ public partial class CommandLineArgsGenerator
                         // Primary subcommand name
                         using (cb.AddBlock($"case \"{subcommand.CommandName!.ToLower()}\":"))
                         {
-                            cb.AppendLine($"await {subMethodName}(remainingArgs);");
+                            cb.AppendLine($"await {subMethodName}(remainingArgs, cancellationToken);");
                             cb.AppendLine("return;");
                         }
 
@@ -714,7 +727,7 @@ public partial class CommandLineArgsGenerator
                         {
                             using (cb.AddBlock($"case \"{alias.ToLower()}\":"))
                             {
-                                cb.AppendLine($"await {subMethodName}(remainingArgs);");
+                                cb.AppendLine($"await {subMethodName}(remainingArgs, cancellationToken);");
                                 cb.AppendLine("return;");
                             }
 
@@ -730,10 +743,10 @@ public partial class CommandLineArgsGenerator
                         // Check if action has hooks - if so, always use async version
                         bool hasHooks = ActionHasHooks(action, commandInfo);
                         string actionCall = hasHooks
-                            ? $"await Process{actionInvokeMethodName}Async(remainingArgs);"
+                            ? $"await Process{actionInvokeMethodName}Async(remainingArgs, cancellationToken);"
                             : action.Method.MapAsync(
-                                () => $"await Process{actionInvokeMethodName}Async(remainingArgs);",
-                                () => $"Process{actionInvokeMethodName}(remainingArgs);");
+                                () => $"await Process{actionInvokeMethodName}Async(remainingArgs, cancellationToken);",
+                                () => $"Process{actionInvokeMethodName}(remainingArgs, cancellationToken);");
 
                         // Primary action name
                         using (cb.AddBlock($"case \"{action.ActionName!.ToLower()}\":"))
@@ -825,8 +838,8 @@ public partial class CommandLineArgsGenerator
                     // Use this method as the primary action
                     var actionInvokeMethodName = $"{GetUniqueTypeName(commandInfo.TypeSymbol)}{primaryMethod.Name}";
                     cb.AppendLine(primaryMethod.MapAsync(
-                            () => $"await Process{actionInvokeMethodName}Async(args);",
-                            () => $"Process{actionInvokeMethodName}(args);"));
+                            () => $"await Process{actionInvokeMethodName}Async(args, cancellationToken);",
+                            () => $"Process{actionInvokeMethodName}(args, cancellationToken);"));
                 }
             }
         }
