@@ -322,8 +322,15 @@ else
             .WithMembers(SingletonList<MemberDeclarationSyntax>(namespaceDecl))
             .NormalizeWhitespace();
 
-        // Use full type name with underscores for nested types to ensure unique hint names
-        var uniqueTypeName = commandInfo.TypeSymbol!.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat).Replace(".", "_");
+        // Build unique type name including containing types for nested classes
+        var typeNameParts = new List<string>();
+        var currentType = commandInfo.TypeSymbol!;
+        while (currentType != null)
+        {
+            typeNameParts.Insert(0, currentType.Name);
+            currentType = currentType.ContainingType;
+        }
+        var uniqueTypeName = string.Join("_", typeNameParts);
         context.AddSource($"CommandDispatcher.Help.{uniqueTypeName}.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
     }
 
