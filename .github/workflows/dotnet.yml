@@ -17,21 +17,21 @@ jobs:
         project: [ 'TeCLI.Tools', 'TeCLI.Core' ]
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.2.0
       with:
-        versionSpec: '5.x'
+        versionSpec: '6.x'
 
     - name: Determine Version
       id: gitv
       uses: gittools/actions/gitversion/execute@v4.2.0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
@@ -42,7 +42,7 @@ jobs:
       if: ${{ hashFiles('${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg') != '' }}
       run: dotnet pack --configuration Release ${{ matrix.project }}/${{ matrix.project }}.csproj
 
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.project }}
         path: ${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
@@ -56,19 +56,19 @@ jobs:
         project: [ 'TeCLI.Extensions.DependencyInjection', 'TeCLI' ]
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.2.0
       with:
-        versionSpec: '5.x'
+        versionSpec: '6.x'
 
     - name: Determine Version
       uses: gittools/actions/gitversion/execute@v4.2.0
     - name: Setup .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
@@ -84,7 +84,7 @@ jobs:
       if: ${{ hashFiles('${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg') != '' }}
       run: dotnet pack --configuration Release ${{ matrix.project }}/${{ matrix.project }}.csproj
 
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.project }}
         path: ${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
@@ -94,20 +94,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v4.2.0
       with:
-        versionSpec: '5.x'
+        versionSpec: '6.x'
 
     - name: Determine Version
       uses: gittools/actions/gitversion/execute@v4.2.0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
@@ -135,7 +135,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Upload test results
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
