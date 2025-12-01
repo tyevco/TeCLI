@@ -1,3 +1,4 @@
+using TeCLI;
 using Xunit;
 
 namespace TeCLI.Tests;

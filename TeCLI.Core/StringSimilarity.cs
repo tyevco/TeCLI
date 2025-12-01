@@ -7,7 +7,7 @@ namespace TeCLI;
 /// <summary>
 /// Provides string similarity calculations for suggesting corrections to user input.
 /// </summary>
-internal static class StringSimilarity
+public static class StringSimilarity
 {
     /// <summary>
     /// Calculates the Levenshtein distance between two strings.
