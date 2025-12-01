@@ -644,7 +644,9 @@ public partial class CommandLineArgsGenerator
             }
         }
 
-        context.AddSource($"CommandDispatcher.Command.{commandInfo.TypeSymbol.Name}.cs", SourceText.From(cb, Encoding.UTF8));
+        // Use full type name with underscores for nested types to ensure unique hint names
+        var uniqueTypeName = commandInfo.TypeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat).Replace(".", "_");
+        context.AddSource($"CommandDispatcher.Command.{uniqueTypeName}.cs", SourceText.From(cb, Encoding.UTF8));
 
         // Recursively generate dispatch methods for subcommands
         foreach (var subcommand in commandInfo.Subcommands)

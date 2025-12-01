@@ -322,7 +322,9 @@ else
             .WithMembers(SingletonList<MemberDeclarationSyntax>(namespaceDecl))
             .NormalizeWhitespace();
 
-        context.AddSource($"CommandDispatcher.Help.{commandInfo.TypeSymbol!.Name}.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
+        // Use full type name with underscores for nested types to ensure unique hint names
+        var uniqueTypeName = commandInfo.TypeSymbol!.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat).Replace(".", "_");
+        context.AddSource($"CommandDispatcher.Help.{uniqueTypeName}.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
     }
 
     /// <summary>
