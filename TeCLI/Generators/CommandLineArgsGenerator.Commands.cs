@@ -68,9 +68,6 @@ public partial class CommandLineArgsGenerator
         // Generate the DispatchAsync method
         classMembers.Add(GenerateDispatchAsyncMethod(commandHierarchies, globalOptions));
 
-        // Generate completion support methods
-        classMembers.AddRange(GenerateCompletionSupportMembers(commandHierarchies, globalOptions));
-
         // Build the class declaration
         var classDecl = ClassDeclaration("CommandDispatcher")
             .WithModifiers(TokenList(
@@ -89,6 +86,9 @@ public partial class CommandLineArgsGenerator
             .NormalizeWhitespace();
 
         context.AddSource("CommandDispatcher.cs", SourceText.From(compilationUnit.ToFullString(), Encoding.UTF8));
+
+        // Generate completion support methods in a separate partial class file using CodeBuilder
+        GenerateCompletionSupportFile(context, commandHierarchies, globalOptions);
 
         // Generate dispatch methods for all commands in the hierarchies
         foreach (var commandInfo in commandHierarchies)
