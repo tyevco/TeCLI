@@ -1,6 +1,7 @@
 using TeCLI.Tests.TestCommands;
 using Xunit;
 using System;
+using System.IO;
 
 namespace TeCLI.Tests;
 
@@ -144,7 +145,7 @@ public class CommonTypesTests
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
         Assert.NotNull(CommonTypesCommand.CapturedFileInfo);
-        Assert.Equal("/path/to/file.txt", CommonTypesCommand.CapturedFileInfo.FullName);
+        Assert.Equal(Path.GetFullPath("/path/to/file.txt"), CommonTypesCommand.CapturedFileInfo.FullName);
     }
 
     [Fact]
@@ -161,7 +162,7 @@ public class CommonTypesTests
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
         Assert.NotNull(CommonTypesCommand.CapturedDirectoryInfo);
-        Assert.Equal("/path/to/directory", CommonTypesCommand.CapturedDirectoryInfo.FullName);
+        Assert.Equal(Path.GetFullPath("/path/to/directory"), CommonTypesCommand.CapturedDirectoryInfo.FullName);
     }
 
     [Fact]
