@@ -99,6 +99,21 @@ internal static class ParameterInfoExtractor
                 psi.CommonTypeParseMethod = parameterSymbol.Type.GetCommonTypeParseMethod();
             }
 
+            // Check if this is a stream type
+            if (parameterSymbol.Type.IsStreamType())
+            {
+                psi.IsStreamType = true;
+                var direction = parameterSymbol.Type.GetStreamDirection();
+                psi.StreamDirection = direction switch
+                {
+                    Extensions.StreamDirection.Input => StreamDirection.Input,
+                    Extensions.StreamDirection.Output => StreamDirection.Output,
+                    Extensions.StreamDirection.Bidirectional => StreamDirection.Bidirectional,
+                    _ => StreamDirection.Unknown
+                };
+                psi.StreamTypeName = parameterSymbol.Type.GetStreamTypeName();
+            }
+
             // Check if this is a collection type
             if (parameterSymbol.Type.IsCollectionType(out var elementType))
             {
@@ -186,6 +201,21 @@ internal static class ParameterInfoExtractor
             {
                 psi.IsCommonType = true;
                 psi.CommonTypeParseMethod = propertySymbol.Type.GetCommonTypeParseMethod();
+            }
+
+            // Check if this is a stream type
+            if (propertySymbol.Type.IsStreamType())
+            {
+                psi.IsStreamType = true;
+                var direction = propertySymbol.Type.GetStreamDirection();
+                psi.StreamDirection = direction switch
+                {
+                    Extensions.StreamDirection.Input => StreamDirection.Input,
+                    Extensions.StreamDirection.Output => StreamDirection.Output,
+                    Extensions.StreamDirection.Bidirectional => StreamDirection.Bidirectional,
+                    _ => StreamDirection.Unknown
+                };
+                psi.StreamTypeName = propertySymbol.Type.GetStreamTypeName();
             }
 
             // Check if this is a collection type

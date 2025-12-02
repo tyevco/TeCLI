@@ -986,24 +986,55 @@ return exitCode;
 ---
 
 ### 💡 Pipeline and Stream Support
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Low
 
-Better stdin/stdout handling:
+TeCLI now supports stream types for stdin/stdout handling! This enables Unix-style pipeline patterns:
 ```csharp
 [Action("transform")]
 public void Transform(
-    [Option("input")] Stream input = Console.In,
-    [Option("output")] Stream output = Console.Out)
+    [Option("input", ShortName = 'i')] TextReader input,
+    [Option("output", ShortName = 'o')] TextWriter output)
 {
     // Supports: cat input.txt | myapp transform | tee output.txt
+    var content = input.ReadToEnd();
+    output.Write(content.ToUpperInvariant());
+}
+
+[Action("process")]
+public void Process([Option("data")] Stream data)
+{
+    // Binary stream support
 }
 ```
 
-**Features:**
-- Detect piped input
-- Special handling for `-` as stdin/stdout
-- Binary stream support
+**Implemented Features:**
+- ✅ Support for `Stream`, `TextReader`, `TextWriter`, `StreamReader`, `StreamWriter` types
+- ✅ Automatic stdin detection via `Console.IsInputRedirected`
+- ✅ Automatic stdout detection via `Console.IsOutputRedirected`
+- ✅ Special handling for `-` as stdin/stdout (Unix convention)
+- ✅ File path support - automatically opens file streams
+- ✅ Works with both options and arguments
+- ✅ Environment variable fallback for stream paths
+- ✅ Proper stream direction detection (input/output/bidirectional)
+- ✅ Comprehensive test coverage
+
+**Supported Stream Types:**
+| Type | Direction | stdin/stdout | File |
+|------|-----------|--------------|------|
+| `Stream` | Bidirectional | `Console.OpenStandardInput/Output()` | `FileStream` |
+| `TextReader` | Input | `Console.In` | `StreamReader` |
+| `TextWriter` | Output | `Console.Out` | `StreamWriter` |
+| `StreamReader` | Input | wraps stdin | from file path |
+| `StreamWriter` | Output | wraps stdout | from file path |
+
+**Files Changed:**
+- `TeCLI.Tools/Extensions.cs` - Added stream type detection methods
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Added stream tracking properties
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Extract stream type information
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Generate stream creation code
+- `TeCLI.Tests/TestCommands/StreamCommand.cs` - Test command for streams
+- `TeCLI.Tests/StreamSupportTests.cs` - Comprehensive integration tests
 
 ---
 

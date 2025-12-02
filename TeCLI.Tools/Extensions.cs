@@ -218,6 +218,12 @@ public static class Extensions
             return true;
         }
 
+        // Check if it's a stream type (special handling for stdin/stdout)
+        if (IsStreamType(typeSymbol))
+        {
+            return true;
+        }
+
         // Check if it's a collection of primitive types, enums, or common types
         if (IsCollectionType(typeSymbol, out var elementType) && elementType != null)
         {
@@ -242,6 +248,68 @@ public static class Extensions
             "global::System.IO.DirectoryInfo" => true,
             _ => false
         };
+    }
+
+    /// <summary>
+    /// Checks if the type is a stream type that requires special handling for stdin/stdout/file streams
+    /// </summary>
+    public static bool IsStreamType(this ITypeSymbol typeSymbol)
+    {
+        var fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        return fullTypeName switch
+        {
+            "global::System.IO.Stream" => true,
+            "global::System.IO.TextReader" => true,
+            "global::System.IO.TextWriter" => true,
+            "global::System.IO.StreamReader" => true,
+            "global::System.IO.StreamWriter" => true,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Gets the stream direction (input or output) based on the stream type
+    /// </summary>
+    public static StreamDirection GetStreamDirection(this ITypeSymbol typeSymbol)
+    {
+        var fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        return fullTypeName switch
+        {
+            "global::System.IO.Stream" => StreamDirection.Bidirectional,
+            "global::System.IO.TextReader" => StreamDirection.Input,
+            "global::System.IO.TextWriter" => StreamDirection.Output,
+            "global::System.IO.StreamReader" => StreamDirection.Input,
+            "global::System.IO.StreamWriter" => StreamDirection.Output,
+            _ => StreamDirection.Unknown
+        };
+    }
+
+    /// <summary>
+    /// Gets the concrete stream type name for the stream type
+    /// </summary>
+    public static string? GetStreamTypeName(this ITypeSymbol typeSymbol)
+    {
+        var fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        return fullTypeName switch
+        {
+            "global::System.IO.Stream" => "Stream",
+            "global::System.IO.TextReader" => "TextReader",
+            "global::System.IO.TextWriter" => "TextWriter",
+            "global::System.IO.StreamReader" => "StreamReader",
+            "global::System.IO.StreamWriter" => "StreamWriter",
+            _ => null
+        };
+    }
+
+    public enum StreamDirection
+    {
+        Unknown,
+        Input,
+        Output,
+        Bidirectional
     }
 
     public static string? GetCommonTypeParseMethod(this ITypeSymbol typeSymbol)
