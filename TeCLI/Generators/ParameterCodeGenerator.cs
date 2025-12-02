@@ -343,7 +343,31 @@ internal static class ParameterCodeGenerator
         }
         else
         {
-            using (cb.AddBlock($"if (args.Length < {sourceInfo.ArgumentIndex + 1})"))
+            // Find the positional argument by counting non-option args, skipping options and their values
+            cb.AppendLine($"string? {variableName}RawValue = null;");
+            cb.AppendLine($"int {variableName}ArgCount = 0;");
+            using (cb.AddBlock("for (int i = 0; i < args.Length; i++)"))
+            {
+                using (cb.AddBlock("if (args[i].StartsWith(\"-\"))"))
+                {
+                    cb.AppendLine("// Skip the option and its value (if it has one)");
+                    using (cb.AddBlock("if (i + 1 < args.Length && !args[i + 1].StartsWith(\"-\"))"))
+                    {
+                        cb.AppendLine("i++; // Skip the option's value");
+                    }
+                }
+                using (cb.AddBlock("else"))
+                {
+                    using (cb.AddBlock($"if ({variableName}ArgCount == {sourceInfo.ArgumentIndex})"))
+                    {
+                        cb.AppendLine($"{variableName}RawValue = args[i];");
+                        cb.AppendLine("break;");
+                    }
+                    cb.AppendLine($"{variableName}ArgCount++;");
+                }
+            }
+
+            using (cb.AddBlock($"if ({variableName}RawValue == null)"))
             {
                 // Check if we should prompt for the value
                 if (!string.IsNullOrEmpty(sourceInfo.Prompt))
@@ -361,27 +385,27 @@ internal static class ParameterCodeGenerator
                 {
                     if (sourceInfo.IsEnum)
                     {
-                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), args[{sourceInfo.ArgumentIndex}], ignoreCase: true);");
+                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})System.Enum.Parse(typeof({sourceInfo.DisplayType}), {variableName}RawValue, ignoreCase: true);");
                     }
                     else if (sourceInfo.HasCustomConverter && !string.IsNullOrEmpty(sourceInfo.CustomConverterType))
                     {
                         cb.AppendLine($"var {variableName}Converter = new {sourceInfo.CustomConverterType}();");
-                        cb.AppendLine($"{variableName} = {variableName}Converter.Convert(args[{sourceInfo.ArgumentIndex}]);");
+                        cb.AppendLine($"{variableName} = {variableName}Converter.Convert({variableName}RawValue);");
                     }
                     else if (sourceInfo.IsCommonType && !string.IsNullOrEmpty(sourceInfo.CommonTypeParseMethod))
                     {
-                        cb.AppendLine($"{variableName} = {string.Format(sourceInfo.CommonTypeParseMethod, $"args[{sourceInfo.ArgumentIndex}]")};");
+                        cb.AppendLine($"{variableName} = {string.Format(sourceInfo.CommonTypeParseMethod, $"{variableName}RawValue")};");
                     }
                     else
                     {
-                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType(args[{sourceInfo.ArgumentIndex}], typeof({sourceInfo.DisplayType}));");
+                        cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType({variableName}RawValue, typeof({sourceInfo.DisplayType}));");
                     }
                     tb.Catch();
 
                     if (sourceInfo.IsEnum)
                     {
                         cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                        cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for argument '{{sourceInfo.Name}}'. Valid values are: {{1}}", args[{{sourceInfo.ArgumentIndex}}], validValues));""");
+                        cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for argument '{{sourceInfo.Name}}'. Valid values are: {{1}}", {{variableName}}RawValue, validValues));""");
                     }
                     else
                     {
