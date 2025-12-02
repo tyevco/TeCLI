@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<RootNamespace>TeCLI.Testing</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<Authors>Tyler Coles</Authors>
+		<Description>Testing utilities for TeCLI - CommandTestHost, mock I/O, argument builders, and assertion helpers</Description>
+		<PackageTags>tecli;cli;testing;unit-testing;integration-testing</PackageTags>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<RepositoryUrl>https://github.com/tyevco/TeCLI</RepositoryUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+		<ItemGroup>
+			<NugetFiles Include="bin\**\$(MSBuildProjectName).*.nupkg"/>
+		</ItemGroup>
+
+		<Copy
+            SourceFiles="@(NugetFiles)"
+            DestinationFolder="..\.packages\"
+			ContinueOnError="true"
+        />
+
+		<Message Text="Copied nupkg to repo directory." Importance="high" />
+	</Target>
+
+	<ItemGroup>
+		<None Include="../LICENSE" Pack="true" PackagePath=""/>
+	</ItemGroup>
+
+</Project>
