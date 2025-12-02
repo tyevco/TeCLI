@@ -21,7 +21,7 @@ public class ValidationCommand
     public void Connect(
         [Option("port", ShortName = 'p')] [Range(1, 65535)] int port = 8080,
         [Option("username", ShortName = 'u')] [RegularExpression(@"^[a-zA-Z0-9_]{3,20}$")] string? username = null,
-        [Option("timeout")] [Range(0, 3600)] int timeout = 30)
+        [Option("connection-timeout")] [Range(0, 3600)] int timeout = 30)
     {
         WasCalled = true;
         CapturedPort = port;

@@ -97,8 +97,7 @@ public class ValidationTests
         var dispatcher = new TeCLI.CommandDispatcher();
         var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
-        Assert.Contains("outside the allowed range", exception.Message);
-        Assert.Contains("[1, 65535]", exception.Message);
+        Assert.Contains("must be between 1 and 65535", exception.Message);
     }
 
     [Fact]
@@ -112,8 +111,7 @@ public class ValidationTests
         var dispatcher = new TeCLI.CommandDispatcher();
         var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
-        Assert.Contains("outside the allowed range", exception.Message);
-        Assert.Contains("[1, 65535]", exception.Message);
+        Assert.Contains("must be between 1 and 65535", exception.Message);
     }
 
     [Fact]
@@ -143,8 +141,7 @@ public class ValidationTests
         var dispatcher = new TeCLI.CommandDispatcher();
         var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
-        Assert.Contains("outside the allowed range", exception.Message);
-        Assert.Contains("[0, 100]", exception.Message);
+        Assert.Contains("must be between 0 and 100", exception.Message);
     }
 
     [Fact]
@@ -168,7 +165,7 @@ public class ValidationTests
     {
         // Arrange
         ValidationCommand.Reset();
-        var args = new[] { "validate", "connect", "--timeout", "60" };
+        var args = new[] { "validate", "connect", "--connection-timeout", "60" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -184,14 +181,13 @@ public class ValidationTests
     {
         // Arrange
         ValidationCommand.Reset();
-        var args = new[] { "validate", "connect", "--timeout", "5000" };
+        var args = new[] { "validate", "connect", "--connection-timeout", "5000" };
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
         var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
-        Assert.Contains("outside the allowed range", exception.Message);
-        Assert.Contains("[0, 3600]", exception.Message);
+        Assert.Contains("must be between 0 and 3600", exception.Message);
     }
 
     #endregion
@@ -225,7 +221,7 @@ public class ValidationTests
         var dispatcher = new TeCLI.CommandDispatcher();
         var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
-        Assert.Contains("does not match the required pattern", exception.Message);
+        Assert.Contains("does not match pattern", exception.Message);
     }
 
     [Fact]
@@ -239,7 +235,7 @@ public class ValidationTests
         var dispatcher = new TeCLI.CommandDispatcher();
         var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
-        Assert.Contains("does not match the required pattern", exception.Message);
+        Assert.Contains("does not match pattern", exception.Message);
     }
 
     [Fact]
@@ -253,7 +249,7 @@ public class ValidationTests
         var dispatcher = new TeCLI.CommandDispatcher();
         var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
-        Assert.Contains("does not match the required pattern", exception.Message);
+        Assert.Contains("does not match pattern", exception.Message);
     }
 
     [Fact]
@@ -420,7 +416,7 @@ public class ValidationTests
             "validate", "connect",
             "--port", "443",
             "--username", "admin123",
-            "--timeout", "120"
+            "--connection-timeout", "120"
         };
 
         // Act
@@ -444,14 +440,14 @@ public class ValidationTests
             "validate", "connect",
             "--port", "443",
             "--username", "a", // Too short
-            "--timeout", "120"
+            "--connection-timeout", "120"
         };
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
         var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
-        Assert.Contains("does not match the required pattern", exception.Message);
+        Assert.Contains("does not match pattern", exception.Message);
     }
 
     #endregion
