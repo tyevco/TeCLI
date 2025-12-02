@@ -1,3 +1,6 @@
 <Project>
-
+	<!-- Make the TeCLI_InvokerLibrary property visible to the source generator -->
+	<ItemGroup>
+		<CompilerVisibleProperty Include="TeCLI_InvokerLibrary" />
+	</ItemGroup>
 </Project>
