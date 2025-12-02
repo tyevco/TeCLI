@@ -182,18 +182,29 @@ public class ErrorLoggingHook : IOnErrorHook
 }
 
 /// <summary>
+/// Shared counter for tracking execution order across all ordered hooks
+/// </summary>
+public static class OrderedHookCounter
+{
+    private static int _counter = 0;
+
+    public static int GetNext() => ++_counter;
+
+    public static void Reset() => _counter = 0;
+}
+
+/// <summary>
 /// Test hook with specific order for testing hook execution sequence
 /// </summary>
 public class OrderedHook1 : IBeforeExecuteHook
 {
     public static bool WasCalled { get; private set; }
     public static int ExecutionOrder { get; private set; }
-    private static int _counter = 0;
 
     public Task BeforeExecuteAsync(HookContext context)
     {
         WasCalled = true;
-        ExecutionOrder = ++_counter;
+        ExecutionOrder = OrderedHookCounter.GetNext();
         return Task.CompletedTask;
     }
 
@@ -201,7 +212,6 @@ public class OrderedHook1 : IBeforeExecuteHook
     {
         WasCalled = false;
         ExecutionOrder = 0;
-        _counter = 0;
     }
 }
 
@@ -212,12 +222,11 @@ public class OrderedHook2 : IBeforeExecuteHook
 {
     public static bool WasCalled { get; private set; }
     public static int ExecutionOrder { get; private set; }
-    private static int _counter = 0;
 
     public Task BeforeExecuteAsync(HookContext context)
     {
         WasCalled = true;
-        ExecutionOrder = ++_counter;
+        ExecutionOrder = OrderedHookCounter.GetNext();
         return Task.CompletedTask;
     }
 
@@ -225,7 +234,6 @@ public class OrderedHook2 : IBeforeExecuteHook
     {
         WasCalled = false;
         ExecutionOrder = 0;
-        _counter = 0;
     }
 }
 
@@ -236,12 +244,11 @@ public class OrderedHook3 : IBeforeExecuteHook
 {
     public static bool WasCalled { get; private set; }
     public static int ExecutionOrder { get; private set; }
-    private static int _counter = 0;
 
     public Task BeforeExecuteAsync(HookContext context)
     {
         WasCalled = true;
-        ExecutionOrder = ++_counter;
+        ExecutionOrder = OrderedHookCounter.GetNext();
         return Task.CompletedTask;
     }
 
@@ -249,6 +256,5 @@ public class OrderedHook3 : IBeforeExecuteHook
     {
         WasCalled = false;
         ExecutionOrder = 0;
-        _counter = 0;
     }
 }

@@ -187,7 +187,7 @@ public partial class CommandLineArgsGenerator
         statements.Add(ParseStatement($@"var hookContext = new TeCLI.Hooks.HookContext
 {{
     CommandName = ""{commandInfo?.CommandName ?? ""}"",
-    ActionName = ""{actionInfo.DisplayName}"",
+    ActionName = ""{actionInfo.ActionName ?? actionInfo.DisplayName ?? ""}"",
     Arguments = args,
     CancellationToken = cancellationToken
 }};"));
@@ -365,7 +365,7 @@ if (!handled)
                 using (cb.AddBlock("", 4, "{", "};"))
                 {
                     cb.AppendLine($"CommandName = \"{commandInfo?.CommandName ?? ""}\",");
-                    cb.AppendLine($"ActionName = \"{actionInfo.DisplayName}\",");
+                    cb.AppendLine($"ActionName = \"{actionInfo.ActionName ?? actionInfo.DisplayName ?? ""}\",");
                     cb.AppendLine("Arguments = args,");
                     cb.AppendLine("CancellationToken = cancellationToken");
                 }
