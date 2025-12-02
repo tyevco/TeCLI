@@ -34,6 +34,12 @@ This example demonstrates advanced features of TeCLI for building sophisticated 
 ### Required Options
 - Mandatory options with `Required = true`
 
+### Pipeline/Stream Support
+- Unix-style stdin/stdout piping
+- `Stream`, `TextReader`, `TextWriter` parameters
+- Special `-` handling for stdin/stdout
+- File path to stream conversion
+
 ## Usage Examples
 
 ### Deploy Command
@@ -109,6 +115,37 @@ dotnet run -- config cache setup --provider Redis --ttl 7200 --max-size 512
 dotnet run -- config cache clear --pattern "user:*" --force
 ```
 
+### Stream Command (Pipeline Support)
+
+```bash
+# Transform text (stdin to stdout)
+cat input.txt | dotnet run -- stream transform --uppercase
+echo "hello world" | dotnet run -- stream transform -u
+
+# Transform with file input/output
+dotnet run -- stream transform -i input.txt -o output.txt --uppercase
+
+# Count lines, words, characters (like wc)
+cat document.txt | dotnet run -- stream count
+dotnet run -- stream count -i file.txt --lines --words
+
+# Filter lines (like grep)
+cat log.txt | dotnet run -- stream filter "ERROR"
+dotnet run -- stream filter "TODO" -i source.cs --ignore-case
+
+# Uppercase/lowercase
+echo "hello" | dotnet run -- stream uppercase
+dotnet run -- stream lowercase -i file.txt
+
+# Binary data analysis
+dotnet run -- stream binary -i data.bin --hex
+dotnet run -- stream binary -i image.png --analyze
+
+# Reverse lines
+cat file.txt | dotnet run -- stream reverse
+dotnet run -- stream reverse -i file.txt --chars  # Reverse characters
+```
+
 ## Validation Examples
 
 ```bash
@@ -134,3 +171,4 @@ dotnet run -- file list /nonexistent/dir  # Error!
 - `DeployCommand.cs` - Deployment with enums, validation, arrays, aliases
 - `FileCommand.cs` - File operations with path validation
 - `ConfigCommand.cs` - Nested subcommands, environment variables
+- `StreamCommand.cs` - Pipeline/stream operations with stdin/stdout

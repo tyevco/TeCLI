@@ -6,13 +6,24 @@ TeCLI is a source-generated CLI parsing library for .NET that simplifies command
 
 - **Source Generation** - Zero-runtime reflection, all code generated at compile time
 - **Attribute-Based API** - Simple, declarative command and option definitions
-- **Type-Safe Parsing** - Automatic parsing of all primitive types with compile-time validation
-- **Help Generation** - Automatic `--help` text generation for commands and actions
-- **Roslyn Analyzers** - 12 analyzers providing real-time feedback and error detection
-- **Dependency Injection** - Optional DI integration via extension package
+- **Type-Safe Parsing** - Automatic parsing of all primitive types, enums, and collections
+- **Help Generation** - Automatic `--help` and `--version` text generation
+- **Roslyn Analyzers** - 32 analyzers providing real-time feedback and error detection
+- **Dependency Injection** - Multiple DI container integrations (Microsoft DI, Autofac, SimpleInjector, Jab, PureDI)
 - **Async Support** - First-class support for async actions with `Task` and `ValueTask`
 - **Short/Long Options** - Support for both `-e` and `--environment` style flags
 - **Container Parameters** - Group related options into complex types
+- **Nested Commands** - Git-style hierarchical command structures with unlimited nesting
+- **Command Aliases** - Multiple names for commands and actions
+- **Validation** - Built-in validation attributes (`[Range]`, `[RegularExpression]`, `[FileExists]`, etc.)
+- **Environment Variables** - Automatic fallback to environment variables for options
+- **Global Options** - Shared options across all commands
+- **Shell Completion** - Generate completion scripts for Bash, Zsh, PowerShell, and Fish
+- **Exit Codes** - Structured exit code support with exception mapping
+- **Middleware/Hooks** - Pre/post execution hooks for authentication, logging, etc.
+- **Interactive Mode** - Prompt for missing arguments with optional secure input
+- **Pipeline/Stream Support** - Unix-style stdin/stdout piping with `Stream`, `TextReader`, `TextWriter`
+- **Testing Utilities** - `TeCLI.Extensions.Testing` package for easy CLI testing
 
 ## Installation
 
@@ -87,9 +98,10 @@ Marks a class as a CLI command.
 
 - **Name** (required): Command name as it appears on the command line
 - **Description** (optional): Description shown in help text
+- **Aliases** (optional): Alternative names for the command
 
 ```csharp
-[Command("deploy", Description = "Deploy the application")]
+[Command("deploy", Description = "Deploy the application", Aliases = new[] { "dpl" })]
 public class DeployCommand { }
 ```
 
@@ -100,9 +112,10 @@ Marks a method as a named action (subcommand).
 
 - **Name** (required): Action name
 - **Description** (optional): Description shown in help text
+- **Aliases** (optional): Alternative names for the action
 
 ```csharp
-[Action("start", Description = "Start the service")]
+[Action("start", Description = "Start the service", Aliases = new[] { "run", "begin" })]
 public void Start() { }
 ```
 
@@ -125,6 +138,11 @@ Marks a parameter or property as a named option.
 - **Name** (required): Long option name (used with `--`)
 - **ShortName** (optional): Single-character short name (used with `-`)
 - **Description** (optional): Description for help text
+- **Required** (optional): Mark as required (`Required = true`)
+- **EnvVar** (optional): Environment variable fallback name
+- **Prompt** (optional): Interactive prompt message if not provided
+- **SecurePrompt** (optional): Mask input for sensitive data
+- **MutuallyExclusiveSet** (optional): Group mutually exclusive options
 
 ```csharp
 [Option("environment", ShortName = 'e', Description = "Target environment")]
@@ -132,12 +150,17 @@ string environment
 
 [Option("force", ShortName = 'f')] // Boolean switch
 bool force
+
+[Option("api-key", Required = true, EnvVar = "API_KEY")]
+string apiKey
 ```
 
 #### `[Argument]`
 Marks a parameter or property as a positional argument.
 
 - **Description** (optional): Description for help text
+- **Prompt** (optional): Interactive prompt message if not provided
+- **SecurePrompt** (optional): Mask input for sensitive data
 - Arguments are positional and required by default
 - Use default values to make arguments optional
 
@@ -147,17 +170,25 @@ string inputFile
 
 [Argument(Description = "Output file path")]
 string outputFile = "output.txt" // Optional with default
+
+[Argument(Prompt = "Enter password", SecurePrompt = true)]
+string password
 ```
 
 ## Supported Types
 
-All primitive .NET types are supported for options and arguments:
+All primitive .NET types and more are supported for options and arguments:
 
 - **Boolean**: `bool` (switches when used as options)
 - **Characters**: `char`
 - **Integers**: `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`
 - **Floating-point**: `float`, `double`, `decimal`
 - **Strings**: `string`
+- **Enums**: Any enum type with case-insensitive parsing, including `[Flags]` enums
+- **Collections**: `T[]`, `List<T>`, `IEnumerable<T>`, `ICollection<T>`, `IList<T>`, `IReadOnlyCollection<T>`, `IReadOnlyList<T>`
+- **Common Types**: `Uri`, `DateTime`, `DateTimeOffset`, `TimeSpan`, `Guid`, `FileInfo`, `DirectoryInfo`
+- **Streams**: `Stream`, `TextReader`, `TextWriter`, `StreamReader`, `StreamWriter` (for pipeline support)
+- **Custom Types**: Via `ITypeConverter<T>` interface and `[TypeConverter]` attribute
 
 ## Help Text Generation
 
@@ -189,9 +220,15 @@ Shows:
 
 ## Dependency Injection
 
-The `TeCLI.Extensions.DependencyInjection` package provides integration with `Microsoft.Extensions.DependencyInjection`.
+TeCLI supports multiple DI containers through extension packages:
 
-### Setup
+- `TeCLI.Extensions.DependencyInjection` - Microsoft.Extensions.DependencyInjection
+- `TeCLI.Extensions.Autofac` - Autofac container
+- `TeCLI.Extensions.SimpleInjector` - SimpleInjector container
+- `TeCLI.Extensions.Jab` - Jab source-generated container
+- `TeCLI.Extensions.PureDI` - PureDI container
+
+### Setup with Microsoft DI
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -291,10 +328,10 @@ myapp deploy -e production -r us-west --verbose
 
 ## Compile-Time Analyzers
 
-TeCLI includes 12 Roslyn analyzers that provide real-time feedback:
+TeCLI includes 32 Roslyn analyzers that provide real-time feedback during development:
 
-### Error-Level (8 analyzers)
-- **CLI001**: Options/arguments must use primitive types
+### Error-Level Analyzers
+- **CLI001**: Options/arguments must use supported types
 - **CLI002**: Option properties must have accessible setters
 - **CLI003**: Only one `[Primary]` action allowed per command
 - **CLI006**: Command/action/option names cannot be empty
@@ -302,12 +339,34 @@ TeCLI includes 12 Roslyn analyzers that provide real-time feedback:
 - **CLI008**: Option names must be unique within an action
 - **CLI009**: Argument positions cannot conflict
 - **CLI010**: Option short names must be unique within an action
+- **CLI016**: Invalid validation attribute combinations
+- **CLI018**: Duplicate command names across classes
+- **CLI021**: Collection argument must be in last position
+- **CLI022**: Option/Argument property without setter
+- **CLI030**: Option uses empty enum type
 
-### Warning-Level (4 analyzers)
+### Warning-Level Analyzers
 - **CLI004**: Command names should contain only letters, numbers, and hyphens
 - **CLI005**: Option names should contain only letters, numbers, and hyphens
 - **CLI011**: Async methods must return `Task` or `ValueTask`
 - **CLI012**: Avoid async void in action methods
+- **CLI013**: Optional argument before required argument
+- **CLI015**: Action method in non-command class or inaccessible
+- **CLI017**: Option name conflicts with reserved switch (`--help`, `-h`)
+- **CLI020**: Boolean option marked as required
+- **CLI024**: Command class without action methods
+- **CLI028**: Hidden option marked as required
+- **CLI031**: Multiple GlobalOptions classes
+
+### Info-Level Analyzers
+- **CLI014**: Consider using container parameter for 4+ options
+- **CLI019**: Missing description on Command/Option/Argument
+- **CLI023**: Async action without CancellationToken
+- **CLI025**: Inconsistent naming convention
+- **CLI026**: Single-character option name should use ShortName
+- **CLI027**: Redundant name specification
+- **CLI029**: Nullable option without explicit default
+- **CLI032**: Sensitive option detected (security info)
 
 ### Diagnostic Suppressor
 - **CLI900**: Suppresses CS8618 nullable warnings for properties with `[Option]`/`[Argument]` attributes (generator initializes them)
