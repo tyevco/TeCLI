@@ -16,8 +16,8 @@
 		<!-- Analyzer dependencies - these DLLs must be available to the generators -->
 		<ProjectReference Include="..\..\TeCLI.Tools\TeCLI.Tools.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" Private="false" />
 		<ProjectReference Include="..\..\TeCLI\TeCLI.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-		<ProjectReference Include="..\..\TeCLI.Extensions.Autofac\TeCLI.Extensions.Autofac.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\..\extensions\TeCLI.Extensions.Autofac\TeCLI.Extensions.Autofac.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
-	<Import Project="..\..\TeCLI.Extensions.Autofac\TeCLI.Extensions.Autofac.props" />
+	<Import Project="..\..\extensions\TeCLI.Extensions.Autofac\TeCLI.Extensions.Autofac.props" />
 </Project>

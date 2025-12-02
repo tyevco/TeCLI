@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -11,15 +11,15 @@
 		<RestoreProjectStyle>PackageReference</RestoreProjectStyle>
 	</PropertyGroup>
 
-	<Import Project="../Generator.props" />
+	<Import Project="../../Generator.props" />
 
 	<PropertyGroup>
-		<NamespaceSuffix>.Extensions.DependencyInjection</NamespaceSuffix>
+		<NamespaceSuffix>.Extensions.Autofac</NamespaceSuffix>
 		<RootNamespace>$(RootNamespaceId)$(NamespaceSuffix)</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+		<PackageReference Include="Autofac" Version="6.5.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -27,7 +27,7 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
 
-		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" />
+		<ProjectReference Include="..\..\TeCLI.Tools\TeCLI.Tools.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -35,9 +35,9 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<None Include="TeCLI.Extensions.DependencyInjection.props" Pack="true" PackagePath="build/" />
+		<None Include="TeCLI.Extensions.Autofac.props" Pack="true" PackagePath="build/" />
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="..\TeCLI.Tools\bin\$(Configuration)\netstandard2.0\TeCLI.Tools.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\..\TeCLI.Tools\bin\$(Configuration)\netstandard2.0\TeCLI.Tools.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	</ItemGroup>
 
 	<!-- Ensure dependent DLLs are available to the analyzer -->
