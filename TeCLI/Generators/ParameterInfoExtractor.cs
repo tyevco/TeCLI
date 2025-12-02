@@ -114,6 +114,12 @@ internal static class ParameterInfoExtractor
                 psi.StreamTypeName = parameterSymbol.Type.GetStreamTypeName();
             }
 
+            // Check if this is a progress context type (auto-injected)
+            if (parameterSymbol.Type.IsProgressContextType())
+            {
+                psi.IsProgressContext = true;
+            }
+
             // Check if this is a collection type
             if (parameterSymbol.Type.IsCollectionType(out var elementType))
             {
@@ -216,6 +222,12 @@ internal static class ParameterInfoExtractor
                     _ => StreamDirection.Unknown
                 };
                 psi.StreamTypeName = propertySymbol.Type.GetStreamTypeName();
+            }
+
+            // Check if this is a progress context type (auto-injected)
+            if (propertySymbol.Type.IsProgressContextType())
+            {
+                psi.IsProgressContext = true;
             }
 
             // Check if this is a collection type

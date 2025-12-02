@@ -58,6 +58,9 @@ namespace TeCLI.Generators
         public StreamDirection StreamDirection { get; set; }
         public string? StreamTypeName { get; set; }
 
+        // Progress context support (auto-injected for rich terminal UI)
+        public bool IsProgressContext { get; set; }
+
         public bool Optional => !Required;
     }
 

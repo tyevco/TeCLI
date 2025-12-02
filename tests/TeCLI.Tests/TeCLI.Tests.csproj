@@ -36,4 +36,9 @@
 		<ProjectReference Include="..\..\TeCLI\TeCLI.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<!-- Console extension for progress context support -->
+		<ProjectReference Include="..\..\extensions\TeCLI.Extensions.Console\TeCLI.Extensions.Console.csproj" />
+	</ItemGroup>
+
 </Project>

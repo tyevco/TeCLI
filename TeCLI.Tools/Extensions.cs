@@ -304,6 +304,23 @@ public static class Extensions
         };
     }
 
+    /// <summary>
+    /// Checks if the type is a progress context type that should be auto-injected.
+    /// Supports IProgressContext interface for rich terminal UI progress indicators.
+    /// </summary>
+    public static bool IsProgressContextType(this ITypeSymbol typeSymbol)
+    {
+        var fullTypeName = typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        return fullTypeName switch
+        {
+            "global::TeCLI.Console.IProgressContext" => true,
+            "TeCLI.Console.IProgressContext" => true,
+            _ => typeSymbol.Name == "IProgressContext" &&
+                 typeSymbol.ContainingNamespace?.ToDisplayString() == "TeCLI.Console"
+        };
+    }
+
     public enum StreamDirection
     {
         Unknown,
