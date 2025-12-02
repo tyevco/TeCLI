@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<RootNamespace>TeCLI.Localization</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<Authors>Tyler Coles</Authors>
+		<Description>Internationalization (i18n) support for TeCLI - localized help text, error messages, and culture detection</Description>
+		<PackageTags>tecli;cli;localization;i18n;internationalization;globalization</PackageTags>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<RepositoryUrl>https://github.com/tyevco/TeCLI</RepositoryUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+		<ItemGroup>
+			<NugetFiles Include="bin\**\$(MSBuildProjectName).*.nupkg"/>
+		</ItemGroup>
+
+		<Copy
+            SourceFiles="@(NugetFiles)"
+            DestinationFolder="..\..\.packages\"
+			ContinueOnError="true"
+        />
+
+		<Message Text="Copied nupkg to repo directory." Importance="high" />
+	</Target>
+
+	<ItemGroup>
+		<None Include="../../LICENSE" Pack="true" PackagePath=""/>
+	</ItemGroup>
+
+</Project>
