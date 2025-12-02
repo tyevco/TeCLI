@@ -506,7 +506,7 @@ internal static class ParameterCodeGenerator
                         if (sourceInfo.IsElementEnum)
                         {
                             cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
-                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value for argument '{sourceInfo.Name}'. Valid values are: {{0}}", validValues));""");
+                            cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value for argument '{{sourceInfo.Name}}'. Valid values are: {0}", validValues));""");
                         }
                         else
                         {
