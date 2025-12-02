@@ -103,7 +103,7 @@ public partial class CommandLineArgsGenerator
     {
         var statements = new List<StatementSyntax>();
 
-        // if (args.Length == 0) { DisplayApplicationHelp(); return; }
+        // if (args.Length == 0) { DisplayApplicationHelp(); return 0; }
         statements.Add(IfStatement(
             BinaryExpression(
                 SyntaxKind.EqualsExpression,
@@ -113,7 +113,7 @@ public partial class CommandLineArgsGenerator
                 LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))),
             Block(
                 ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
-                ReturnStatement())));
+                ReturnStatement(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))));
 
         // Parse global options if present
         if (globalOptions != null && globalOptions.Options.Count > 0)
@@ -165,7 +165,7 @@ public partial class CommandLineArgsGenerator
                     LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))),
                 Block(
                     ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
-                    ReturnStatement())));
+                    ReturnStatement(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))));
         }
 
         // Check for version flag
@@ -178,7 +178,7 @@ public partial class CommandLineArgsGenerator
                     Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("--version")))))),
             Block(
                 ExpressionStatement(InvocationExpression(IdentifierName("DisplayVersion"))),
-                ReturnStatement())));
+                ReturnStatement(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))));
 
         // Check for help flag
         statements.Add(IfStatement(
@@ -197,7 +197,7 @@ public partial class CommandLineArgsGenerator
                         Argument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal("-h"))))))),
             Block(
                 ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))),
-                ReturnStatement())));
+                ReturnStatement(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))));
 
         // Check for generate-completion flag
         statements.Add(IfStatement(
@@ -217,7 +217,7 @@ public partial class CommandLineArgsGenerator
                             Argument(ElementAccessExpression(IdentifierName("args"))
                                 .WithArgumentList(BracketedArgumentList(SingletonSeparatedList(
                                     Argument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1))))))))))),
-                ReturnStatement())));
+                ReturnStatement(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(0))))));
 
         // string command = args[0].ToLower();
         statements.Add(LocalDeclarationStatement(
@@ -374,6 +374,11 @@ public partial class CommandLineArgsGenerator
                         }))))))))))));
 
         defaultStatements.Add(ExpressionStatement(InvocationExpression(IdentifierName("DisplayApplicationHelp"))));
+        // Set exit code to 1 for unknown command
+        defaultStatements.Add(ExpressionStatement(AssignmentExpression(
+            SyntaxKind.SimpleAssignmentExpression,
+            IdentifierName("_lastExitCode"),
+            LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1)))));
         defaultStatements.Add(BreakStatement());
 
         switchSections.Add(SwitchSection()
@@ -383,8 +388,13 @@ public partial class CommandLineArgsGenerator
         statements.Add(SwitchStatement(IdentifierName("command"))
             .WithSections(List(switchSections)));
 
+        // Return the exit code
+        statements.Add(ReturnStatement(IdentifierName("_lastExitCode")));
+
         return MethodDeclaration(
-            IdentifierName("Task"),  // Non-generic Task
+            GenericName(Identifier("Task"))
+                .WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList<TypeSyntax>(
+                    PredefinedType(Token(SyntaxKind.IntKeyword))))),  // Task<int>
             Identifier("DispatchAsync"))
             .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword)))
             .WithParameterList(ParameterList(SeparatedList(new[]
@@ -1019,6 +1029,12 @@ public partial class CommandLineArgsGenerator
                 // Extract action-level hooks
                 ExtractHooksFromSymbol(method, actionInfo.BeforeExecuteHooks, actionInfo.AfterExecuteHooks, actionInfo.OnErrorHooks);
 
+                // Extract return type information for exit code support
+                ExtractReturnTypeInfo(method, actionInfo);
+
+                // Extract exit code mappings from MapExitCodeAttribute
+                ExtractExitCodeMappings(method, actionInfo.ExitCodeMappings);
+
                 commandInfo.Actions.Add(actionInfo);
             }
         }
@@ -1324,6 +1340,141 @@ public partial class CommandLineArgsGenerator
         }
 
         return string.Join("_", typeNameParts);
+    }
+
+    /// <summary>
+    /// Extracts return type information from an action method to determine if it returns an exit code.
+    /// </summary>
+    private void ExtractReturnTypeInfo(IMethodSymbol method, ActionSourceInfo actionInfo)
+    {
+        var returnType = method.ReturnType;
+        actionInfo.ReturnTypeName = returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        // Check for void/Task (no exit code return)
+        if (returnType.SpecialType == SpecialType.System_Void)
+        {
+            actionInfo.ReturnsExitCode = false;
+            return;
+        }
+
+        // Check for Task/ValueTask without result
+        if (returnType.Name == "Task" || returnType.Name == "ValueTask")
+        {
+            if (returnType is INamedTypeSymbol namedType && !namedType.IsGenericType)
+            {
+                actionInfo.ReturnsExitCode = false;
+                return;
+            }
+        }
+
+        // Check for int return
+        if (returnType.SpecialType == SpecialType.System_Int32)
+        {
+            actionInfo.ReturnsExitCode = true;
+            actionInfo.ReturnTypeIsEnum = false;
+            actionInfo.UnwrappedReturnTypeName = "int";
+            return;
+        }
+
+        // Check for enum return (with int underlying type)
+        if (returnType.TypeKind == TypeKind.Enum)
+        {
+            var enumType = (INamedTypeSymbol)returnType;
+            if (enumType.EnumUnderlyingType?.SpecialType == SpecialType.System_Int32)
+            {
+                actionInfo.ReturnsExitCode = true;
+                actionInfo.ReturnTypeIsEnum = true;
+                actionInfo.UnwrappedReturnTypeName = returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                return;
+            }
+        }
+
+        // Check for Task<int> or ValueTask<int>
+        if (returnType is INamedTypeSymbol asyncType && asyncType.IsGenericType)
+        {
+            var typeArg = asyncType.TypeArguments[0];
+
+            if ((asyncType.Name == "Task" || asyncType.Name == "ValueTask"))
+            {
+                if (typeArg.SpecialType == SpecialType.System_Int32)
+                {
+                    actionInfo.ReturnsExitCode = true;
+                    actionInfo.ReturnTypeIsEnum = false;
+                    actionInfo.IsAsyncWithResult = true;
+                    actionInfo.UnwrappedReturnTypeName = "int";
+                    return;
+                }
+
+                // Check for Task<enum>
+                if (typeArg.TypeKind == TypeKind.Enum)
+                {
+                    var enumType = (INamedTypeSymbol)typeArg;
+                    if (enumType.EnumUnderlyingType?.SpecialType == SpecialType.System_Int32)
+                    {
+                        actionInfo.ReturnsExitCode = true;
+                        actionInfo.ReturnTypeIsEnum = true;
+                        actionInfo.IsAsyncWithResult = true;
+                        actionInfo.UnwrappedReturnTypeName = typeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        return;
+                    }
+                }
+            }
+        }
+
+        actionInfo.ReturnsExitCode = false;
+    }
+
+    /// <summary>
+    /// Extracts exit code mappings from MapExitCodeAttribute on the method or its containing class.
+    /// </summary>
+    private void ExtractExitCodeMappings(IMethodSymbol method, List<ExitCodeMappingInfo> mappings)
+    {
+        // Get mappings from the method
+        foreach (var attr in method.GetAttributes().Where(a => a.AttributeClass?.Name == AttributeNames.MapExitCodeAttribute))
+        {
+            if (attr.ConstructorArguments.Length >= 2)
+            {
+                var exceptionType = attr.ConstructorArguments[0].Value as INamedTypeSymbol;
+                var exitCode = attr.ConstructorArguments[1].Value;
+
+                if (exceptionType != null && exitCode != null)
+                {
+                    mappings.Add(new ExitCodeMappingInfo
+                    {
+                        ExceptionTypeName = exceptionType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        ExitCode = (int)exitCode
+                    });
+                }
+            }
+        }
+
+        // Get mappings from the containing class
+        var containingType = method.ContainingType;
+        if (containingType != null)
+        {
+            foreach (var attr in containingType.GetAttributes().Where(a => a.AttributeClass?.Name == AttributeNames.MapExitCodeAttribute))
+            {
+                if (attr.ConstructorArguments.Length >= 2)
+                {
+                    var exceptionType = attr.ConstructorArguments[0].Value as INamedTypeSymbol;
+                    var exitCode = attr.ConstructorArguments[1].Value;
+
+                    if (exceptionType != null && exitCode != null)
+                    {
+                        // Only add if not already defined on the method (method takes precedence)
+                        var exceptionTypeName = exceptionType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        if (!mappings.Any(m => m.ExceptionTypeName == exceptionTypeName))
+                        {
+                            mappings.Add(new ExitCodeMappingInfo
+                            {
+                                ExceptionTypeName = exceptionTypeName,
+                                ExitCode = (int)exitCode
+                            });
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

@@ -6,4 +6,7 @@ using TeCLI;
 var serviceProvider = new CommandServiceProvider();
 var dispatcher = serviceProvider.GetService<CommandDispatcher>();
 
-await dispatcher.DispatchAsync(args);
+var exitCode = await dispatcher.DispatchAsync(args);
+
+// Return the exit code to the calling process
+return exitCode;

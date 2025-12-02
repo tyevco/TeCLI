@@ -71,6 +71,10 @@ public partial class CommandLineArgsGenerator
             // String Similarity
             // ctx.AddEmbeddedAttributeDefinition();
             ctx.AddSource("StringSimilarity.g.cs", StringSimilaritySource);
+
+            // Exit code support
+            ctx.AddSource("ExitCode.g.cs", ExitCodeSource);
+            ctx.AddSource($"{AttributeNames.MapExitCodeAttribute}.g.cs", MapExitCodeAttributeSource);
         });
     }
 
@@ -607,6 +611,213 @@ public interface ITypeConverter<T>
 
 """;
     }
+
+    private const string ExitCodeSource = """
+using System;
+
+namespace TeCLI
+{
+    /// <summary>
+    /// Standard exit codes for CLI applications.
+    /// Actions can return this enum (or any int-based enum) to indicate their exit status.
+    /// </summary>
+    /// <remarks>
+    /// Exit codes 0-63 are reserved for general success/error conditions.
+    /// Exit codes 64-78 follow BSD sysexits.h conventions.
+    /// Applications can define custom exit codes starting at 100.
+    /// </remarks>
+    public enum ExitCode
+    {
+        /// <summary>
+        /// Successful execution
+        /// </summary>
+        Success = 0,
+
+        /// <summary>
+        /// General error
+        /// </summary>
+        Error = 1,
+
+        /// <summary>
+        /// Invalid command line arguments
+        /// </summary>
+        InvalidArguments = 2,
+
+        /// <summary>
+        /// File not found
+        /// </summary>
+        FileNotFound = 3,
+
+        /// <summary>
+        /// Permission denied
+        /// </summary>
+        PermissionDenied = 4,
+
+        /// <summary>
+        /// Network error
+        /// </summary>
+        NetworkError = 5,
+
+        /// <summary>
+        /// Operation cancelled
+        /// </summary>
+        Cancelled = 6,
+
+        /// <summary>
+        /// Configuration error
+        /// </summary>
+        ConfigurationError = 7,
+
+        /// <summary>
+        /// Resource not available
+        /// </summary>
+        ResourceUnavailable = 8,
+
+        // BSD sysexits.h compatible codes (64-78)
+
+        /// <summary>
+        /// Command line usage error (EX_USAGE)
+        /// </summary>
+        Usage = 64,
+
+        /// <summary>
+        /// Data format error (EX_DATAERR)
+        /// </summary>
+        DataError = 65,
+
+        /// <summary>
+        /// Cannot open input (EX_NOINPUT)
+        /// </summary>
+        NoInput = 66,
+
+        /// <summary>
+        /// Addressee unknown (EX_NOUSER)
+        /// </summary>
+        NoUser = 67,
+
+        /// <summary>
+        /// Host name unknown (EX_NOHOST)
+        /// </summary>
+        NoHost = 68,
+
+        /// <summary>
+        /// Service unavailable (EX_UNAVAILABLE)
+        /// </summary>
+        Unavailable = 69,
+
+        /// <summary>
+        /// Internal software error (EX_SOFTWARE)
+        /// </summary>
+        Software = 70,
+
+        /// <summary>
+        /// System error (EX_OSERR)
+        /// </summary>
+        OsError = 71,
+
+        /// <summary>
+        /// Critical OS file missing (EX_OSFILE)
+        /// </summary>
+        OsFile = 72,
+
+        /// <summary>
+        /// Can't create output file (EX_CANTCREAT)
+        /// </summary>
+        CantCreate = 73,
+
+        /// <summary>
+        /// I/O error (EX_IOERR)
+        /// </summary>
+        IoError = 74,
+
+        /// <summary>
+        /// Temporary failure (EX_TEMPFAIL)
+        /// </summary>
+        TempFail = 75,
+
+        /// <summary>
+        /// Remote error in protocol (EX_PROTOCOL)
+        /// </summary>
+        Protocol = 76,
+
+        /// <summary>
+        /// Permission denied (EX_NOPERM)
+        /// </summary>
+        NoPerm = 77,
+
+        /// <summary>
+        /// Configuration error (EX_CONFIG)
+        /// </summary>
+        Config = 78
+    }
+}
+
+""";
+
+    private const string MapExitCodeAttributeSource = """
+using System;
+
+namespace TeCLI.Attributes
+{
+    /// <summary>
+    /// Maps an exception type to a specific exit code.
+    /// Apply this attribute to actions to customize how exceptions are converted to exit codes.
+    /// </summary>
+    /// <remarks>
+    /// When an exception is thrown during action execution, the framework will check for
+    /// MapExitCode attributes and use the corresponding exit code. If no mapping is found,
+    /// a default exit code of 1 (Error) is used.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// [Action("process")]
+    /// [MapExitCode(typeof(FileNotFoundException), ExitCode.FileNotFound)]
+    /// [MapExitCode(typeof(UnauthorizedAccessException), ExitCode.PermissionDenied)]
+    /// public ExitCode Process([Argument] string file)
+    /// {
+    ///     // If FileNotFoundException is thrown, exit code 3 is returned
+    ///     // If UnauthorizedAccessException is thrown, exit code 4 is returned
+    ///     return ExitCode.Success;
+    /// }
+    /// </code>
+    /// </example>
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+    internal class MapExitCodeAttribute : Attribute
+    {
+        /// <summary>
+        /// Gets the exception type that this mapping applies to.
+        /// </summary>
+        public Type ExceptionType { get; }
+
+        /// <summary>
+        /// Gets the exit code to use when the specified exception type is thrown.
+        /// </summary>
+        public int ExitCode { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MapExitCodeAttribute"/> class.
+        /// </summary>
+        /// <param name="exceptionType">The exception type to map.</param>
+        /// <param name="exitCode">The exit code to use.</param>
+        public MapExitCodeAttribute(Type exceptionType, int exitCode)
+        {
+            ExceptionType = exceptionType ?? throw new ArgumentNullException(nameof(exceptionType));
+            ExitCode = exitCode;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MapExitCodeAttribute"/> class using an ExitCode enum value.
+        /// </summary>
+        /// <param name="exceptionType">The exception type to map.</param>
+        /// <param name="exitCode">The exit code enum value to use.</param>
+        public MapExitCodeAttribute(Type exceptionType, TeCLI.ExitCode exitCode)
+            : this(exceptionType, (int)exitCode)
+        {
+        }
+    }
+}
+
+""";
 
     private const string StringSimilaritySource = """
 using System;

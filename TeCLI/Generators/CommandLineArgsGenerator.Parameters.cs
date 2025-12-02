@@ -265,6 +265,225 @@ public partial class CommandLineArgsGenerator
         }
     }
 
+    /// <summary>
+    /// Generates parameter code with full exit code support using ActionSourceInfo
+    /// </summary>
+    public void GenerateParameterCode(CodeBuilder cb, ActionSourceInfo actionInfo, GlobalOptionsSourceInfo? globalOptions = null)
+    {
+        var methodSymbol = actionInfo.Method!;
+        var typeRef = GetFullTypeReference(methodSymbol.ContainingSymbol as INamedTypeSymbol);
+
+        // Determine the invoker method name based on return type
+        string methodInvokerName;
+        if (actionInfo.ReturnsExitCode)
+        {
+            methodInvokerName = methodSymbol.MapAsync(
+                () => $"InvokeCommandActionWithResultAsync<{typeRef}>",
+                () => $"InvokeCommandActionWithResult<{typeRef}>");
+        }
+        else
+        {
+            methodInvokerName = methodSymbol.MapAsync(
+                () => $"InvokeCommandActionAsync<{typeRef}>",
+                () => $"InvokeCommandAction<{typeRef}>");
+        }
+
+        // Generate the parameter code with exit code handling
+        GenerateParameterCodeWithExitCode(cb, methodSymbol, methodInvokerName, globalOptions, actionInfo);
+    }
+
+    /// <summary>
+    /// Generates parameter parsing and action invocation with exit code handling
+    /// </summary>
+    private void GenerateParameterCodeWithExitCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName,
+        GlobalOptionsSourceInfo? globalOptions, ActionSourceInfo actionInfo)
+    {
+        var parameterDetails = ParameterInfoExtractor.GetParameterDetails(methodSymbol.Parameters);
+
+        // Check if any parameter is the global options type
+        ParameterSourceInfo? globalOptionsParam = null;
+        if (globalOptions != null)
+        {
+            globalOptionsParam = parameterDetails.FirstOrDefault(p =>
+                p.DisplayType == globalOptions.FullTypeName ||
+                p.DisplayType == globalOptions.TypeName);
+
+            if (globalOptionsParam != null)
+            {
+                parameterDetails.Remove(globalOptionsParam);
+            }
+        }
+
+        // Check if the method has a CancellationToken parameter
+        bool hasCancellationToken = methodSymbol.HasCancellationTokenParameter();
+
+        if (parameterDetails.Count == 0)
+        {
+            var methodParams = new List<string>();
+            if (globalOptionsParam != null) methodParams.Add("_globalOptions");
+            if (hasCancellationToken) methodParams.Add("cancellationToken");
+            var methodParamsStr = string.Join(", ", methodParams);
+
+            GenerateInvocationWithExitCode(cb, methodSymbol, methodInvokerName, methodParamsStr, actionInfo);
+        }
+        else
+        {
+            // Check if there are required parameters without environment variable fallback
+            var requiredParams = parameterDetails.Where(p => p.Required).ToList();
+            var hasRequiredWithoutEnvVar = parameterDetails.Any(p => p.Required && string.IsNullOrEmpty(p.EnvVar));
+
+            if (hasRequiredWithoutEnvVar)
+            {
+                using (cb.AddBlock("if (args.Length == 0)"))
+                {
+                    var firstRequired = requiredParams.First();
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{firstRequired.Name}"));""");
+                }
+                cb.AddBlankLine();
+            }
+
+            bool hasOptionalValues = false;
+            using (cb.AddBlankScope())
+            {
+                var optionParameters = parameterDetails.Where(p => p.ParameterType == ParameterType.Option).ToList();
+                if (optionParameters.Any())
+                {
+                    cb.AppendLine("// Valid options for this action");
+                    cb.Append("var validOptions = new System.Collections.Generic.HashSet<string>(System.StringComparer.OrdinalIgnoreCase) { ");
+                    var validOptions = new List<string>();
+                    foreach (var param in optionParameters)
+                    {
+                        validOptions.Add($"\"--{param.Name}\"");
+                        if (param.ShortName != '\0')
+                        {
+                            validOptions.Add($"\"-{param.ShortName}\"");
+                        }
+                    }
+                    cb.Append(string.Join(", ", validOptions));
+                    cb.AppendLine(" };");
+                    cb.AddBlankLine();
+                }
+
+                foreach (var parameterDetail in parameterDetails)
+                {
+                    var variableName = $"p{parameterDetail.ParameterIndex}";
+                    ParameterCodeGenerator.GenerateParameterParsingCode(cb, methodSymbol, parameterDetail, variableName);
+                    if (parameterDetail.Optional)
+                    {
+                        hasOptionalValues = true;
+                    }
+                }
+
+                if (optionParameters.Any())
+                {
+                    cb.AddBlankLine();
+                    cb.AppendLine("// Check for unknown options");
+                    using (cb.AddBlock("foreach (var arg in args)"))
+                    {
+                        using (cb.AddBlock("if ((arg.StartsWith(\"--\") || arg.StartsWith(\"-\")) && !validOptions.Contains(arg))"))
+                        {
+                            cb.AppendLine("var optionNames = validOptions.Select(o => o).ToArray();");
+                            cb.AppendLine("var suggestion = TeCLI.StringSimilarity.FindMostSimilar(arg, optionNames);");
+                            using (cb.AddBlock("if (suggestion != null)"))
+                            {
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.UnknownOptionWithSuggestion.Replace("\n", "\\n")}", arg, suggestion));""");
+                            }
+                            using (cb.AddBlock("else"))
+                            {
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.UnknownOption}", arg));""");
+                            }
+                        }
+                    }
+                }
+
+                cb.AddBlankLine();
+                if (hasOptionalValues)
+                {
+                    cb.AppendLine($"// Build parameter list with optional values handled via ternary operators");
+
+                    List<string> allParams = [];
+
+                    if (globalOptionsParam != null)
+                    {
+                        allParams.Add($"{globalOptionsParam.ParameterName}: _globalOptions");
+                    }
+
+                    foreach (var param in parameterDetails)
+                    {
+                        if (param.Required)
+                        {
+                            allParams.Add($"{param.ParameterName}: p{param.ParameterIndex}");
+                        }
+                        else if (param.IsSwitch)
+                        {
+                            allParams.Add($"{param.ParameterName}: p{param.ParameterIndex}");
+                        }
+                        else
+                        {
+                            var defaultValue = param.DefaultValue ?? $"default({param.DisplayType})";
+                            allParams.Add($"{param.ParameterName}: p{param.ParameterIndex}Set ? p{param.ParameterIndex} : {defaultValue}");
+                        }
+                    }
+
+                    if (hasCancellationToken)
+                    {
+                        var ctParam = methodSymbol.GetCancellationTokenParameter();
+                        if (ctParam != null)
+                        {
+                            allParams.Add($"{ctParam.Name}: cancellationToken");
+                        }
+                    }
+
+                    GenerateInvocationWithExitCode(cb, methodSymbol, methodInvokerName, string.Join(", ", allParams), actionInfo);
+                }
+                else
+                {
+                    cb.AppendLine($"// Now invoke the method with the parsed parameters");
+
+                    var invokeParams = new List<string>();
+                    if (globalOptionsParam != null)
+                    {
+                        invokeParams.Add("_globalOptions");
+                    }
+                    invokeParams.AddRange(parameterDetails.Select(p => $"p{p.ParameterIndex}"));
+
+                    if (hasCancellationToken)
+                    {
+                        invokeParams.Add("cancellationToken");
+                    }
+
+                    GenerateInvocationWithExitCode(cb, methodSymbol, methodInvokerName, string.Join(", ", invokeParams), actionInfo);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generates the action invocation with proper exit code handling
+    /// </summary>
+    private void GenerateInvocationWithExitCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName,
+        string paramsStr, ActionSourceInfo actionInfo)
+    {
+        if (actionInfo.ReturnsExitCode)
+        {
+            // For exit code returns, we need to capture the result and potentially cast enums to int
+            string castPrefix = actionInfo.ReturnTypeIsEnum ? "(int)" : "";
+
+            cb.AppendLine(
+                methodSymbol.MapAsync(
+                    () => $"_lastExitCode = await {methodInvokerName}(async command => {castPrefix}await command.{methodSymbol.Name}({paramsStr}), cancellationToken);",
+                    () => $"_lastExitCode = {methodInvokerName}(command => {castPrefix}command.{methodSymbol.Name}({paramsStr}), cancellationToken);"));
+        }
+        else
+        {
+            // Standard void/Task invocation
+            cb.AppendLine(
+                methodSymbol.MapAsync(
+                    () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({paramsStr}), cancellationToken);",
+                    () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({paramsStr}), cancellationToken);"));
+        }
+    }
+
     // Legacy CodeBuilder version still used by Actions.cs
     public void GenerateParameterCode(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName, GlobalOptionsSourceInfo? globalOptions = null)
     {

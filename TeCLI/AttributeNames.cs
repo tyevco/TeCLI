@@ -17,5 +17,6 @@
         public const string DirectoryExistsAttribute = "DirectoryExistsAttribute";
         public const string RangeAttribute = "RangeAttribute";
         public const string RegularExpressionAttribute = "RegularExpressionAttribute";
+        public const string MapExitCodeAttribute = "MapExitCodeAttribute";
     }
 }

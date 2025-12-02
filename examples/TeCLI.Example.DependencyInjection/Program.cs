@@ -1,4 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+// Example using Microsoft.Extensions.DependencyInjection
 
 using Microsoft.Extensions.DependencyInjection;
 using TeCLI;
@@ -9,4 +9,7 @@ services.AddCommandDispatcher();
 var sp = services.BuildServiceProvider();
 
 var dispatcher = sp.GetRequiredService<CommandDispatcher>();
-await dispatcher.DispatchAsync(args);
+var exitCode = await dispatcher.DispatchAsync(args);
+
+// Return the exit code to the calling process
+return exitCode;

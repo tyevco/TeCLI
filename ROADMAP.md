@@ -901,20 +901,27 @@ public class ApiCommand
 ---
 
 ### 📊 Exit Code Management
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Structured exit code support:
+TeCLI now supports structured exit codes from actions! Actions can return `int`, `ExitCode` enum, `Task<int>`, or `Task<ExitCode>` to control the process exit code.
+
 ```csharp
+// Built-in ExitCode enum
 public enum ExitCode
 {
     Success = 0,
-    InvalidArguments = 1,
-    FileNotFound = 2,
-    NetworkError = 3
+    Error = 1,
+    InvalidArguments = 2,
+    FileNotFound = 3,
+    PermissionDenied = 4,
+    NetworkError = 5,
+    // ... plus BSD sysexits.h compatible codes (64-78)
 }
 
+// Return ExitCode from actions
 [Action("process")]
+[MapExitCode(typeof(FileNotFoundException), ExitCode.FileNotFound)]
 public ExitCode Process([Argument] string file)
 {
     if (!File.Exists(file))
@@ -923,12 +930,58 @@ public ExitCode Process([Argument] string file)
     // Process file
     return ExitCode.Success;
 }
+
+// Return int directly
+[Action("copy")]
+public int Copy([Argument] string source, [Argument] string dest)
+{
+    if (!File.Exists(source))
+        return 3; // File not found
+
+    // Copy file
+    return 0; // Success
+}
+
+// Async actions with exit codes
+[Action("download")]
+public async Task<ExitCode> Download([Argument] string url)
+{
+    // ...
+    return ExitCode.Success;
+}
+
+// Program.cs - capture exit code
+var dispatcher = new CommandDispatcher();
+var exitCode = await dispatcher.DispatchAsync(args);
+return exitCode;
 ```
 
-**Features:**
-- Return exit codes from actions
-- Automatic exit code mapping
-- Convention-based codes (exceptions → specific codes)
+**Implemented Features:**
+- ✅ `ExitCode` enum with standard exit codes (0-8 and BSD sysexits.h 64-78)
+- ✅ Return `int` or `ExitCode` from sync actions
+- ✅ Return `Task<int>` or `Task<ExitCode>` from async actions
+- ✅ Custom enum types with int underlying type supported
+- ✅ `[MapExitCode]` attribute for exception-to-exit-code mapping
+- ✅ Exception mappings can be defined at command or action level
+- ✅ `DispatchAsync` returns `Task<int>` with the exit code
+- ✅ `LastExitCode` property on dispatcher
+- ✅ Exit code passed to `AfterExecute` hooks
+- ✅ Automatic enum-to-int conversion for exit codes
+
+**Use Cases:**
+- Script integration (exit codes for shell scripting)
+- CI/CD pipelines that check exit codes
+- Proper error signaling to parent processes
+- Structured error handling with exception mapping
+
+**Files Changed:**
+- `TeCLI/AttributeNames.cs` - Added MapExitCodeAttribute constant
+- `TeCLI/Generators/CommandLineArgsGenerator.Attributes.cs` - Added ExitCode enum and MapExitCodeAttribute
+- `TeCLI/Generators/CommandLineArgsGenerator.Invoker.cs` - Added exit code support to invokers
+- `TeCLI/Generators/CommandLineArgsGenerator.Commands.cs` - DispatchAsync returns Task<int>, added exit code extraction
+- `TeCLI/Generators/CommandLineArgsGenerator.Actions.cs` - Exit code extraction and hook updates
+- `TeCLI/Generators/CommandLineArgsGenerator.Parameters.cs` - Invoker selection based on return type
+- `TeCLI.Tools/Generators/ActionSourceInfo.cs` - Added return type info and exit code mappings
 
 ---
 
