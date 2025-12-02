@@ -302,6 +302,13 @@ internal static class ParameterInfoExtractor
             psi.SecurePrompt = isSecure;
         }
 
+        // Extract the MutuallyExclusiveSet property from the attribute
+        var mutuallyExclusiveSet = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "MutuallyExclusiveSet").Value;
+        if (!mutuallyExclusiveSet.IsNull && mutuallyExclusiveSet.Value is string exclusiveSet)
+        {
+            psi.MutuallyExclusiveSet = exclusiveSet;
+        }
+
         bool isBoolean = typeSpecialType == SpecialType.System_Boolean;
         if (isBoolean)
         {

@@ -126,6 +126,54 @@ public partial class CommandLineArgsGenerator
                 }
             }
 
+            // Generate mutual exclusivity validation
+            var mutuallyExclusiveSetsInternal = optionParameters
+                .Where(p => !string.IsNullOrEmpty(p.MutuallyExclusiveSet))
+                .GroupBy(p => p.MutuallyExclusiveSet!)
+                .ToList();
+
+            if (mutuallyExclusiveSetsInternal.Any())
+            {
+                cb.AddBlankLine();
+                cb.AppendLine("// Validate mutually exclusive options");
+                foreach (var set in mutuallyExclusiveSetsInternal)
+                {
+                    var setParams = set.ToList();
+                    if (setParams.Count > 1)
+                    {
+                        // Build the condition to check if multiple options are set
+                        var conditions = new List<string>();
+                        var optionNames = new List<string>();
+                        foreach (var param in setParams)
+                        {
+                            var varName = $"p{param.ParameterIndex}";
+                            if (param.IsSwitch)
+                            {
+                                // For switches, check if the value is true
+                                conditions.Add(varName);
+                            }
+                            else
+                            {
+                                // For non-switches, check if the value was set
+                                conditions.Add($"{varName}Set");
+                            }
+                            optionNames.Add($"'--{param.Name}'");
+                        }
+
+                        // Generate: var exclusiveSetCount = (condition1 ? 1 : 0) + (condition2 ? 1 : 0) + ...;
+                        var countExpression = string.Join(" + ", conditions.Select(c => $"({c} ? 1 : 0)"));
+                        var setVarName = $"exclusiveSet_{set.Key.Replace("-", "_")}Count";
+                        cb.AppendLine($"var {setVarName} = {countExpression};");
+
+                        var optionNamesStr = string.Join(" and ", optionNames);
+                        using (cb.AddBlock($"if ({setVarName} > 1)"))
+                        {
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.MutuallyExclusiveOptionsViolation}", "{optionNamesStr}"));""");
+                        }
+                    }
+                }
+            }
+
             if (optionParameters.Any())
             {
                 cb.AddBlankLine();
@@ -302,6 +350,54 @@ public partial class CommandLineArgsGenerator
                     if (parameterDetail.Optional)
                     {
                         hasOptionalValues = true;
+                    }
+                }
+
+                // Generate mutual exclusivity validation
+                var mutuallyExclusiveSets = optionParameters
+                    .Where(p => !string.IsNullOrEmpty(p.MutuallyExclusiveSet))
+                    .GroupBy(p => p.MutuallyExclusiveSet!)
+                    .ToList();
+
+                if (mutuallyExclusiveSets.Any())
+                {
+                    cb.AddBlankLine();
+                    cb.AppendLine("// Validate mutually exclusive options");
+                    foreach (var set in mutuallyExclusiveSets)
+                    {
+                        var setParams = set.ToList();
+                        if (setParams.Count > 1)
+                        {
+                            // Build the condition to check if multiple options are set
+                            var conditions = new List<string>();
+                            var optionNames = new List<string>();
+                            foreach (var param in setParams)
+                            {
+                                var varName = $"p{param.ParameterIndex}";
+                                if (param.IsSwitch)
+                                {
+                                    // For switches, check if the value is true
+                                    conditions.Add(varName);
+                                }
+                                else
+                                {
+                                    // For non-switches, check if the value was set
+                                    conditions.Add($"{varName}Set");
+                                }
+                                optionNames.Add($"'--{param.Name}'");
+                            }
+
+                            // Generate: var exclusiveSetCount = (condition1 ? 1 : 0) + (condition2 ? 1 : 0) + ...;
+                            var countExpression = string.Join(" + ", conditions.Select(c => $"({c} ? 1 : 0)"));
+                            var setVarName = $"exclusiveSet_{set.Key.Replace("-", "_")}Count";
+                            cb.AppendLine($"var {setVarName} = {countExpression};");
+
+                            var optionNamesStr = string.Join(" and ", optionNames);
+                            using (cb.AddBlock($"if ({setVarName} > 1)"))
+                            {
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.MutuallyExclusiveOptionsViolation}", "{optionNamesStr}"));""");
+                            }
+                        }
                     }
                 }
 

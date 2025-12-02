@@ -74,6 +74,9 @@
             public const string UnknownActionWithSuggestion = "Unknown action: {0}\nDid you mean '{1}'?";
             public const string UnknownOption = "Unknown option: {0}";
             public const string UnknownOptionWithSuggestion = "Unknown option: {0}\nDid you mean '{1}'?";
+
+            // Mutual exclusivity messages
+            public const string MutuallyExclusiveOptionsViolation = "Options {0} are mutually exclusive. Only one can be specified at a time.";
         }
     }
 }
