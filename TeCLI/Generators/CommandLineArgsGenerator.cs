@@ -2,7 +2,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using System.Linq;
-using TeCLI.Attributes;
 using TeCLI.Extensions;
 
 namespace TeCLI.Generators;
@@ -12,8 +11,8 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Register embedded attribute definitions
-        RegisterEmbeddedAttributes(context);
+         // Register embedded attribute definitions
+         RegisterEmbeddedAttributes(context);
 
         // Create a pipeline for classes with CommandAttribute
         // Only include top-level commands (not nested in another command class)

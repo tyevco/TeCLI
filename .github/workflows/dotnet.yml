@@ -111,16 +111,14 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - uses: actions/download-artifact@v6
-      with:
-        path: ./.packages
-        merge-multiple: true
-
     - name: Restore dependencies
-      run: dotnet restore TeCLI.Tests/TeCLI.Tests.csproj
+      run: dotnet restore TeCLI.sln
+
+    - name: Build solution
+      run: dotnet build TeCLI.sln --configuration Release --no-restore
 
     - name: Run tests with coverage
-      run: dotnet test TeCLI.Tests/TeCLI.Tests.csproj --configuration Release --no-restore -- --report-trx --report-github --coverage --coverage-output-format cobertura
+      run: dotnet test TeCLI.Tests/TeCLI.Tests.csproj --configuration Release --no-build -- --report-trx --report-github --coverage --coverage-output-format cobertura
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5

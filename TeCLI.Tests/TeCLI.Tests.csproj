@@ -9,15 +9,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="GitHubActionsTestLogger" Version="3.0.1"/>
+		<PackageReference Include="GitHubActionsTestLogger" Version="3.0.1" />
 		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" />
-		<PackageReference Include="Microsoft.Testing.Extensions.TrxReport"  Version="2.0.2" />
-		<PackageReference Include="Microsoft.Testing.Platform" Version="2.0.2"/>
+		<PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.0.2" />
+		<PackageReference Include="Microsoft.Testing.Platform" Version="2.0.2" />
 		<PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="2.0.2" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-		<PackageReference Include="Moq"  Version="4.20.72"/>
+		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="Shouldly" Version="4.3.0" />
-		<PackageReference Include="xunit.v3.mtp-v2"  Version="3.2.0"/>
+		<PackageReference Include="xunit.v3.mtp-v2" Version="3.2.0" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -25,13 +25,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- Runtime reference to TeCLI for attributes and utilities (StringSimilarity, etc.) -->
-		<ProjectReference Include="..\TeCLI\TeCLI.csproj" />
+		<!-- Analyzer dependencies - these DLLs must be available to the generators -->
+		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" Private="false" />
 
-		<!-- Analyzer dependencies -->
-		<ProjectReference Include="..\TeCLI\TeCLI.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\TeCLI.Generators\TeCLI.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\TeCLI\TeCLI.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
+	<Import Project="..\TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.props" />
 </Project>

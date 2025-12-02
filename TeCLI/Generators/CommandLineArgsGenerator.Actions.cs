@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
-using TeCLI.Attributes;
 using TeCLI.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -19,11 +18,11 @@ public partial class CommandLineArgsGenerator
 
         if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
         {
-            var actionMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, ActionAttribute>();
+            var actionMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol>(AttributeNames.ActionAttribute);
 
             foreach (var actionMethod in actionMethods)
             {
-                var actionAttribute = actionMethod.GetAttribute<ActionAttribute>();
+                var actionAttribute = actionMethod.GetAttribute(AttributeNames.ActionAttribute);
                 if (actionAttribute == null || actionAttribute.ConstructorArguments.Length == 0)
                 {
                     continue; // Skip actions without valid ActionAttribute

@@ -1,5 +1,3 @@
-using TeCLI.Attributes;
-using TeCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using TeCLI.Extensions;
 
 namespace TeCLI.Analyzers;
 
@@ -58,7 +57,7 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
             return;
 
         // Only analyze command classes
-        if (!classSymbol.HasAttribute<CommandAttribute>())
+        if (!classSymbol.HasAttribute("CommandAttribute"))
             return;
 
         // Check for duplicate action names
@@ -70,7 +69,7 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
 
     private void CheckDuplicateActionNames(SyntaxNodeAnalysisContext context, INamedTypeSymbol classSymbol)
     {
-        var actionMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, ActionAttribute>()?.ToList();
+        var actionMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol>(AttributeNames.ActionAttribute)?.ToList();
         if (actionMethods == null || actionMethods.Count == 0)
             return;
 
@@ -78,7 +77,7 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
 
         foreach (var method in actionMethods)
         {
-            var actionAttr = method.GetAttribute<ActionAttribute>();
+            var actionAttr = method.GetAttribute(AttributeNames.ActionAttribute);
             if (actionAttr == null || actionAttr.ConstructorArguments.Length == 0)
                 continue;
 
@@ -135,7 +134,7 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
             foreach (var parameter in method.Parameters)
             {
                 // Check for option duplicates
-                if (parameter.TryGetAttribute<OptionAttribute>(out var optionAttr) && optionAttr != null)
+                if (parameter.TryGetAttribute(out var optionAttr, AttributeNames.OptionAttribute) && optionAttr != null)
                 {
                     string? optionName = null;
 
@@ -161,8 +160,8 @@ public class DuplicateNameAnalyzer : DiagnosticAnalyzer
                     }
                 }
                 // Check for argument position conflicts
-                else if (parameter.HasAttribute<ArgumentAttribute>() ||
-                         (parameter.Type.IsValidOptionType() && !parameter.HasAttribute<OptionAttribute>()))
+                else if (parameter.HasAttribute(AttributeNames.ArgumentAttribute) ||
+                         (parameter.Type.IsValidOptionType() && !parameter.HasAttribute(AttributeNames.OptionAttribute)))
                 {
                     if (!argumentIndices.ContainsKey(argumentIndex))
                     {

@@ -1,11 +1,10 @@
-using TeCLI.Attributes;
-using TeCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
+using TeCLI.Extensions;
 
 namespace TeCLI.Analyzers;
 
@@ -57,7 +56,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
 
         if (context.SemanticModel.GetDeclaredSymbol(classDeclaration) is INamedTypeSymbol classSymbol)
         {
-            var commandAttr = classSymbol.GetAttribute<CommandAttribute>();
+            var commandAttr = classSymbol.GetAttribute(AttributeNames.CommandAttribute);
             if (commandAttr != null && commandAttr.ConstructorArguments.Length > 0)
             {
                 var commandName = commandAttr.ConstructorArguments[0].Value?.ToString();
@@ -80,7 +79,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
 
         if (context.SemanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol)
         {
-            var actionAttr = methodSymbol.GetAttribute<ActionAttribute>();
+            var actionAttr = methodSymbol.GetAttribute(AttributeNames.ActionAttribute);
             if (actionAttr != null && actionAttr.ConstructorArguments.Length > 0)
             {
                 var actionName = actionAttr.ConstructorArguments[0].Value?.ToString();
@@ -103,7 +102,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
 
         if (context.SemanticModel.GetDeclaredSymbol(propertyDeclaration) is IPropertySymbol propertySymbol)
         {
-            var optionAttr = propertySymbol.GetAttribute<OptionAttribute>();
+            var optionAttr = propertySymbol.GetAttribute(AttributeNames.OptionAttribute);
             if (optionAttr != null)
             {
                 string? optionName = null;
@@ -131,7 +130,7 @@ public class CommandOptionNameValidationAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            var argumentAttr = propertySymbol.GetAttribute<ArgumentAttribute>();
+            var argumentAttr = propertySymbol.GetAttribute(AttributeNames.ArgumentAttribute);
             if (argumentAttr != null)
             {
                 string? argumentName = null;

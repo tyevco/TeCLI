@@ -3,11 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
-using TeCLI.Attributes;
-using TeCLI.Attributes.Validation;
-using TeCLI.TypeConversion;
 using TeCLI.Extensions;
-using TeCLI.Generators;
 
 namespace TeCLI.Generators;
 
@@ -125,7 +121,7 @@ internal static class ParameterInfoExtractor
                 }
             }
 
-            if (parameterSymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute) && optionAttribute != null)
+            if (parameterSymbol.TryGetAttribute(out var optionAttribute, AttributeNames.OptionAttribute) && optionAttribute != null)
             {
                 ExtractOptionInfo(psi, optionAttribute, parameterSymbol.Name, parameterSymbol.Type.SpecialType);
             }
@@ -214,7 +210,7 @@ internal static class ParameterInfoExtractor
                 }
             }
 
-            if (propertySymbol.TryGetAttribute<OptionAttribute>(out var optionAttribute) && optionAttribute != null)
+            if (propertySymbol.TryGetAttribute(out var optionAttribute, AttributeNames.OptionAttribute) && optionAttribute != null)
             {
                 ExtractOptionInfo(psi, optionAttribute, propertySymbol.Name, propertySymbol.Type.SpecialType);
             }
@@ -304,7 +300,7 @@ internal static class ParameterInfoExtractor
         psi.ArgumentIndex = argumentCount++;
         psi.Name = parameterSymbol.Name;
 
-        if (parameterSymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute) && argumentAttribute != null)
+        if (parameterSymbol.TryGetAttribute(out var argumentAttribute, AttributeNames.ArgumentAttribute) && argumentAttribute != null)
         {
             var optionName = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
             psi.Name = optionName.IsNull ? psi.Name : optionName.Value?.ToString() ?? psi.Name;
@@ -334,7 +330,7 @@ internal static class ParameterInfoExtractor
         psi.ArgumentIndex = argumentCount++;
         psi.Name = propertySymbol.Name;
 
-        if (propertySymbol.TryGetAttribute<ArgumentAttribute>(out var argumentAttribute) && argumentAttribute != null)
+        if (propertySymbol.TryGetAttribute(out var argumentAttribute, AttributeNames.ArgumentAttribute) && argumentAttribute != null)
         {
             var optionName = argumentAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Name").Value;
             psi.Name = optionName.IsNull ? psi.Name : optionName.Value?.ToString() ?? psi.Name;
@@ -363,7 +359,7 @@ internal static class ParameterInfoExtractor
         var attributes = symbol.GetAttributes();
 
         // Check for RangeAttribute
-        var rangeAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(RangeAttribute));
+        var rangeAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == AttributeNames.RangeAttribute);
         if (rangeAttr != null && rangeAttr.ConstructorArguments.Length == 2)
         {
             var min = rangeAttr.ConstructorArguments[0].Value;
@@ -376,7 +372,7 @@ internal static class ParameterInfoExtractor
         }
 
         // Check for RegularExpressionAttribute
-        var regexAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(RegularExpressionAttribute));
+        var regexAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == AttributeNames.RegularExpressionAttribute);
         if (regexAttr != null && regexAttr.ConstructorArguments.Length >= 1)
         {
             var pattern = regexAttr.ConstructorArguments[0].Value?.ToString() ?? "";
@@ -409,7 +405,7 @@ internal static class ParameterInfoExtractor
         }
 
         // Check for FileExistsAttribute
-        var fileExistsAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(FileExistsAttribute));
+        var fileExistsAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == AttributeNames.FileExistsAttribute);
         if (fileExistsAttr != null)
         {
             var errorMessage = fileExistsAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ErrorMessage").Value;
@@ -435,7 +431,7 @@ internal static class ParameterInfoExtractor
         }
 
         // Check for DirectoryExistsAttribute
-        var dirExistsAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(DirectoryExistsAttribute));
+        var dirExistsAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == AttributeNames.DirectoryExistsAttribute);
         if (dirExistsAttr != null)
         {
             var errorMessage = dirExistsAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ErrorMessage").Value;
@@ -466,7 +462,7 @@ internal static class ParameterInfoExtractor
         var attributes = symbol.GetAttributes();
 
         // Check for TypeConverterAttribute
-        var converterAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == nameof(TypeConverterAttribute));
+        var converterAttr = attributes.FirstOrDefault(a => a.AttributeClass?.Name == AttributeNames.TypeConverterAttribute);
         if (converterAttr != null && converterAttr.ConstructorArguments.Length >= 1)
         {
             var converterTypeSymbol = converterAttr.ConstructorArguments[0].Value as INamedTypeSymbol;

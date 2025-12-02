@@ -1,24 +1,23 @@
-using TeCLI.Attributes;
-using TeCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using TeCLI.Extensions;
 
 namespace TeCLI.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class AsyncVoidActionAnalyzer : DiagnosticAnalyzer
+public class AsyncMethodReturnTypeAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor Rule = new(
-        "CLI012",
-        "Avoid async void in action methods",
-        "Action method '{0}' uses async void which can lead to unhandled exceptions. Use async Task instead.",
+        "CLI011",
+        "Async method must return Task or Task<T>",
+        "Action method '{0}' is marked as async but does not return Task, Task<T>, ValueTask, or ValueTask<T>",
         "Usage",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Action methods should return Task when async instead of using async void to allow proper exception handling.");
+        description: "Async action methods should return Task, Task<T>, ValueTask, or ValueTask<T> for proper asynchronous execution.");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -37,12 +36,24 @@ public class AsyncVoidActionAnalyzer : DiagnosticAnalyzer
             return;
 
         // Check if this is an action method
-        var isAction = methodSymbol.HasAttribute<ActionAttribute>() || methodSymbol.HasAttribute<PrimaryAttribute>();
+        var isAction = methodSymbol.HasAttribute(AttributeNames.ActionAttribute) || methodSymbol.HasAttribute(AttributeNames.PrimaryAttribute);
         if (!isAction)
             return;
 
-        // Check if method is async void
-        if (methodSymbol.IsAsync && methodSymbol.ReturnsVoid)
+        // Check if method is async
+        if (!methodSymbol.IsAsync)
+            return;
+
+        // Check return type
+        var returnType = methodSymbol.ReturnType;
+        var returnTypeNamespace = returnType.ContainingNamespace?.ToDisplayString();
+        var returnTypeName = returnType.Name;
+
+        // Valid async return types: Task, Task<T>, ValueTask, ValueTask<T>, void (for async void)
+        bool isValidReturnType = returnTypeNamespace == "System.Threading.Tasks" &&
+                                 (returnTypeName == "Task" || returnTypeName == "ValueTask");
+
+        if (!isValidReturnType && returnType.SpecialType != SpecialType.System_Void)
         {
             var diagnostic = Diagnostic.Create(
                 Rule,

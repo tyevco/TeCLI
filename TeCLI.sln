@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11205.157 d18.0
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeCLI.Generators", "TeCLI.Generators\TeCLI.Generators.csproj", "{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeCLI.Example", "TeCLI.Example\TeCLI.Example.csproj", "{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{6571797F-FDBD-4684-A982-FAD260B78748}"
@@ -44,10 +42,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -73,7 +67,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{45AC061A-C9DD-4F59-9B3A-63A7F8B86868} = {F34BAEAA-45B9-49CD-96B6-5331B239C8EC}
 		{A496F965-3A0C-48EF-BD2E-EB7BFD95B3DD} = {6571797F-FDBD-4684-A982-FAD260B78748}
 		{5C171546-1393-41A0-86EB-DAA2882A265C} = {F34BAEAA-45B9-49CD-96B6-5331B239C8EC}
 		{FA2C2E93-3D45-41FA-B9F3-3FEF171D7D8E} = {A8593842-A694-4F6B-9A93-F5E8E5C919C0}

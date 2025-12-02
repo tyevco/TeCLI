@@ -188,7 +188,7 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken)).Result;
 
         Assert.Contains("outside the allowed range", exception.Message);
         Assert.Contains("[0, 3600]", exception.Message);

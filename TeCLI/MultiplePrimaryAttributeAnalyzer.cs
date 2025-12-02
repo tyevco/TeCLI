@@ -1,11 +1,10 @@
-using TeCLI.Attributes;
-using TeCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
+using TeCLI.Extensions;
 
 namespace TeCLI.Analyzers;
 
@@ -37,11 +36,11 @@ public class MultiplePrimaryAttributeAnalyzer : DiagnosticAnalyzer
         if (context.SemanticModel.GetDeclaredSymbol(classDeclaration) is INamedTypeSymbol classSymbol)
         {
             // Check if this is a command class
-            if (!classSymbol.HasAttribute<CommandAttribute>())
+            if (!classSymbol.HasAttribute(AttributeNames.CommandAttribute))
                 return;
 
             // Get all methods with PrimaryAttribute
-            var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>()?.ToList();
+            var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol>(AttributeNames.PrimaryAttribute)?.ToList();
 
             if (primaryMethods != null && primaryMethods.Count > 1)
             {

@@ -9,25 +9,22 @@ namespace TeCLI.Extensions;
 
 public static class Extensions
 {
-    public static bool HasAnyAttribute<T0>(this IReadOnlyList<AttributeSyntax> attributeList)
-            where T0 : Attribute
+    public static string[] GetAttributeNamesForComparison(params string[] attributes)
     {
-        return attributeList.Any(attribute => attribute.Name.EndsWithOneOf(AttributeExtensions.GetAttributeNamesForComparison<T0>()));
+        var names = new string[attributes.Length * 2];
+        for (int i = 0, j = 0; i < attributes.Length; i++)
+        {
+            string name = attributes[i];
+            names[j++] = name;
+            names[j++] = name.EndsWith("Attribute") ? name.Substring(0, name.Length - 9) : $"{name}Attribute";
+        }
+
+        return names;
     }
 
-    public static bool HasAnyAttribute<T0, T1>(this IReadOnlyList<AttributeSyntax> attributeList)
-            where T0 : Attribute
-            where T1 : Attribute
+    public static bool HasAnyAttribute(this IReadOnlyList<AttributeSyntax> attributeList, params string[] attributes)
     {
-        return attributeList.Any(attribute => attribute.Name.EndsWithOneOf(AttributeExtensions.GetAttributeNamesForComparison<T0, T1>()));
-    }
-
-    public static bool HasAnyAttribute<T0, T1, T2>(this IReadOnlyList<AttributeSyntax> attributeList)
-            where T0 : Attribute
-            where T1 : Attribute
-            where T2 : Attribute
-    {
-        return attributeList.Any(attribute => attribute.Name.EndsWithOneOf(AttributeExtensions.GetAttributeNamesForComparison<T0, T1, T2>()));
+        return attributeList.Any(attribute => attribute.Name.EndsWithOneOf(GetAttributeNamesForComparison(attributes)));
     }
 
     public static bool EndsWithOneOf(this NameSyntax name, params string[] values)
@@ -40,37 +37,32 @@ public static class Extensions
         return values.Any(x => nameString.EndsWith(x, StringComparison.Ordinal));
     }
 
-    public static IEnumerable<TMemberType> GetMembersWithAttribute<TMemberType, TAttribute>(this INamedTypeSymbol classSymbol)
+    public static IEnumerable<TMemberType> GetMembersWithAttribute<TMemberType>(this INamedTypeSymbol classSymbol, string attributeName)
         where TMemberType : ISymbol
-        where TAttribute : Attribute
     {
-        return classSymbol.GetMembers().OfType<TMemberType>()?.Where(x => x.HasAttribute<TAttribute>()) ?? [];
+        return classSymbol.GetMembers().OfType<TMemberType>()?.Where(x => x.HasAttribute(attributeName)) ?? [];
     }
 
-    public static IEnumerable<IPropertySymbol> GetPropertiesWithAttribute<TAttribute>(this INamedTypeSymbol classSymbol)
-        where TAttribute : Attribute
+    public static IEnumerable<IPropertySymbol> GetPropertiesWithAttribute(this INamedTypeSymbol classSymbol, string attributeName)
     {
-        return classSymbol.GetMembers().OfType<IPropertySymbol>()?.Where(x => x.HasAttribute<TAttribute>()) ?? [];
+        return classSymbol.GetMembers().OfType<IPropertySymbol>()?.Where(x => x.HasAttribute(attributeName)) ?? [];
     }
 
-    public static bool HasAttribute<TAttribute>(this ISymbol symbol)
-        where TAttribute : Attribute
+    public static bool HasAttribute(this ISymbol symbol, string attributeName)
     {
-        return symbol.GetAttributes().Any(x => x.AttributeClass?.Name.EndsWithOneOf(AttributeExtensions.GetAttributeNamesForComparison<TAttribute>()) ?? false);
+        return symbol.GetAttributes().Any(x => x.AttributeClass?.Name.EndsWithOneOf([attributeName, attributeName.Replace("Attribute", "")]) ?? false);
     }
 
-    public static bool TryGetAttribute<TAttribute>(this ISymbol symbol, out AttributeData? attributeData)
-        where TAttribute : Attribute
+    public static bool TryGetAttribute(this ISymbol symbol, out AttributeData? attributeData, string attributeName)
     {
-        attributeData = symbol.GetAttributes().FirstOrDefault(ad => ad.AttributeClass?.Name == typeof(TAttribute).Name);
+        attributeData = symbol.GetAttributes().FirstOrDefault(ad => GetAttributeNamesForComparison(attributeName).Any(x => string.Equals(x, ad.AttributeClass?.Name)));
 
         return attributeData != null;
     }
 
-    public static AttributeData? GetAttribute<TAttribute>(this ISymbol symbol)
-        where TAttribute : Attribute
+    public static AttributeData? GetAttribute(this ISymbol symbol, string attributeName)
     {
-        return symbol.GetAttributes().FirstOrDefault(ad => ad.AttributeClass?.Name == typeof(TAttribute).Name);
+        return symbol.GetAttributes().FirstOrDefault(ad => GetAttributeNamesForComparison(attributeName).Any(x => string.Equals(x, ad.AttributeClass?.Name)));
     }
 
     public static string FormatCode(this string source)
@@ -79,26 +71,24 @@ public static class Extensions
     }
 
 
-    public static bool HasAttribute<TAttribute>(this MemberDeclarationSyntax symbol)
-        where TAttribute : Attribute
+    public static bool HasAttribute(this MemberDeclarationSyntax symbol, string attributeName)
     {
         return symbol
                 .AttributeLists
                 .Any(al =>
                     al
                         .Attributes
-                        .Any(x => x.Name.EndsWithOneOf(AttributeExtensions.GetAttributeNamesForComparison<TAttribute>())));
+                        .Any(x => x.Name.EndsWithOneOf(GetAttributeNamesForComparison(attributeName))));
     }
 
-    public static AttributeSyntax? GetAttribute<TAttribute>(this MemberDeclarationSyntax symbol)
-        where TAttribute : Attribute
+    public static AttributeSyntax? GetAttribute(this MemberDeclarationSyntax symbol, string attributeName)
     {
         return symbol
                 .AttributeLists
                 .Select(al =>
                     al
                         .Attributes
-                        .FirstOrDefault(x => x.Name.EndsWithOneOf(AttributeExtensions.GetAttributeNamesForComparison<TAttribute>())))
+                        .FirstOrDefault(x => x.Name.EndsWithOneOf(GetAttributeNamesForComparison(attributeName))))
                 .FirstOrDefault();
     }
 
