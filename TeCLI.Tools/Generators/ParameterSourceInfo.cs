@@ -13,6 +13,7 @@ namespace TeCLI.Generators
         public TypedConstant Description { get; set; }
         public string? ParameterName { get; set; }
         public string? Name { get; set; }
+        public string? PropertyName { get; set; }
         public SyntaxNode? Parent { get; set; }
         public int ArgumentIndex { get; set; }
         public IEnumerable<ParameterSourceInfo> Children { get; set; } = [];

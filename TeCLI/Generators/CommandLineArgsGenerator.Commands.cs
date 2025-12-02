@@ -442,7 +442,7 @@ public partial class CommandLineArgsGenerator
                     AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
                         MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                             IdentifierName("_globalOptions"),
-                            IdentifierName(option.Name!)),
+                            IdentifierName(option.PropertyName!)),
                         LiteralExpression(SyntaxKind.TrueLiteralExpression))));
             }
             else
@@ -464,30 +464,30 @@ public partial class CommandLineArgsGenerator
                 if (option.IsEnum)
                 {
                     parseStatements.Add(ParseStatement(
-                        $"_globalOptions.{option.Name} = ({option.DisplayType})System.Enum.Parse(typeof({option.DisplayType}), args[i + 1], ignoreCase: true);"));
+                        $"_globalOptions.{option.PropertyName} = ({option.DisplayType})System.Enum.Parse(typeof({option.DisplayType}), args[i + 1], ignoreCase: true);"));
                 }
                 else if (option.HasCustomConverter && !string.IsNullOrEmpty(option.CustomConverterType))
                 {
-                    parseStatements.Add(ParseStatement($"var converter_{option.Name} = new {option.CustomConverterType}();"));
-                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = converter_{option.Name}.Convert(args[i + 1]);"));
+                    parseStatements.Add(ParseStatement($"var converter_{option.PropertyName} = new {option.CustomConverterType}();"));
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.PropertyName} = converter_{option.PropertyName}.Convert(args[i + 1]);"));
                 }
                 else if (option.IsCommonType && !string.IsNullOrEmpty(option.CommonTypeParseMethod))
                 {
-                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = {string.Format(option.CommonTypeParseMethod, "args[i + 1]")};"));
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.PropertyName} = {string.Format(option.CommonTypeParseMethod, "args[i + 1]")};"));
                 }
                 else if (option.DisplayType == "string" || option.DisplayType == "global::System.String")
                 {
-                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = args[i + 1];"));
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.PropertyName} = args[i + 1];"));
                 }
                 else
                 {
-                    parseStatements.Add(ParseStatement($"_globalOptions.{option.Name} = {option.DisplayType}.Parse(args[i + 1]);"));
+                    parseStatements.Add(ParseStatement($"_globalOptions.{option.PropertyName} = {option.DisplayType}.Parse(args[i + 1]);"));
                 }
 
                 // Add validation if present
                 foreach (var validation in option.Validations)
                 {
-                    var validationCode = string.Format(validation.ValidationCode, $"_globalOptions.{option.Name}");
+                    var validationCode = string.Format(validation.ValidationCode, $"_globalOptions.{option.PropertyName}");
                     parseStatements.Add(ParseStatement($"{validationCode};"));
                 }
 
@@ -667,10 +667,11 @@ public partial class CommandLineArgsGenerator
         var uniqueTypeName = string.Join("_", typeNameParts);
         context.AddSource($"CommandDispatcher.Command.{uniqueTypeName}.cs", SourceText.From(cb, Encoding.UTF8));
 
-        // Recursively generate dispatch methods for subcommands
+        // Recursively generate dispatch methods and documentation for subcommands
         foreach (var subcommand in commandInfo.Subcommands)
         {
             GenerateCommandSourceFileHierarchical(context, compilation, subcommand, globalOptions);
+            GenerateCommandDocumentation(context, compilation, subcommand);
         }
     }
 
@@ -1100,6 +1101,7 @@ public partial class CommandLineArgsGenerator
                 var paramInfo = new ParameterSourceInfo
                 {
                     Name = property.Name,
+                    PropertyName = property.Name,
                     DisplayType = property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                     Required = !(property.NullableAnnotation == NullableAnnotation.Annotated || property.Type.IsValueType == false),
                     ParameterType = ParameterType.Option,
@@ -1248,6 +1250,7 @@ public partial class CommandLineArgsGenerator
     /// <summary>
     /// Gets a unique type name for a command that includes containing types for nested classes.
     /// This prevents method name collisions when different commands have nested classes with the same name.
+    /// Uses underscore separator for method name generation.
     /// </summary>
     private static string GetUniqueTypeName(INamedTypeSymbol? typeSymbol)
     {
@@ -1264,6 +1267,27 @@ public partial class CommandLineArgsGenerator
             currentType = currentType.ContainingType;
         }
         return string.Join("_", typeNameParts);
+    }
+
+    /// <summary>
+    /// Gets the full type reference path for nested classes using dot notation.
+    /// This is used when referencing the type in generated code (e.g., ParentClass.NestedClass).
+    /// </summary>
+    private static string GetFullTypeReference(INamedTypeSymbol? typeSymbol)
+    {
+        if (typeSymbol == null)
+        {
+            return string.Empty;
+        }
+
+        var typeNameParts = new List<string>();
+        var currentType = typeSymbol;
+        while (currentType != null)
+        {
+            typeNameParts.Insert(0, currentType.Name);
+            currentType = currentType.ContainingType;
+        }
+        return string.Join(".", typeNameParts);
     }
 
     /// <summary>

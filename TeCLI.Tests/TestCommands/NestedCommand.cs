@@ -6,7 +6,7 @@ namespace TeCLI.Tests.TestCommands;
 /// Test command demonstrating 2-level nested subcommands
 /// Models a structure like "git remote add"
 /// </summary>
-[Command("git", Description = "Distributed version control system")]
+[Command("gitcli", Description = "Distributed version control system")]
 public class NestedCommand
 {
     public static bool WasCalled { get; private set; }

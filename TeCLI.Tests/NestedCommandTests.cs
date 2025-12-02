@@ -16,7 +16,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "remote", "add", "origin", "https://github.com/user/repo.git" };
+        var args = new[] { "gitcli", "remote", "add", "origin", "https://github.com/user/repo.git" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -34,7 +34,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "remote", "remove", "origin" };
+        var args = new[] { "gitcli", "remote", "remove", "origin" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -51,7 +51,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "remote", "list" };
+        var args = new[] { "gitcli", "remote", "list" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -67,7 +67,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "remote", "list", "--verbose" };
+        var args = new[] { "gitcli", "remote", "list", "--verbose" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -84,7 +84,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "branch", "create", "feature-branch" };
+        var args = new[] { "gitcli", "branch", "create", "feature-branch" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -101,7 +101,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "branch", "delete", "old-branch", "--force" };
+        var args = new[] { "gitcli", "branch", "delete", "old-branch", "--force" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -123,7 +123,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "config", "user", "name", "John Doe" };
+        var args = new[] { "gitcli", "config", "user", "name", "John Doe" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -140,7 +140,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "config", "user", "email", "john@example.com" };
+        var args = new[] { "gitcli", "config", "user", "email", "john@example.com" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -161,7 +161,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "status" };
+        var args = new[] { "gitcli", "status" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -177,7 +177,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "commit", "--message", "Initial commit" };
+        var args = new[] { "gitcli", "commit", "--message", "Initial commit" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -198,7 +198,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "rem", "list" };
+        var args = new[] { "gitcli", "rem", "list" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -214,7 +214,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "remote", "rm", "origin" };
+        var args = new[] { "gitcli", "remote", "rm", "origin" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -231,7 +231,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "branch", "del", "feature" };
+        var args = new[] { "gitcli", "branch", "del", "feature" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -252,7 +252,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "remote", "list", "-v" };
+        var args = new[] { "gitcli", "remote", "list", "-v" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -269,7 +269,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "branch", "delete", "feature", "-f" };
+        var args = new[] { "gitcli", "branch", "delete", "feature", "-f" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -287,7 +287,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "commit", "-m", "Fix bug" };
+        var args = new[] { "gitcli", "commit", "-m", "Fix bug" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -308,7 +308,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "config", "get", "user.name" };
+        var args = new[] { "gitcli", "config", "get", "user.name" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -325,7 +325,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "config", "set", "user.name", "Jane Doe" };
+        var args = new[] { "gitcli", "config", "set", "user.name", "Jane Doe" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -383,7 +383,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "unknown", "action" };
+        var args = new[] { "gitcli", "unknown", "action" };
 
         // Act & Assert
         // Note: Depending on implementation, this might throw or display error
@@ -405,7 +405,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "remote", "unknown" };
+        var args = new[] { "gitcli", "remote", "unknown" };
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -424,7 +424,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "git", "remote", "add", "origin" }; // Missing URL argument
+        var args = new[] { "gitcli", "remote", "add", "origin" }; // Missing URL argument
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
