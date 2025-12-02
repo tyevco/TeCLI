@@ -450,6 +450,10 @@ public class AppCommand
 | Shell completion | ❌ | ✅ |
 | Async support | ⚠️ Manual | ✅ Native |
 | Pre/post hooks | ❌ | ✅ |
+| Configuration files | ❌ | ✅ Auto-discovery |
+| Localization (i18n) | ❌ | ✅ Attribute-based |
+| Interactive shell (REPL) | ❌ | ✅ Built-in |
+| Progress UI | ❌ | ✅ Auto-injected |
 
 ## Benefits of Migration
 
@@ -468,3 +472,65 @@ public class AppCommand
 3. **No Separator Property:** TeCLI automatically handles both repeated options and comma-separated values
 4. **Verb → Action:** Simple verbs become `[Action]` methods; complex ones become nested `[Command]` classes
 5. **Exit Codes:** Return `int` from actions to set exit codes
+
+## Advanced Features (TeCLI-Only)
+
+These features have no equivalent in CommandLineParser:
+
+### Configuration File Support
+
+Load defaults from configuration files automatically:
+
+```csharp
+// Program.cs - merge config files with CLI args
+var mergedArgs = args.WithConfiguration(appName: "myapp");
+await dispatcher.DispatchAsync(mergedArgs);
+```
+
+Supports JSON, YAML, TOML, and INI formats with automatic discovery.
+
+### Localization (i18n)
+
+Localize descriptions and messages:
+
+```csharp
+[Command("greet")]
+[LocalizedDescription("GreetCommand_Description")]
+public class GreetCommand
+{
+    [Primary]
+    public void Hello(
+        [Argument]
+        [LocalizedDescription("Name_Description")]
+        string name)
+    {
+        Console.WriteLine(Localizer.GetString("Greeting", name));
+    }
+}
+```
+
+### Interactive Shell (REPL)
+
+Add shell mode to commands:
+
+```csharp
+[Command("db")]
+[Shell(Prompt = "db> ", EnableHistory = true)]
+public class DatabaseCommand
+{
+    [Action("query")]
+    public void Query([Argument] string sql) { }
+}
+```
+
+### Progress UI
+
+Auto-injected progress context:
+
+```csharp
+[Primary]
+public async Task Process(IProgressContext progress)
+{
+    using var bar = progress.CreateProgressBar("Processing...", 100);
+    // Update bar.Value as work progresses
+}

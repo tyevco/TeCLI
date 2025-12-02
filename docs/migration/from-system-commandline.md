@@ -424,6 +424,10 @@ await dispatcher.DispatchAsync(args);
 | Compile-time validation | ❌ | ✅ 32 analyzers |
 | Interactive prompts | ❌ | ✅ |
 | Global options | ✅ | ✅ |
+| Configuration files | ⚠️ Manual | ✅ Auto-discovery |
+| Localization (i18n) | ❌ | ✅ Attribute-based |
+| Interactive shell (REPL) | ❌ | ✅ Built-in |
+| Progress UI | ❌ | ✅ Auto-injected |
 
 ## Benefits of Migration
 
@@ -440,3 +444,80 @@ await dispatcher.DispatchAsync(args);
 2. **Primary Action:** Use `[Primary]` for the default action when no subcommand is specified
 3. **Nested Classes:** Subcommands in TeCLI use nested classes, not AddCommand()
 4. **Return Types:** Actions can return `void`, `int`, `Task`, `Task<int>`, or `ValueTask` variants
+
+## Advanced Features (TeCLI-Only)
+
+These features have no direct equivalent in System.CommandLine:
+
+### Configuration File Support
+
+TeCLI can automatically load settings from configuration files:
+
+```csharp
+// Program.cs - merge config files with CLI args
+var mergedArgs = args.WithConfiguration(appName: "myapp");
+await dispatcher.DispatchAsync(mergedArgs);
+```
+
+Supports JSON, YAML, TOML, and INI formats with automatic discovery in standard locations (`~/.config/myapp/`, working directory, etc.).
+
+### Localization (i18n)
+
+Localize your CLI with attribute-based translations:
+
+```csharp
+[Command("greet")]
+[LocalizedDescription("GreetCommand_Description")]
+public class GreetCommand
+{
+    [Primary]
+    [LocalizedDescription("GreetCommand_Hello_Description")]
+    public void Hello(
+        [Argument]
+        [LocalizedDescription("GreetCommand_Name_Description")]
+        string name)
+    {
+        Console.WriteLine(Localizer.GetString("Greeting_Hello", name));
+    }
+}
+
+// Program.cs
+Localizer.Initialize(new ResourceLocalizationProvider(typeof(Strings)), args);
+```
+
+### Interactive Shell (REPL)
+
+Add an interactive shell mode to your CLI:
+
+```csharp
+[Command("db")]
+[Shell(Prompt = "db> ", WelcomeMessage = "Database Shell", EnableHistory = true)]
+public class DatabaseCommand
+{
+    [Action("query")]
+    public void Query([Argument] string sql) { /* ... */ }
+
+    [Action("tables")]
+    public void Tables() { /* ... */ }
+}
+// Running `myapp db` without arguments enters interactive shell mode
+```
+
+### Progress UI with Auto-Injection
+
+Display progress bars and spinners with auto-injected context:
+
+```csharp
+[Action("download")]
+public async Task Download(
+    [Argument] string url,
+    IProgressContext progress)  // Auto-injected by framework
+{
+    using var bar = progress.CreateProgressBar("Downloading...", maxValue: 100);
+    for (int i = 0; i <= 100; i += 10)
+    {
+        bar.Value = i;
+        await Task.Delay(100);
+    }
+    bar.Complete("Download complete!");
+}
