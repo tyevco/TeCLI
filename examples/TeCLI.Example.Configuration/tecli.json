@@ -1,0 +1,33 @@
+{
+  // Default configuration for the example CLI
+  "environment": "development",
+  "region": "us-east",
+  "verbose": false,
+  "timeout": 300,
+
+  // Per-command configuration
+  "deploy": {
+    "timeout": 600
+  },
+
+  // Configuration profiles
+  "profiles": {
+    "dev": {
+      "environment": "development",
+      "region": "us-east",
+      "verbose": true,
+      "timeout": 120
+    },
+    "staging": {
+      "inherits": "dev",
+      "environment": "staging",
+      "region": "us-west"
+    },
+    "prod": {
+      "environment": "production",
+      "region": "us-west",
+      "verbose": false,
+      "timeout": 900
+    }
+  }
+}

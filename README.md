@@ -24,6 +24,7 @@ TeCLI is a source-generated CLI parsing library for .NET that simplifies command
 - **Interactive Mode** - Prompt for missing arguments with optional secure input
 - **Pipeline/Stream Support** - Unix-style stdin/stdout piping with `Stream`, `TextReader`, `TextWriter`
 - **Testing Utilities** - `TeCLI.Extensions.Testing` package for easy CLI testing
+- **Configuration Files** - Load options from JSON, YAML, TOML, or INI files with profile support
 
 ## Installation
 
@@ -35,6 +36,12 @@ For dependency injection support:
 
 ```bash
 dotnet add package TeCLI.Extensions.DependencyInjection
+```
+
+For configuration file support:
+
+```bash
+dotnet add package TeCLI.Extensions.Configuration
 ```
 
 ## Quick Start
@@ -444,6 +451,75 @@ Usage:
 myapp git commit -m "Initial commit" --all
 myapp git push --force
 ```
+
+## Configuration Files
+
+TeCLI supports loading default option values from configuration files using the `TeCLI.Extensions.Configuration` package.
+
+### Supported Formats
+
+- **JSON** (`.json`) - Standard JSON with comments and trailing commas
+- **YAML** (`.yaml`, `.yml`) - Human-readable configuration
+- **TOML** (`.toml`) - Minimal, unambiguous configuration
+- **INI** (`.ini`, `.cfg`, `.conf`) - Simple key-value configuration
+
+### Configuration File Discovery
+
+Configuration files are discovered automatically in the following order (lowest to highest precedence):
+
+1. Global configuration (`/etc/`, `%ProgramData%`)
+2. User configuration (`~/.config/`, `%AppData%`)
+3. Working directory tree (walking up from current directory)
+4. Explicit config file path
+
+### Example Configuration (JSON)
+
+```json
+{
+  "environment": "development",
+  "region": "us-east",
+  "verbose": false,
+
+  "deploy": {
+    "timeout": 600
+  },
+
+  "profiles": {
+    "dev": {
+      "environment": "development",
+      "verbose": true
+    },
+    "prod": {
+      "environment": "production",
+      "region": "us-west",
+      "verbose": false
+    }
+  }
+}
+```
+
+### Using Configuration
+
+```csharp
+using TeCLI.Configuration;
+
+// Load and merge configuration with CLI arguments
+var mergedArgs = args.WithConfiguration(appName: "myapp");
+await CommandDispatcher.DispatchAsync(mergedArgs);
+
+// Or use a specific profile
+var prodArgs = args.WithProfile("prod", appName: "myapp");
+await CommandDispatcher.DispatchAsync(prodArgs);
+```
+
+### Merge Strategy
+
+Values are merged in this order (later sources override earlier ones):
+1. Configuration file defaults
+2. Environment variables (with optional prefix)
+3. CLI arguments (highest precedence)
+
+This means users can set defaults in config files but always override them via CLI.
 
 ## Framework Support
 
