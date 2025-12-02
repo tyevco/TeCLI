@@ -50,6 +50,9 @@ namespace TeCLI.Generators
         public string? Prompt { get; set; }
         public bool SecurePrompt { get; set; }
 
+        // Mutual exclusivity support
+        public string? MutuallyExclusiveSet { get; set; }
+
         public bool Optional => !Required;
     }
 

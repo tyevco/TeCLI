@@ -466,10 +466,11 @@ public class DeployCommand
 ---
 
 ### 💡 Mutual Exclusivity
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Low
 
-Mark options as mutually exclusive:
+TeCLI now supports marking options as mutually exclusive! This enables scenarios where only one of a set of options can be specified:
+
 ```csharp
 [Action("output")]
 public void Output(
@@ -479,7 +480,51 @@ public void Output(
 {
     // Only one of json, xml, or yaml can be specified
 }
+
+// Multiple exclusive sets can be used in the same action
+[Action("process")]
+public void Process(
+    [Option("json", MutuallyExclusiveSet = "format")] bool json,
+    [Option("xml", MutuallyExclusiveSet = "format")] bool xml,
+    [Option("compact", MutuallyExclusiveSet = "style")] bool compact,
+    [Option("pretty", MutuallyExclusiveSet = "style")] bool pretty)
+{
+    // Can specify one from each set: --json --compact is valid
+    // But --json --xml would fail (both in "format" set)
+}
+
+// Also works with value options
+[Action("convert")]
+public void Convert(
+    [Option("format", MutuallyExclusiveSet = "outputType")] string? format,
+    [Option("encoding", MutuallyExclusiveSet = "outputType")] string? encoding)
+{
+    // Only one of format or encoding can be specified
+}
 ```
+
+**Implemented Features:**
+- ✅ `MutuallyExclusiveSet` property on `OptionAttribute` for grouping options
+- ✅ Support for boolean switches (flags)
+- ✅ Support for value options (strings, ints, etc.)
+- ✅ Multiple exclusive sets in the same action
+- ✅ Clear error messages showing which options conflict
+- ✅ Works with short names
+- ✅ Comprehensive test coverage
+
+**Error Message Example:**
+```
+Options '--json' and '--xml' are mutually exclusive. Only one can be specified at a time.
+```
+
+**Files Changed:**
+- `TeCLI/Generators/CommandLineArgsGenerator.Attributes.cs` - Added `MutuallyExclusiveSet` property
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - Track exclusive set membership
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Extract `MutuallyExclusiveSet` from attribute
+- `TeCLI/Generators/CommandLineArgsGenerator.Parameters.cs` - Generate validation code
+- `TeCLI.Tools/Constants.cs` - Error message constant
+- `TeCLI.Tests/TestCommands/MutualExclusivityCommand.cs` - Test command
+- `TeCLI.Tests/MutualExclusivityTests.cs` - Comprehensive integration tests
 
 ---
 
@@ -1570,9 +1615,8 @@ Based on impact and feasibility, the next release should focus on:
 The following high-priority items should be considered next:
 
 1. **Configuration File Support** (📊 Medium Priority) - Load options from configuration files
-2. **Middleware/Hooks System** (📊 Medium Priority) - Pre and post-execution hooks
-3. **ANSI Color and Styling Support** (📊 Medium Priority) - Enhanced help text and colored output
-4. **Mutual Exclusivity** (💡 Low Priority) - Mark options as mutually exclusive
+2. **ANSI Color and Styling Support** (📊 Medium Priority) - Enhanced help text and colored output
+3. **Exit Code Management** (📊 Medium Priority) - Structured exit code support
 
 ---
 

@@ -142,6 +142,7 @@ public partial class CommandLineArgsGenerator
                 public string? EnvVar { get; set; }
                 public string? Prompt { get; set; }
                 public bool SecurePrompt { get; set; } = false;
+                public string? MutuallyExclusiveSet { get; set; }
 
                 public OptionAttribute(string name)
                 {
