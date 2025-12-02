@@ -367,6 +367,7 @@ public class HooksTests
         CleanupAfterHook.Reset();
         ErrorHandlerHook.Reset();
         ErrorLoggingHook.Reset();
+        OrderedHookCounter.Reset();
         OrderedHook1.Reset();
         OrderedHook2.Reset();
         OrderedHook3.Reset();
