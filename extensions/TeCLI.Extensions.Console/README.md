@@ -17,6 +17,7 @@ dotnet add package TeCLI.Extensions.Console
 - Colored text output with ANSI and Console color support
 - Progress indicators with customizable appearance
 - Animated spinners for indeterminate operations
+- **Auto-injected `IProgressContext`** for action methods
 - Terminal capability detection (color support, ANSI support)
 - Inline string styling extensions
 - NO_COLOR environment variable support
@@ -49,6 +50,70 @@ await DoWork();
 spinner.Success("Operation completed");
 ```
 
+## Auto-Injected Progress Context
+
+When using `IProgressContext` as a parameter in your action methods, TeCLI automatically injects a ready-to-use progress context. This provides a clean way to add progress UI to your CLI commands without manual setup.
+
+```csharp
+using TeCLI.Attributes;
+using TeCLI.Console;
+
+[Command("file")]
+public class FileCommand
+{
+    [Action("download")]
+    public async Task Download(
+        [Argument] string url,
+        IProgressContext progress)  // Auto-injected by framework
+    {
+        using var bar = progress.CreateProgressBar("Downloading...", totalBytes);
+
+        await foreach (var chunk in DownloadChunksAsync(url))
+        {
+            bar.Increment(chunk.Length);
+        }
+        bar.Complete("Download complete!");
+    }
+
+    [Action("process")]
+    public async Task Process(
+        [Argument] string[] files,
+        IProgressContext progress)
+    {
+        using var spinner = progress.CreateSpinner("Processing...");
+
+        foreach (var file in files)
+        {
+            spinner.Update($"Processing {file}...");
+            await ProcessFileAsync(file);
+        }
+        spinner.Success("All files processed!");
+    }
+}
+```
+
+### IProgressContext Interface
+
+| Method | Description |
+|--------|-------------|
+| `CreateProgressBar(message, maxValue)` | Creates a progress bar with absolute value support |
+| `CreateSpinner(message)` | Creates an animated spinner for indeterminate operations |
+| `CreateProgress(message)` | Creates a percentage-based progress indicator |
+| `Console` | Gets the underlying `IConsoleOutput` for styled output |
+
+### IProgressBar Interface
+
+| Member | Description |
+|--------|-------------|
+| `Value` | Current progress value |
+| `MaxValue` | Maximum value (100% complete) |
+| `Message` | Status message |
+| `Increment(amount)` | Add to the current value |
+| `Report(value)` | Set absolute progress value |
+| `Report(value, message)` | Set value and message |
+| `Complete(message)` | Mark as successfully completed |
+| `Fail(message)` | Mark as failed |
+
 ## Key Classes
 
 | Class | Purpose |
@@ -56,7 +121,9 @@ spinner.Success("Operation completed");
 | `StyledConsole` | Main console output with color and ANSI support |
 | `IConsoleOutput` | Interface for console output operations |
 | `ConsoleStyle` | Text styling (colors, bold, italic, underline) |
-| `IProgressIndicator` | Progress bar interface |
+| `IProgressContext` | Auto-injectable progress context for actions |
+| `IProgressBar` | Progress bar with increment support |
+| `IProgressIndicator` | Percentage-based progress interface |
 | `ISpinner` | Animated spinner interface |
 | `TerminalCapabilities` | Detects terminal color and ANSI support |
 

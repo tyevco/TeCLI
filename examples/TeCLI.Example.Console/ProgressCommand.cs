@@ -155,6 +155,48 @@ public class ProgressCommand
     }
 
     /// <summary>
+    /// Demonstrate auto-injected IProgressContext
+    /// </summary>
+    [Action("context", Description = "Demonstrate auto-injected IProgressContext")]
+    public async Task ProgressContext(
+        IProgressContext progress,
+        [Option("steps", ShortName = 's', Description = "Number of steps")] int steps = 10)
+    {
+        // IProgressContext is automatically injected by the framework
+        // No manual setup required!
+        progress.Console.WriteLine("Demonstrating auto-injected IProgressContext...", ConsoleStyle.Info);
+        progress.Console.WriteLine();
+
+        // Progress bar with increment support
+        progress.Console.WriteLine("Progress bar with Increment():", ConsoleStyle.Debug);
+        using (var bar = progress.CreateProgressBar("Processing items", steps))
+        {
+            for (int i = 0; i < steps; i++)
+            {
+                bar.Message = $"Processing item {i + 1}/{steps}";
+                bar.Increment();
+                await Task.Delay(200);
+            }
+            bar.Complete("All items processed!");
+        }
+
+        progress.Console.WriteLine();
+
+        // Spinner for indeterminate progress
+        progress.Console.WriteLine("Spinner for async operations:", ConsoleStyle.Debug);
+        using (var spinner = progress.CreateSpinner("Finalizing"))
+        {
+            await Task.Delay(1000);
+            spinner.Update("Saving results...");
+            await Task.Delay(800);
+            spinner.Success("Results saved!");
+        }
+
+        progress.Console.WriteLine();
+        progress.Console.WriteSuccess("IProgressContext demo complete!");
+    }
+
+    /// <summary>
     /// Custom progress bar configuration
     /// </summary>
     [Action("custom", Description = "Show custom progress bar styles")]
