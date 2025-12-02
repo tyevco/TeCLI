@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<RootNamespace>TeCLI.Console</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<Authors>Tyler Coles</Authors>
+		<Description>Console styling and output utilities for TeCLI - colored output, progress indicators, and terminal abstraction</Description>
+		<PackageTags>tecli;cli;console;colors;ansi;progress;terminal</PackageTags>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<RepositoryUrl>https://github.com/tyevco/TeCLI</RepositoryUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+		<ItemGroup>
+			<NugetFiles Include="bin\**\$(MSBuildProjectName).*.nupkg"/>
+		</ItemGroup>
+
+		<Copy
+            SourceFiles="@(NugetFiles)"
+            DestinationFolder="..\..\.packages\"
+			ContinueOnError="true"
+        />
+
+		<Message Text="Copied nupkg to repo directory." Importance="high" />
+	</Target>
+
+	<ItemGroup>
+		<None Include="../../LICENSE" Pack="true" PackagePath=""/>
+	</ItemGroup>
+
+</Project>
