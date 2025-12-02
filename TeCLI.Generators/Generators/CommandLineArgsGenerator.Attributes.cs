@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 namespace TeCLI.Generators;
 
 /// <summary>
-/// Generates embedded attribute definitions using the Roslyn 4.14 AddEmbeddedAttributeDefinition API.
+/// Generates embedded attribute definitions for TeCLI.
 /// This allows users to use TeCLI attributes without referencing a separate attributes assembly.
 /// </summary>
 public partial class CommandLineArgsGenerator
@@ -16,26 +16,26 @@ public partial class CommandLineArgsGenerator
         // Core attributes
         context.RegisterPostInitializationOutput(ctx =>
         {
-            ctx.AddEmbeddedAttributeDefinition("CommandAttribute", CommandAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("ActionAttribute", ActionAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("PrimaryAttribute", PrimaryAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("OptionAttribute", OptionAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("ArgumentAttribute", ArgumentAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("GlobalOptionsAttribute", GlobalOptionsAttributeSource);
+            ctx.AddSource("CommandAttribute.g.cs", CommandAttributeSource);
+            ctx.AddSource("ActionAttribute.g.cs", ActionAttributeSource);
+            ctx.AddSource("PrimaryAttribute.g.cs", PrimaryAttributeSource);
+            ctx.AddSource("OptionAttribute.g.cs", OptionAttributeSource);
+            ctx.AddSource("ArgumentAttribute.g.cs", ArgumentAttributeSource);
+            ctx.AddSource("GlobalOptionsAttribute.g.cs", GlobalOptionsAttributeSource);
 
             // Hook attributes
-            ctx.AddEmbeddedAttributeDefinition("BeforeExecuteAttribute", BeforeExecuteAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("AfterExecuteAttribute", AfterExecuteAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("OnErrorAttribute", OnErrorAttributeSource);
+            ctx.AddSource("BeforeExecuteAttribute.g.cs", BeforeExecuteAttributeSource);
+            ctx.AddSource("AfterExecuteAttribute.g.cs", AfterExecuteAttributeSource);
+            ctx.AddSource("OnErrorAttribute.g.cs", OnErrorAttributeSource);
 
             // Type conversion
-            ctx.AddEmbeddedAttributeDefinition("TypeConverterAttribute", TypeConverterAttributeSource);
+            ctx.AddSource("TypeConverterAttribute.g.cs", TypeConverterAttributeSource);
 
             // Validation attributes
-            ctx.AddEmbeddedAttributeDefinition("FileExistsAttribute", FileExistsAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("DirectoryExistsAttribute", DirectoryExistsAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("RangeAttribute", RangeAttributeSource);
-            ctx.AddEmbeddedAttributeDefinition("RegularExpressionAttribute", RegularExpressionAttributeSource);
+            ctx.AddSource("FileExistsAttribute.g.cs", FileExistsAttributeSource);
+            ctx.AddSource("DirectoryExistsAttribute.g.cs", DirectoryExistsAttributeSource);
+            ctx.AddSource("RangeAttribute.g.cs", RangeAttributeSource);
+            ctx.AddSource("RegularExpressionAttribute.g.cs", RegularExpressionAttributeSource);
         });
     }
 
