@@ -934,27 +934,52 @@ Consider making this a first-class feature with automatic simulation support.
 ## Developer Experience
 
 ### 📊 Better Testing Utilities
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Helpers for testing CLI applications:
-```csharp
-[Fact]
-public async Task TestDeployCommand()
-{
-    var result = await CommandTester.ExecuteAsync<DeployCommand>(
-        "deploy", "--environment", "staging");
+TeCLI now provides a comprehensive testing extension package (`TeCLI.Extensions.Testing`) with utilities for testing CLI applications:
 
-    Assert.Equal(0, result.ExitCode);
-    Assert.Contains("Deployed successfully", result.Output);
-}
+```csharp
+// Create a test host for your dispatcher
+var host = CommandTestHost.Create<CommandDispatcher>();
+
+// Execute using fluent argument builder
+var result = await host.ExecuteAsync(
+    ArgumentBuilder.Command("deploy")
+        .Action("production")
+        .Option("region", "us-west-2")
+        .Flag("force"));
+
+// Use chainable assertions
+result
+    .ShouldSucceed()
+    .ShouldContainOutput("Deployed successfully")
+    .ShouldNotContainError("Error")
+    .ShouldCompleteWithin(TimeSpan.FromSeconds(5));
+
+// Test with mock console input for interactive commands
+var result = await host.ExecuteWithInputAsync(
+    new[] { "interactive", "login" },
+    new[] { "username", "password" });
 ```
 
-**Features:**
-- In-memory command execution
-- Output capturing (stdout/stderr)
-- Exit code verification
-- Integration with xUnit, NUnit, MSTest
+**Implemented Features:**
+- ✅ `CommandTestHost<T>` - Test harness for executing commands in isolated environment
+- ✅ `TestConsole` - Mock console for capturing stdout/stderr and providing stdin
+- ✅ `ArgumentBuilder` - Fluent API for building command-line arguments
+- ✅ `CommandResult` - Encapsulates execution results (output, error, exit code, exception)
+- ✅ Chainable assertion methods (`ShouldSucceed`, `ShouldContainOutput`, `ShouldThrow<T>`, etc.)
+- ✅ Support for testing interactive prompts with mock input
+- ✅ Framework-agnostic (works with xUnit, NUnit, MSTest, etc.)
+- ✅ Comprehensive test coverage (85+ tests)
+
+**Files Added:**
+- `TeCLI.Extensions.Testing/CommandTestHost.cs` - Test harness
+- `TeCLI.Extensions.Testing/TestConsole.cs` - Mock console I/O
+- `TeCLI.Extensions.Testing/ArgumentBuilder.cs` - Fluent argument builder
+- `TeCLI.Extensions.Testing/CommandResult.cs` - Execution result wrapper
+- `TeCLI.Extensions.Testing/CommandResultAssertions.cs` - Assertion helpers
+- `TeCLI.Extensions.Testing.Tests/` - Comprehensive test suite
 
 ---
 
@@ -1078,6 +1103,361 @@ Official integration packages:
 
 ---
 
+## Future Extension Packages
+
+The following extension packages are planned for future development to expand TeCLI's ecosystem.
+
+### 🎯 TeCLI.Extensions.Logging
+**Status:** Planned
+**Priority:** High
+
+Integration with `Microsoft.Extensions.Logging` and popular logging frameworks:
+
+```csharp
+[Command("process")]
+public class ProcessCommand
+{
+    private readonly ILogger<ProcessCommand> _logger;
+
+    public ProcessCommand(ILogger<ProcessCommand> logger)
+    {
+        _logger = logger;
+    }
+
+    [Action("run")]
+    public void Run([Option("verbose", ShortName = 'v')] bool verbose)
+    {
+        _logger.LogInformation("Starting process...");
+    }
+}
+
+// Program.cs
+services.AddCommandDispatcher();
+services.AddLogging(builder => builder.AddConsole());
+```
+
+**Planned Features:**
+- Auto-inject `ILogger<T>` into commands
+- Log command invocations, arguments, and execution times
+- Configure log levels via CLI options (`--verbose`, `--quiet`, `--log-level`)
+- Integration with Serilog, NLog, and other providers
+
+---
+
+### 🎯 TeCLI.Extensions.Configuration
+**Status:** Planned
+**Priority:** High
+
+Integration with `Microsoft.Extensions.Configuration`:
+
+```csharp
+// appsettings.json
+{
+  "Deploy": {
+    "DefaultEnvironment": "staging",
+    "DefaultRegion": "us-west-2"
+  }
+}
+
+[Command("deploy")]
+public class DeployCommand
+{
+    [Action("run")]
+    public void Run(
+        [Option("environment")] string environment,  // Falls back to config
+        [Option("region")] string region)
+    {
+    }
+}
+
+// Precedence: CLI > Environment Variable > Config File > Default Value
+```
+
+**Planned Features:**
+- Load option defaults from `appsettings.json`, user secrets, or config files
+- Support `--config <file>` option pattern
+- Environment-specific configurations
+- Per-command configuration sections
+
+---
+
+### 📊 TeCLI.Extensions.Output
+**Status:** Planned
+**Priority:** Medium
+
+Structured output formatting with multiple format support:
+
+```csharp
+[Command("list")]
+public class ListCommand
+{
+    [Action("users")]
+    [OutputFormat]  // Enables --output json|xml|table|yaml
+    public IEnumerable<User> ListUsers()
+    {
+        return _userService.GetAll();
+    }
+}
+
+// Usage:
+// myapp list users --output json
+// myapp list users --output table
+```
+
+**Planned Features:**
+- `[OutputFormat]` attribute to enable `--output json|xml|table|yaml`
+- Custom `IOutputFormatter<T>` interface for custom formats
+- Table rendering with column alignment, colors
+- Integration with `Spectre.Console` for rich tables
+
+---
+
+### 📊 TeCLI.Extensions.Hosting
+**Status:** Planned
+**Priority:** Medium
+
+Integration with `Microsoft.Extensions.Hosting` for long-running CLI services:
+
+```csharp
+await Host.CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        services.AddCommandDispatcher();
+        services.AddHostedService<BackgroundWorker>();
+    })
+    .RunCommandLineAsync(args);
+```
+
+**Planned Features:**
+- Long-running CLI services (daemons)
+- Background task support with `IHostedService`
+- Graceful shutdown handling
+- Integration with hosted services
+- Health checks support
+
+---
+
+### 📊 TeCLI.Extensions.Progress
+**Status:** Planned
+**Priority:** Medium
+
+Rich terminal UI elements for progress and status:
+
+```csharp
+[Action("download")]
+public async Task Download(
+    [Argument] string url,
+    IProgressContext progress)  // Auto-injected
+{
+    using var bar = progress.CreateProgressBar("Downloading...");
+
+    await foreach (var chunk in DownloadChunksAsync(url))
+    {
+        bar.Increment(chunk.Length);
+    }
+}
+
+[Action("process")]
+public async Task Process([Argument] string[] files)
+{
+    using var spinner = progress.CreateSpinner("Processing...");
+
+    foreach (var file in files)
+    {
+        spinner.Status = $"Processing {file}...";
+        await ProcessFileAsync(file);
+    }
+}
+```
+
+**Planned Features:**
+- `[Progress]` for progress bar support
+- Spinner animations during async operations
+- Status messages and tables
+- Integration with `Spectre.Console`
+- Auto-detect terminal capabilities
+
+---
+
+### 📊 TeCLI.Extensions.Resilience
+**Status:** Planned
+**Priority:** Medium
+
+Integration with Polly for retry and resilience patterns:
+
+```csharp
+[Command("api")]
+public class ApiCommand
+{
+    [Action("call")]
+    [Retry(attempts: 3, delayMs: 1000)]
+    [Timeout(seconds: 30)]
+    [CircuitBreaker(failuresBeforeBreak: 5)]
+    public async Task CallApi([Argument] string endpoint)
+    {
+        await _httpClient.GetAsync(endpoint);
+    }
+}
+```
+
+**Planned Features:**
+- Retry policies via `[Retry(attempts: 3)]` attribute
+- Timeout handling via `[Timeout(seconds: 30)]`
+- Circuit breaker patterns for external calls
+- Integration with Polly library
+- Configurable backoff strategies
+
+---
+
+### 💡 TeCLI.Extensions.Auth
+**Status:** Planned
+**Priority:** Low
+
+Authentication and authorization support for CLIs:
+
+```csharp
+[Command("api")]
+[RequiresAuth]
+public class ApiCommand
+{
+    [Action("call")]
+    [RequiresScope("api.read")]
+    public void Call([Argument] string endpoint) { }
+}
+
+// Built-in auth commands
+// myapp auth login
+// myapp auth logout
+// myapp auth status
+```
+
+**Planned Features:**
+- OAuth2/OIDC support (`--login`, `--logout`)
+- Token caching and automatic refresh
+- `[RequiresAuth]` and `[RequiresScope]` attributes
+- API key management
+- Device code flow for headless environments
+
+---
+
+### 💡 TeCLI.Extensions.Telemetry
+**Status:** Planned
+**Priority:** Low
+
+Usage tracking and diagnostics:
+
+```csharp
+services.AddCommandDispatcher();
+services.AddTelemetry(options =>
+{
+    options.EnableAnonymousUsageTracking = true;  // Opt-in
+    options.AddAppInsights(connectionString);
+    options.AddSentry(dsn);
+});
+```
+
+**Planned Features:**
+- Anonymous usage analytics (opt-in)
+- Error reporting integration (Sentry, App Insights)
+- Performance metrics collection
+- `[TrackUsage]` attribute for specific commands
+- GDPR-compliant data collection
+
+---
+
+### 💡 TeCLI.Extensions.Interactive
+**Status:** Planned
+**Priority:** Low
+
+Enhanced REPL-like interactive functionality:
+
+```csharp
+[Command("shell")]
+[Interactive]  // Enables REPL mode
+public class ShellCommand
+{
+    [Action("query")]
+    public void Query([Argument] string sql) { }
+}
+
+// Usage:
+// myapp shell
+// > query SELECT * FROM users
+// > query SELECT * FROM orders
+// > exit
+```
+
+**Planned Features:**
+- `[Interactive]` attribute for REPL mode
+- Command history with up/down arrows
+- Auto-complete in shell
+- Persistent session state between commands
+- `Spectre.Console` or `Terminal.Gui` integration
+
+---
+
+### 💡 TeCLI.Extensions.Caching
+**Status:** Planned
+**Priority:** Low
+
+Command result caching for expensive operations:
+
+```csharp
+[Command("api")]
+public class ApiCommand
+{
+    [Action("fetch")]
+    [Cacheable(duration: "1h", key: "{endpoint}")]
+    public async Task<string> Fetch([Argument] string endpoint)
+    {
+        return await _httpClient.GetStringAsync(endpoint);
+    }
+}
+
+// Usage:
+// myapp api fetch https://api.example.com/data
+// myapp api fetch https://api.example.com/data --no-cache
+```
+
+**Planned Features:**
+- `[Cacheable(duration: "1h")]` attribute
+- File-based or memory cache
+- Cache invalidation via `--no-cache` flag
+- Cache key templates with parameter substitution
+- Cache statistics and management commands
+
+---
+
+### 🔬 TeCLI.Extensions.Plugins
+**Status:** Research Needed
+**Priority:** Low
+
+Runtime-loadable command extensions:
+
+```csharp
+// Main application
+await CommandDispatcher.DiscoverPlugins("./plugins");
+await CommandDispatcher.DispatchAsync(args);
+
+// Plugin assembly (separate project)
+[Plugin("my-plugin", Version = "1.0.0")]
+[Command("custom")]
+public class CustomCommand
+{
+    [Action("run")]
+    public void Run() { }
+}
+```
+
+**Planned Features:**
+- Discover commands from external assemblies
+- Plugin manifest format for metadata
+- Version compatibility checking
+- Plugin install/update/remove commands
+- Sandboxed execution for security
+
+---
+
 ### 💡 Code Snippets and Templates
 **Status:** Planned
 **Priority:** Low
@@ -1196,4 +1576,4 @@ The following high-priority items should be considered next:
 
 ---
 
-*Last Updated: 2025-11-20*
+*Last Updated: 2025-12-02*
