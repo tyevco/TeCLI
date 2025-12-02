@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<RootNamespace>TeCLI.Output</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<Authors>Tyler Coles</Authors>
+		<Description>Structured output formatting for TeCLI - JSON, XML, YAML, and table output with custom formatter support</Description>
+		<PackageTags>tecli;cli;output;json;xml;yaml;table;formatting</PackageTags>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<RepositoryUrl>https://github.com/tyevco/TeCLI</RepositoryUrl>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
+		<ItemGroup>
+			<NugetFiles Include="bin\**\$(MSBuildProjectName).*.nupkg"/>
+		</ItemGroup>
+
+		<Copy
+            SourceFiles="@(NugetFiles)"
+            DestinationFolder="..\..\.packages\"
+			ContinueOnError="true"
+        />
+
+		<Message Text="Copied nupkg to repo directory." Importance="high" />
+	</Target>
+
+	<ItemGroup>
+		<None Include="../../LICENSE" Pack="true" PackagePath=""/>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Spectre.Console" Version="0.49.1" />
+		<PackageReference Include="System.Text.Json" Version="8.0.5" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+	</ItemGroup>
+
+</Project>

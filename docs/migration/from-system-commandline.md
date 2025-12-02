@@ -428,6 +428,7 @@ await dispatcher.DispatchAsync(args);
 | Localization (i18n) | ❌ | ✅ Attribute-based |
 | Interactive shell (REPL) | ❌ | ✅ Built-in |
 | Progress UI | ❌ | ✅ Auto-injected |
+| Structured output (JSON/XML/YAML/Table) | ❌ | ✅ Built-in |
 
 ## Benefits of Migration
 
@@ -521,3 +522,36 @@ public async Task Download(
     }
     bar.Complete("Download complete!");
 }
+```
+
+### Structured Output Formatting
+
+Format output as JSON, XML, YAML, or tables with a single attribute:
+
+```csharp
+using TeCLI.Output;
+
+[Command("list")]
+public class ListCommand
+{
+    [Action("users")]
+    [OutputFormat]  // Enables --output json|xml|table|yaml
+    public IEnumerable<User> ListUsers()
+    {
+        return _userService.GetAll();
+    }
+}
+
+// Usage:
+// myapp list users --output json
+// myapp list users --output table
+// myapp list users -o yaml
+```
+
+Or use the fluent API directly:
+
+```csharp
+OutputContext.Create()
+    .WithFormat(OutputFormat.Json)
+    .WriteTo(Console.Out)
+    .Write(users);
