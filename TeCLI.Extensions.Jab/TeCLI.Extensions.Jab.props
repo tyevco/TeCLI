@@ -1,0 +1,26 @@
+<Project>
+	<PropertyGroup Condition="'$(TeCLI_InvokerLibrary)' == ''">
+		<TeCLI_InvokerLibrary>TeCLI.Extensions.Jab</TeCLI_InvokerLibrary>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<CompilerVisibleProperty Include="TeCLI_InvokerLibrary" />
+	</ItemGroup>
+
+	<!-- Jab package references by target framework -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0' Or '$(TargetFramework)' == 'net10.0'">
+		<PackageReference Include="Jab" Version="0.10.2" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Jab" Version="0.10.2" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+		<PackageReference Include="Jab" Version="0.10.2" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Jab" Version="0.10.2" />
+	</ItemGroup>
+</Project>
