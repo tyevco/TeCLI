@@ -347,7 +347,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "GIT", "REMOTE", "ADD", "origin", "https://example.com" };
+        var args = new[] { "GITCLI", "REMOTE", "ADD", "origin", "https://example.com" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -363,7 +363,7 @@ public class NestedCommandTests
     {
         // Arrange
         NestedCommand.Reset();
-        var args = new[] { "Git", "Config", "User", "Name", "Test User" };
+        var args = new[] { "GitCli", "Config", "User", "Name", "Test User" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -428,7 +428,7 @@ public class NestedCommandTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("url", exception.Message.ToLower());
     }
