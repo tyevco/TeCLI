@@ -17,7 +17,7 @@ public class AppGlobalOptions
     [Option("log-level")]
     public string LogLevel { get; set; } = "info";
 
-    [Option("timeout")]
+    [Option("request-timeout")]
     public int Timeout { get; set; } = 30;
 
     [Option("debug", ShortName = 'd')]

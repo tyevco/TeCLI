@@ -97,7 +97,7 @@ public class GlobalOptionsTests
     {
         // Arrange
         GlobalOptionsCommand.Reset();
-        var args = new[] { "--timeout", "60", "globaltest", "simple" };
+        var args = new[] { "--request-timeout", "60", "globaltest", "simple" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -117,7 +117,7 @@ public class GlobalOptionsTests
     {
         // Arrange
         GlobalOptionsCommand.Reset();
-        var args = new[] { "--verbose", "--config", "app.conf", "--timeout", "45", "globaltest", "process", "input.txt" };
+        var args = new[] { "--verbose", "--config", "app.conf", "--request-timeout", "45", "globaltest", "process", "input.txt" };
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
