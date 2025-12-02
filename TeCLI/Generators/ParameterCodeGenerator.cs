@@ -11,6 +11,13 @@ internal static class ParameterCodeGenerator
 {
     public static void GenerateParameterParsingCode(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName)
     {
+        // Handle progress context types specially - they are auto-injected
+        if (sourceInfo.IsProgressContext)
+        {
+            cb.AppendLine($"{sourceInfo.DisplayType} {variableName} = new TeCLI.Console.ProgressContext();");
+            return;
+        }
+
         cb.AppendLine($"{sourceInfo.DisplayType} {variableName} = default;");
         if (sourceInfo.Optional)
         {
