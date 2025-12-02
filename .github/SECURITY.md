@@ -19,7 +19,7 @@ We take the security of TeCLI seriously. If you discover a security vulnerabilit
 2. Report the vulnerability privately using one of these methods:
 
    **GitHub Security Advisories (Preferred):**
-   - Navigate to the [Security Advisories](https://github.com/TylerCode/TeCLI/security/advisories) page
+   - Navigate to the [Security Advisories](https://github.com/tyevco/TeCLI/security/advisories) page
    - Click "Report a vulnerability"
    - Provide detailed information about the vulnerability
 
@@ -100,18 +100,15 @@ When using TeCLI in your applications:
 ### Input Validation
 
 ```csharp
-[CliCommand]
+[Command("secure")]
 public class SecureCommand
 {
-    [Parameter]
-    [Required]
-    [StringLength(100)] // Limit input length
-    public string? Input { get; set; }
-
-    public void Execute()
+    [Primary]
+    public void Execute(
+        [Option("input", Required = true)] string input)
     {
         // Always validate and sanitize user input
-        if (string.IsNullOrWhiteSpace(Input))
+        if (string.IsNullOrWhiteSpace(input))
             throw new ArgumentException("Input cannot be empty");
 
         // Use parameterized queries for database operations
@@ -124,32 +121,34 @@ public class SecureCommand
 ### Secure File Operations
 
 ```csharp
-[Parameter]
-public string? FilePath { get; set; }
-
-public void Execute()
+[Command("files")]
+public class FileCommand
 {
-    // Validate file paths
-    var fullPath = Path.GetFullPath(FilePath);
-    if (!fullPath.StartsWith(allowedDirectory))
-        throw new SecurityException("Access denied");
+    [Primary]
+    public void Execute([Argument] string filePath)
+    {
+        // Validate file paths
+        var fullPath = Path.GetFullPath(filePath);
+        if (!fullPath.StartsWith(allowedDirectory))
+            throw new SecurityException("Access denied");
+    }
 }
-```
 
 ### Sensitive Data Handling
 
 ```csharp
-[Parameter]
-[Option("--password")]
-public string? Password { get; set; }
-
-public void Execute()
+[Command("auth")]
+public class AuthCommand
 {
-    // Never log sensitive data
-    // Use SecureString for passwords when possible
-    // Clear sensitive data from memory after use
+    [Primary]
+    public void Login(
+        [Option("password", Prompt = "Enter password", SecurePrompt = true)] string password)
+    {
+        // Never log sensitive data
+        // Use SecureString for passwords when possible
+        // Clear sensitive data from memory after use
+    }
 }
-```
 
 ## Security Features
 

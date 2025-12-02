@@ -117,7 +117,6 @@ Relates to #
 
 <!-- Final verification before submitting -->
 
-- [ ] I have read the [contributing guidelines](../CONTRIBUTING.md)
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code where necessary
 - [ ] I have updated relevant documentation

@@ -49,16 +49,21 @@ We aim for:
 
 ### What's Covered
 
-- ✅ TeCLI.Core (attributes)
-- ✅ TeCLI.Tools (utilities)
-- ✅ TeCLI (generators and analyzers)
+- ✅ TeCLI (source generators, analyzers, and embedded attributes)
+- ✅ TeCLI.Tools (shared utilities)
 - ✅ TeCLI.Extensions.DependencyInjection
+- ✅ TeCLI.Extensions.Testing
+- ✅ TeCLI.Extensions.Console
+- ✅ TeCLI.Extensions.Autofac
+- ✅ TeCLI.Extensions.SimpleInjector
+- ✅ TeCLI.Extensions.Jab
+- ✅ TeCLI.Extensions.PureDI
 
 ### What's Excluded
 
-- ❌ TeCLI.Example (sample code)
+- ❌ TeCLI.Example.* (sample code)
 - ❌ TeCLI.Benchmarks (performance tests)
-- ❌ TeCLI.Tests (test code itself)
+- ❌ TeCLI.Tests, TeCLI.Extensions.*.Tests (test code itself)
 - ❌ Generated files (*.g.cs, *.Designer.cs)
 
 ## CI/CD Integration
