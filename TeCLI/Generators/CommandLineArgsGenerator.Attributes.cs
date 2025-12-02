@@ -620,13 +620,14 @@ namespace TeCLI;
 public static class StringSimilarity
 {
     /// <summary>
-    /// Calculates the Levenshtein distance between two strings.
-    /// The Levenshtein distance is the minimum number of single-character edits
-    /// (insertions, deletions, or substitutions) required to change one string into another.
+    /// Calculates the Damerau-Levenshtein distance between two strings.
+    /// This is the minimum number of single-character edits (insertions, deletions,
+    /// substitutions, or transpositions of adjacent characters) required to change
+    /// one string into another.
     /// </summary>
     /// <param name="source">The source string</param>
     /// <param name="target">The target string</param>
-    /// <returns>The Levenshtein distance between the two strings</returns>
+    /// <returns>The Damerau-Levenshtein distance between the two strings</returns>
     public static int CalculateLevenshteinDistance(string source, string target)
     {
         if (string.IsNullOrEmpty(source))
@@ -648,7 +649,7 @@ public static class StringSimilarity
         for (int j = 0; j <= targetLength; j++)
             distance[0, j] = j;
 
-        // Calculate distances
+        // Calculate distances using Damerau-Levenshtein algorithm
         for (int i = 1; i <= sourceLength; i++)
         {
             for (int j = 1; j <= targetLength; j++)
@@ -660,6 +661,16 @@ public static class StringSimilarity
                         distance[i - 1, j] + 1,      // deletion
                         distance[i, j - 1] + 1),     // insertion
                     distance[i - 1, j - 1] + cost);  // substitution
+
+                // Transposition: check if swapping adjacent characters helps
+                if (i > 1 && j > 1 &&
+                    source[i - 1] == target[j - 2] &&
+                    source[i - 2] == target[j - 1])
+                {
+                    distance[i, j] = Math.Min(
+                        distance[i, j],
+                        distance[i - 2, j - 2] + cost); // transposition
+                }
             }
         }
 

@@ -18,7 +18,7 @@ public class StringSimilarityTests
     [InlineData("build", "biuld", 1)]
     [InlineData("environment", "enviornment", 1)]
     [InlineData("hello", "world", 4)]
-    [InlineData("build", "test", 4)]
+    [InlineData("build", "test", 5)]
     public void CalculateLevenshteinDistance_ShouldReturnCorrectDistance(string source, string target, int expected)
     {
         // Act
@@ -150,7 +150,7 @@ public class StringSimilarityTests
     [Theory]
     [InlineData("--enviornment", new[] { "--environment", "--verbose", "--force" }, "--environment")]
     [InlineData("--envronment", new[] { "--environment", "--verbose", "--force" }, "--environment")]
-    [InlineData("-v", new[] { "--verbose", "--version" }, "--verbose")]
+    [InlineData("--vebrose", new[] { "--verbose", "--version" }, "--verbose")]
     [InlineData("--versoin", new[] { "--version", "--verbose" }, "--version")]
     public void FindMostSimilar_WithOptions_ShouldSuggestCorrectOption(
         string input,
