@@ -6,8 +6,13 @@
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<None Include="obj/$(Configuration)/**/generated/**/*.cs" />
+	</ItemGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="GitHubActionsTestLogger" Version="3.0.1" />
 		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" />
@@ -29,8 +34,6 @@
 		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" Private="false" />
 
 		<ProjectReference Include="..\TeCLI\TeCLI.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-		<ProjectReference Include="..\TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
 	</ItemGroup>
 
-	<Import Project="..\TeCLI.Extensions.DependencyInjection\TeCLI.Extensions.DependencyInjection.props" />
 </Project>

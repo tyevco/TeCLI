@@ -184,7 +184,7 @@ public partial class CommandLineArgsGenerator
     {
         // Generate hook context creation
         statements.Add(ParseStatement("// Create hook context"));
-        statements.Add(ParseStatement($@"var hookContext = new TeCLI.Core.Hooks.HookContext
+        statements.Add(ParseStatement($@"var hookContext = new TeCLI.Hooks.HookContext
 {{
     CommandName = ""{commandInfo?.CommandName ?? ""}"",
     ActionName = ""{actionInfo.DisplayName}"",
@@ -196,7 +196,7 @@ public partial class CommandLineArgsGenerator
         if (allBeforeHooks.Count > 0)
         {
             statements.Add(ParseStatement("// Before execute hooks"));
-            statements.Add(ParseStatement("var beforeHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IBeforeExecuteHook>();"));
+            statements.Add(ParseStatement("var beforeHooks = new System.Collections.Generic.List<TeCLI.Hooks.IBeforeExecuteHook>();"));
             foreach (var hook in allBeforeHooks)
             {
                 statements.Add(ParseStatement($"beforeHooks.Add(new {hook.HookTypeName}());"));
@@ -232,7 +232,7 @@ public partial class CommandLineArgsGenerator
             if (allAfterHooks.Count > 0)
             {
                 tryStatements.Add(ParseStatement("// After execute hooks"));
-                tryStatements.Add(ParseStatement("var afterHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IAfterExecuteHook>();"));
+                tryStatements.Add(ParseStatement("var afterHooks = new System.Collections.Generic.List<TeCLI.Hooks.IAfterExecuteHook>();"));
                 foreach (var hook in allAfterHooks)
                 {
                     tryStatements.Add(ParseStatement($"afterHooks.Add(new {hook.HookTypeName}());"));
@@ -251,7 +251,7 @@ public partial class CommandLineArgsGenerator
             {
                 var catchStatements = new List<StatementSyntax>();
                 catchStatements.Add(ParseStatement("// Error hooks"));
-                catchStatements.Add(ParseStatement("var errorHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IOnErrorHook>();"));
+                catchStatements.Add(ParseStatement("var errorHooks = new System.Collections.Generic.List<TeCLI.Hooks.IOnErrorHook>();"));
                 foreach (var hook in allErrorHooks)
                 {
                     catchStatements.Add(ParseStatement($"errorHooks.Add(new {hook.HookTypeName}());"));
@@ -362,7 +362,7 @@ if (!handled)
             {
                 // Generate hook context creation
                 cb.AppendLine("// Create hook context");
-                cb.AppendLine("var hookContext = new TeCLI.Core.Hooks.HookContext");
+                cb.AppendLine("var hookContext = new TeCLI.Hooks.HookContext");
                 using (cb.AddBlock("", 4, "{", "};"))
                 {
                     cb.AppendLine($"CommandName = \"{commandInfo?.CommandName ?? ""}\",");
@@ -376,7 +376,7 @@ if (!handled)
                 if (allBeforeHooks.Count > 0)
                 {
                     cb.AppendLine("// Before execute hooks");
-                    cb.AppendLine("var beforeHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IBeforeExecuteHook>();");
+                    cb.AppendLine("var beforeHooks = new System.Collections.Generic.List<TeCLI.Hooks.IBeforeExecuteHook>();");
                     foreach (var hook in allBeforeHooks)
                     {
                         cb.AppendLine($"beforeHooks.Add(new {hook.HookTypeName}());");
@@ -417,7 +417,7 @@ if (!handled)
                         {
                             cb.AddBlankLine();
                             cb.AppendLine("// After execute hooks");
-                            cb.AppendLine("var afterHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IAfterExecuteHook>();");
+                            cb.AppendLine("var afterHooks = new System.Collections.Generic.List<TeCLI.Hooks.IAfterExecuteHook>();");
                             foreach (var hook in allAfterHooks)
                             {
                                 cb.AppendLine($"afterHooks.Add(new {hook.HookTypeName}());");
@@ -437,7 +437,7 @@ if (!handled)
                         using (cb.AddBlock("catch (System.Exception ex)"))
                         {
                             cb.AppendLine("// Error hooks");
-                            cb.AppendLine("var errorHooks = new System.Collections.Generic.List<TeCLI.Core.Hooks.IOnErrorHook>();");
+                            cb.AppendLine("var errorHooks = new System.Collections.Generic.List<TeCLI.Hooks.IOnErrorHook>();");
                             foreach (var hook in allErrorHooks)
                             {
                                 cb.AppendLine($"errorHooks.Add(new {hook.HookTypeName}());");
