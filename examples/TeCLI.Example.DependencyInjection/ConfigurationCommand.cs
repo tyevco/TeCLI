@@ -2,7 +2,7 @@
 
 using TeCLI.Attributes;
 
-namespace TeCLI.Example;
+namespace TeCLI.Example.DependencyInjection;
 
 [Command("config")]
 public class ConfigurationCommand

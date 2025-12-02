@@ -1,6 +1,6 @@
 using TeCLI.Attributes;
 
-namespace TeCLI.Example;
+namespace TeCLI.Example.DependencyInjection;
 
 [Command("auth")]
 public class AuthorizationCommand
