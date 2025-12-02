@@ -1136,7 +1136,22 @@ public partial class CommandLineArgsGenerator
                 paramInfo.Name = optionName.IsNull ? property.Name : optionName.Value?.ToString() ?? property.Name;
 
                 var shortName = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ShortName").Value;
-                paramInfo.ShortName = !shortName.IsNull && shortName.Value is char ch ? ch : '\0';
+                // Handle char values which may be represented as char, ushort, or int in Roslyn
+                if (!shortName.IsNull && shortName.Value != null)
+                {
+                    if (shortName.Value is char ch)
+                        paramInfo.ShortName = ch;
+                    else if (shortName.Value is ushort us)
+                        paramInfo.ShortName = (char)us;
+                    else if (shortName.Value is int i && i >= 0 && i <= char.MaxValue)
+                        paramInfo.ShortName = (char)i;
+                    else
+                        paramInfo.ShortName = '\0';
+                }
+                else
+                {
+                    paramInfo.ShortName = '\0';
+                }
 
                 var required = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Required").Value;
                 if (!required.IsNull && required.Value is bool isRequired)

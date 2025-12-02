@@ -252,7 +252,22 @@ internal static class ParameterInfoExtractor
         psi.Name = optionName.IsNull ? symbolName : optionName.Value?.ToString() ?? symbolName;
 
         var shortName = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ShortName").Value;
-        psi.ShortName = !shortName.IsNull && shortName.Value is char ch ? ch : '\0';
+        // Handle char values which may be represented as char, ushort, or int in Roslyn
+        if (!shortName.IsNull && shortName.Value != null)
+        {
+            if (shortName.Value is char ch)
+                psi.ShortName = ch;
+            else if (shortName.Value is ushort us)
+                psi.ShortName = (char)us;
+            else if (shortName.Value is int i && i >= 0 && i <= char.MaxValue)
+                psi.ShortName = (char)i;
+            else
+                psi.ShortName = '\0';
+        }
+        else
+        {
+            psi.ShortName = '\0';
+        }
 
         // Extract the Required property from the attribute
         var required = optionAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "Required").Value;
