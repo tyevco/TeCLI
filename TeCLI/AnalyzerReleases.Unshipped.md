@@ -22,3 +22,18 @@ CLI014 | Usage | Info | ContainerParameterSuggestionAnalyzer - Consider using co
 CLI015 | Usage | Warning | UnusedActionMethodAnalyzer - Action method in non-command class or inaccessible
 CLI016 | Usage | Error/Warning | ValidationAttributeCombinationAnalyzer - Invalid validation attribute combinations
 CLI017 | Usage | Warning | ReservedSwitchNameAnalyzer - Option name conflicts with reserved switch
+CLI018 | Usage | Error | DuplicateCommandNameAnalyzer - Duplicate command names across classes
+CLI019 | Usage | Info | MissingDescriptionAnalyzer - Missing description on Command/Option/Argument
+CLI020 | Usage | Warning | RequiredBooleanOptionAnalyzer - Boolean option marked as required
+CLI021 | Usage | Error | CollectionArgumentPositionAnalyzer - Collection argument not in last position
+CLI022 | Usage | Error | PropertyWithoutSetterAnalyzer - Option/Argument property without setter
+CLI023 | Usage | Info | AsyncWithoutCancellationTokenAnalyzer - Async action without CancellationToken
+CLI024 | Usage | Warning | CommandWithoutActionAnalyzer - Command class without action methods
+CLI025 | Usage | Info | InconsistentNamingConventionAnalyzer - Inconsistent naming convention
+CLI026 | Usage | Info | ShortOptionNameAnalyzer - Single-character option name should use ShortName
+CLI027 | Usage | Info | RedundantNameAnalyzer - Redundant name specification
+CLI028 | Usage | Warning | HiddenRequiredOptionAnalyzer - Hidden option marked as required
+CLI029 | Usage | Info | NullableWithoutDefaultAnalyzer - Nullable option without explicit default
+CLI030 | Usage | Error | EmptyEnumTypeAnalyzer - Option uses empty enum type
+CLI031 | Usage | Warning | MultipleGlobalOptionsAnalyzer - Multiple GlobalOptions classes
+CLI032 | Security | Info | SensitiveOptionAnalyzer - Sensitive option detected
