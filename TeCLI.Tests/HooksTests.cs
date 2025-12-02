@@ -17,7 +17,7 @@ public class HooksTests
         var args = new[] { "hooktest", "simple" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(HooksCommand.WasCalled);
@@ -38,7 +38,7 @@ public class HooksTests
         var args = new[] { "hooktest", "withhooks", "testdata" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(HooksCommand.WasCalled);
@@ -69,7 +69,7 @@ public class HooksTests
         var args = new[] { "hooktest", "cancellable" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(CancellingBeforeHook.WasCalled);
@@ -87,7 +87,7 @@ public class HooksTests
         var args = new[] { "hooktest", "cancellable" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(CancellingBeforeHook.WasCalled);
@@ -105,7 +105,7 @@ public class HooksTests
         var args = new[] { "hooktest", "withhooks", "testdata" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(ValidationBeforeHook.WasCalled);
@@ -122,7 +122,7 @@ public class HooksTests
         var args = new[] { "hooktest", "error", "Test error message" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(HooksCommand.WasCalled);
@@ -144,7 +144,7 @@ public class HooksTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await _dispatcher.InvokeAsync(args));
+            async () => await _dispatcher.DispatchAsync(args));
 
         Assert.Equal("Unhandled error", exception.Message);
         Assert.True(HooksCommand.WasCalled);
@@ -161,7 +161,7 @@ public class HooksTests
         var args = new[] { "hooktest", "multierror" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(HooksCommand.WasCalled);
@@ -180,7 +180,7 @@ public class HooksTests
         var args = new[] { "hooktest", "ordered" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(HooksCommand.WasCalled);
@@ -204,7 +204,7 @@ public class HooksTests
         var args = new[] { "hooktest", "noextra", "--name", "custom" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(HooksCommand.WasCalled);
@@ -229,7 +229,7 @@ public class HooksTests
         var args = new[] { "nohooks", "test" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(NoHooksCommand.WasCalled);
@@ -250,7 +250,7 @@ public class HooksTests
         var args = new[] { "errorhandling", "safe" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(ErrorHandlingCommand.WasCalled);
@@ -270,7 +270,7 @@ public class HooksTests
         var args = new[] { "errorhandling", "throws", "Command error" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(ErrorHandlingCommand.WasCalled);
@@ -289,7 +289,7 @@ public class HooksTests
         var args = new[] { "hooktest", "simple" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.NotNull(LoggingBeforeHook.LastContext);
@@ -307,7 +307,7 @@ public class HooksTests
         var args = new[] { "hooktest", "withhooks", "testdata" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.NotNull(LoggingBeforeHook.LastContext);
@@ -324,7 +324,7 @@ public class HooksTests
         var args = new[] { "hooktest", "withhooks", "test" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.NotNull(LoggingBeforeHook.LastContext);
@@ -348,7 +348,7 @@ public class HooksTests
         var args = new[] { "hooktest", "withhooks", "test" };
 
         // Act
-        await _dispatcher.InvokeAsync(args);
+        await _dispatcher.DispatchAsync(args);
 
         // Assert
         Assert.True(ValidationBeforeHook.WasCalled);
