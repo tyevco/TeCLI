@@ -4,4 +4,7 @@
 using TeCLI;
 
 var dispatcher = new CommandDispatcher();
-await dispatcher.DispatchAsync(args);
+var exitCode = await dispatcher.DispatchAsync(args);
+
+// Return the exit code to the calling process
+return exitCode;

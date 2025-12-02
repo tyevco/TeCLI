@@ -8,23 +8,33 @@ namespace TeCLI.Example.Advanced;
 /// - FileExists validation
 /// - DirectoryExists validation
 /// - FileInfo/DirectoryInfo parameters
+/// - Exit code returns (ExitCode enum and int)
+/// - Exception-to-exit-code mapping
 /// </summary>
 [Command("file", Description = "File and directory operations")]
+[MapExitCode(typeof(UnauthorizedAccessException), ExitCode.PermissionDenied)]
+[MapExitCode(typeof(IOException), ExitCode.IoError)]
 public class FileCommand
 {
     /// <summary>
-    /// Display file information
+    /// Display file information with exit code support
     /// </summary>
     [Primary]
     [Action("info", Description = "Display information about a file")]
-    public void Info(
+    [MapExitCode(typeof(FileNotFoundException), ExitCode.FileNotFound)]
+    public ExitCode Info(
         [Argument(Description = "Path to the file")]
-        [FileExists(ErrorMessage = "The specified file does not exist")]
         string filePath,
 
         [Option("checksums", ShortName = 'c', Description = "Calculate file checksums")]
         bool checksums = false)
     {
+        if (!File.Exists(filePath))
+        {
+            Console.Error.WriteLine($"Error: File '{filePath}' not found.");
+            return ExitCode.FileNotFound;
+        }
+
         var fileInfo = new FileInfo(filePath);
 
         Console.WriteLine($"File Information:");
@@ -40,6 +50,8 @@ public class FileCommand
             Console.WriteLine($"  MD5: (calculating...)");
             Console.WriteLine($"  SHA256: (calculating...)");
         }
+
+        return ExitCode.Success;
     }
 
     /// <summary>
@@ -77,12 +89,11 @@ public class FileCommand
     }
 
     /// <summary>
-    /// Copy file(s) to a destination
+    /// Copy file(s) to a destination with exit code
     /// </summary>
     [Action("copy", Description = "Copy files to a destination", Aliases = new[] { "cp" })]
-    public void Copy(
+    public int Copy(
         [Argument(Description = "Source file path")]
-        [FileExists]
         string source,
 
         [Argument(Description = "Destination path")]
@@ -94,6 +105,18 @@ public class FileCommand
         [Option("permissions", Description = "File permissions to set")]
         FilePermissions permissions = FilePermissions.ReadWrite)
     {
+        if (!File.Exists(source))
+        {
+            Console.Error.WriteLine($"Error: Source file '{source}' not found.");
+            return (int)ExitCode.FileNotFound;
+        }
+
+        if (File.Exists(destination) && !overwrite)
+        {
+            Console.Error.WriteLine($"Error: Destination file '{destination}' already exists. Use -f to overwrite.");
+            return (int)ExitCode.Error;
+        }
+
         Console.WriteLine($"Copying: {source}");
         Console.WriteLine($"     To: {destination}");
         Console.WriteLine($"  Overwrite: {overwrite}");
@@ -101,6 +124,7 @@ public class FileCommand
 
         // Simulate copy
         Console.WriteLine("Copy completed successfully!");
+        return 0; // Success
     }
 
     /// <summary>

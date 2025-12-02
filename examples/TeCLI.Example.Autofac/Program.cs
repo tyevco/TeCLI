@@ -11,4 +11,7 @@ var container = builder.Build();
 
 // Resolve the dispatcher and run
 var dispatcher = container.Resolve<CommandDispatcher>();
-await dispatcher.DispatchAsync(args);
+var exitCode = await dispatcher.DispatchAsync(args);
+
+// Return the exit code to the calling process
+return exitCode;

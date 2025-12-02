@@ -49,6 +49,12 @@ public partial class CommandLineArgsGenerator
                     }
                 }
 
+                // Extract return type information for exit code support
+                ExtractReturnTypeInfo(actionMethod, asi);
+
+                // Extract exit code mappings from MapExitCodeAttribute
+                ExtractExitCodeMappings(actionMethod, asi.ExitCodeMappings);
+
                 actions.Add(asi);
             }
         }
@@ -402,14 +408,8 @@ if (!handled)
                 {
                     using (var tryCatch = cb.AddTry())
                     {
-                        // Generate parameter parsing and action invocation
-                        GenerateParameterCode(
-                            cb,
-                            actionInfo.Method!,
-                            actionInfo.Method!.MapAsync(
-                                () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
-                                () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
-                            globalOptions);
+                        // Generate parameter parsing and action invocation with exit code support
+                        GenerateParameterCode(cb, actionInfo, globalOptions);
 
                         // Generate after execute hooks inside try block
                         if (allAfterHooks.Count > 0)
@@ -423,9 +423,11 @@ if (!handled)
                             }
                             cb.AddBlankLine();
 
+                            // Pass the exit code as result to hooks if available
+                            var resultArg = actionInfo.ReturnsExitCode ? "_lastExitCode" : "null";
                             using (cb.AddBlock("foreach (var hook in afterHooks)"))
                             {
-                                cb.AppendLine("await hook.AfterExecuteAsync(hookContext, null);");
+                                cb.AppendLine($"await hook.AfterExecuteAsync(hookContext, {resultArg});");
                             }
                         }
 
@@ -460,13 +462,7 @@ if (!handled)
                 else if (allAfterHooks.Count > 0)
                 {
                     // Only after hooks, no try-catch needed
-                    GenerateParameterCode(
-                        cb,
-                        actionInfo.Method!,
-                        actionInfo.Method!.MapAsync(
-                            () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
-                            () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
-                        globalOptions);
+                    GenerateParameterCode(cb, actionInfo, globalOptions);
 
                     cb.AddBlankLine();
                     cb.AppendLine("// After execute hooks");
@@ -477,33 +473,23 @@ if (!handled)
                     }
                     cb.AddBlankLine();
 
+                    // Pass the exit code as result to hooks if available
+                    var resultArg = actionInfo.ReturnsExitCode ? "_lastExitCode" : "null";
                     using (cb.AddBlock("foreach (var hook in afterHooks)"))
                     {
-                        cb.AppendLine("await hook.AfterExecuteAsync(hookContext, null);");
+                        cb.AppendLine($"await hook.AfterExecuteAsync(hookContext, {resultArg});");
                     }
                 }
                 else
                 {
                     // No after or error hooks, just generate the action code directly
-                    GenerateParameterCode(
-                        cb,
-                        actionInfo.Method!,
-                        actionInfo.Method!.MapAsync(
-                            () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
-                            () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
-                        globalOptions);
+                    GenerateParameterCode(cb, actionInfo, globalOptions);
                 }
             }
             else
             {
                 // No hooks, generate normal code
-                GenerateParameterCode(
-                    cb,
-                    actionInfo.Method!,
-                    actionInfo.Method!.MapAsync(
-                        () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
-                        () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
-                    globalOptions);
+                GenerateParameterCode(cb, actionInfo, globalOptions);
             }
         }
     }
