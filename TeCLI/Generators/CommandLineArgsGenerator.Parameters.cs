@@ -76,6 +76,7 @@ public partial class CommandLineArgsGenerator
     {
         // Check if there are required parameters without environment variable fallback
         // If all required params have env vars, we should try parsing even if args.Length == 0
+        var requiredParams = parameterDetails.Where(p => p.Required).ToList();
         var hasRequiredWithoutEnvVar = parameterDetails.Any(p => p.Required && string.IsNullOrEmpty(p.EnvVar));
 
         if (hasRequiredWithoutEnvVar)
@@ -83,7 +84,9 @@ public partial class CommandLineArgsGenerator
             // Only throw early if there are required params that can't be satisfied by env vars
             using (cb.AddBlock("if (args.Length == 0)"))
             {
-                cb.AppendLine($"""throw new ArgumentException("{ErrorMessages.RequiredParametersNotProvided}");""");
+                // Throw error with the first required option name
+                var firstRequired = requiredParams.First();
+                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{firstRequired.Name}"));""");
             }
             cb.AddBlankLine();
         }
@@ -252,6 +255,7 @@ public partial class CommandLineArgsGenerator
         {
             // Check if there are required parameters without environment variable fallback
             // If all required params have env vars, we should try parsing even if args.Length == 0
+            var requiredParams = parameterDetails.Where(p => p.Required).ToList();
             var hasRequiredWithoutEnvVar = parameterDetails.Any(p => p.Required && string.IsNullOrEmpty(p.EnvVar));
 
             if (hasRequiredWithoutEnvVar)
@@ -259,7 +263,9 @@ public partial class CommandLineArgsGenerator
                 // Only throw early if there are required params that can't be satisfied by env vars
                 using (cb.AddBlock("if (args.Length == 0)"))
                 {
-                    cb.AppendLine($"""throw new ArgumentException("{ErrorMessages.RequiredParametersNotProvided}");""");
+                    // Throw error with the first required option name
+                    var firstRequired = requiredParams.First();
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{firstRequired.Name}"));""");
                 }
                 cb.AddBlankLine();
             }
