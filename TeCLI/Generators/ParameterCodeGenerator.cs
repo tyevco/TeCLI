@@ -39,6 +39,13 @@ internal static class ParameterCodeGenerator
 
     private static void GenerateOptionSource(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName)
     {
+        // Handle stream types specially
+        if (sourceInfo.IsStreamType)
+        {
+            GenerateStreamOptionSource(cb, sourceInfo, variableName);
+            return;
+        }
+
         if (sourceInfo.IsSwitch)
         {
             string switchCheck = sourceInfo.ShortName != '\0'
@@ -374,8 +381,170 @@ internal static class ParameterCodeGenerator
         }
     }
 
+    private static void GenerateStreamOptionSource(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName)
+    {
+        string optionCheck = sourceInfo.ShortName != '\0'
+            ? $"arg == \"-{sourceInfo.ShortName}\" || arg == \"--{sourceInfo.Name}\""
+            : $"arg == \"--{sourceInfo.Name}\"";
+
+        cb.AppendLine($"string? {variableName}Path = null;");
+        cb.AppendLine($"var {variableName}Index = Array.FindIndex(args, arg => {optionCheck});");
+        using (cb.AddBlock($"if ({variableName}Index != -1 && args.Length > {variableName}Index + 1)"))
+        {
+            cb.AppendLine($"{variableName}Path = args[{variableName}Index + 1];");
+        }
+
+        // Environment variable fallback
+        if (!string.IsNullOrEmpty(sourceInfo.EnvVar))
+        {
+            using (cb.AddBlock($"if ({variableName}Path == null)"))
+            {
+                cb.AppendLine($"{variableName}Path = System.Environment.GetEnvironmentVariable(\"{sourceInfo.EnvVar}\");");
+            }
+        }
+
+        // Generate stream creation based on stream type and direction
+        var isInput = sourceInfo.StreamDirection == StreamDirection.Input;
+        var isOutput = sourceInfo.StreamDirection == StreamDirection.Output;
+        var isBidirectional = sourceInfo.StreamDirection == StreamDirection.Bidirectional;
+
+        using (cb.AddBlock($"if ({variableName}Path != null)"))
+        {
+            // Handle "-" as stdin/stdout
+            using (cb.AddBlock($"if ({variableName}Path == \"-\")"))
+            {
+                GenerateStdioStreamCreation(cb, sourceInfo, variableName, isInput, isOutput, isBidirectional);
+            }
+            using (cb.AddBlock("else"))
+            {
+                // File path provided
+                GenerateFileStreamCreation(cb, sourceInfo, variableName, isInput, isOutput, isBidirectional);
+            }
+
+            if (sourceInfo.Optional)
+            {
+                cb.AppendLine($"{variableName}Set = true;");
+            }
+        }
+        using (cb.AddBlock("else"))
+        {
+            // No path provided - check for piped input or use default
+            if (isInput || isBidirectional)
+            {
+                // For input streams, check if stdin is piped
+                using (cb.AddBlock("if (System.Console.IsInputRedirected)"))
+                {
+                    GenerateStdioStreamCreation(cb, sourceInfo, variableName, true, false, false);
+                    if (sourceInfo.Optional)
+                    {
+                        cb.AppendLine($"{variableName}Set = true;");
+                    }
+                }
+                using (cb.AddBlock("else"))
+                {
+                    if (sourceInfo.Required)
+                    {
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
+                    }
+                }
+            }
+            else if (isOutput)
+            {
+                // For output streams, check if stdout is piped
+                using (cb.AddBlock("if (System.Console.IsOutputRedirected)"))
+                {
+                    GenerateStdioStreamCreation(cb, sourceInfo, variableName, false, true, false);
+                    if (sourceInfo.Optional)
+                    {
+                        cb.AppendLine($"{variableName}Set = true;");
+                    }
+                }
+                using (cb.AddBlock("else"))
+                {
+                    if (sourceInfo.Required)
+                    {
+                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
+                    }
+                }
+            }
+            else if (sourceInfo.Required)
+            {
+                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredOptionNotProvided}", "{sourceInfo.Name}"));""");
+            }
+        }
+    }
+
+    private static void GenerateStdioStreamCreation(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName, bool isInput, bool isOutput, bool isBidirectional)
+    {
+        switch (sourceInfo.StreamTypeName)
+        {
+            case "Stream":
+                if (isInput || isBidirectional)
+                {
+                    cb.AppendLine($"{variableName} = System.Console.OpenStandardInput();");
+                }
+                else
+                {
+                    cb.AppendLine($"{variableName} = System.Console.OpenStandardOutput();");
+                }
+                break;
+            case "TextReader":
+                cb.AppendLine($"{variableName} = System.Console.In;");
+                break;
+            case "TextWriter":
+                cb.AppendLine($"{variableName} = System.Console.Out;");
+                break;
+            case "StreamReader":
+                cb.AppendLine($"{variableName} = new System.IO.StreamReader(System.Console.OpenStandardInput());");
+                break;
+            case "StreamWriter":
+                cb.AppendLine($"{variableName} = new System.IO.StreamWriter(System.Console.OpenStandardOutput()) {{ AutoFlush = true }};");
+                break;
+        }
+    }
+
+    private static void GenerateFileStreamCreation(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName, bool isInput, bool isOutput, bool isBidirectional)
+    {
+        switch (sourceInfo.StreamTypeName)
+        {
+            case "Stream":
+                if (isInput)
+                {
+                    cb.AppendLine($"{variableName} = new System.IO.FileStream({variableName}Path, System.IO.FileMode.Open, System.IO.FileAccess.Read);");
+                }
+                else if (isOutput)
+                {
+                    cb.AppendLine($"{variableName} = new System.IO.FileStream({variableName}Path, System.IO.FileMode.Create, System.IO.FileAccess.Write);");
+                }
+                else // Bidirectional
+                {
+                    cb.AppendLine($"{variableName} = new System.IO.FileStream({variableName}Path, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite);");
+                }
+                break;
+            case "TextReader":
+                cb.AppendLine($"{variableName} = new System.IO.StreamReader({variableName}Path);");
+                break;
+            case "TextWriter":
+                cb.AppendLine($"{variableName} = new System.IO.StreamWriter({variableName}Path);");
+                break;
+            case "StreamReader":
+                cb.AppendLine($"{variableName} = new System.IO.StreamReader({variableName}Path);");
+                break;
+            case "StreamWriter":
+                cb.AppendLine($"{variableName} = new System.IO.StreamWriter({variableName}Path);");
+                break;
+        }
+    }
+
     private static void GenerateArgumentSource(CodeBuilder cb, IMethodSymbol methodSymbol, ParameterSourceInfo sourceInfo, string variableName)
     {
+        // Handle stream types specially
+        if (sourceInfo.IsStreamType)
+        {
+            GenerateStreamArgumentSource(cb, sourceInfo, variableName);
+            return;
+        }
+
         if (sourceInfo.IsCollection)
         {
             // For collection arguments, collect all remaining positional arguments starting from this index
@@ -551,6 +720,84 @@ internal static class ParameterCodeGenerator
         if (sourceInfo.Required)
         {
             using (cb.AddBlock("else"))
+            {
+                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
+            }
+        }
+    }
+
+    private static void GenerateStreamArgumentSource(CodeBuilder cb, ParameterSourceInfo sourceInfo, string variableName)
+    {
+        // Generate stream creation based on stream type and direction
+        var isInput = sourceInfo.StreamDirection == StreamDirection.Input;
+        var isOutput = sourceInfo.StreamDirection == StreamDirection.Output;
+        var isBidirectional = sourceInfo.StreamDirection == StreamDirection.Bidirectional;
+
+        // Find the positional argument by counting non-option args, skipping options and their values
+        cb.AppendLine($"string? {variableName}Path = null;");
+        cb.AppendLine($"int {variableName}ArgCount = 0;");
+        using (cb.AddBlock("for (int i = 0; i < args.Length; i++)"))
+        {
+            using (cb.AddBlock("if (args[i].StartsWith(\"-\"))"))
+            {
+                cb.AppendLine("// Skip the option and its value (if it has one)");
+                using (cb.AddBlock("if (i + 1 < args.Length && !args[i + 1].StartsWith(\"-\"))"))
+                {
+                    cb.AppendLine("i++; // Skip the option's value");
+                }
+            }
+            using (cb.AddBlock("else"))
+            {
+                using (cb.AddBlock($"if ({variableName}ArgCount == {sourceInfo.ArgumentIndex})"))
+                {
+                    cb.AppendLine($"{variableName}Path = args[i];");
+                    cb.AppendLine("break;");
+                }
+                cb.AppendLine($"{variableName}ArgCount++;");
+            }
+        }
+
+        using (cb.AddBlock($"if ({variableName}Path != null)"))
+        {
+            // Handle "-" as stdin/stdout
+            using (cb.AddBlock($"if ({variableName}Path == \"-\")"))
+            {
+                GenerateStdioStreamCreation(cb, sourceInfo, variableName, isInput, isOutput, isBidirectional);
+            }
+            using (cb.AddBlock("else"))
+            {
+                // File path provided
+                GenerateFileStreamCreation(cb, sourceInfo, variableName, isInput, isOutput, isBidirectional);
+            }
+        }
+        using (cb.AddBlock("else"))
+        {
+            // No path provided - check for piped input or use default
+            if (isInput || isBidirectional)
+            {
+                // For input streams, check if stdin is piped
+                using (cb.AddBlock("if (System.Console.IsInputRedirected)"))
+                {
+                    GenerateStdioStreamCreation(cb, sourceInfo, variableName, true, false, false);
+                }
+                using (cb.AddBlock("else"))
+                {
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
+                }
+            }
+            else if (isOutput)
+            {
+                // For output streams, check if stdout is piped
+                using (cb.AddBlock("if (System.Console.IsOutputRedirected)"))
+                {
+                    GenerateStdioStreamCreation(cb, sourceInfo, variableName, false, true, false);
+                }
+                using (cb.AddBlock("else"))
+                {
+                    cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
+                }
+            }
+            else
             {
                 cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.RequiredArgumentNotProvided}", "{sourceInfo.Name}"));""");
             }

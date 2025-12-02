@@ -53,7 +53,23 @@ namespace TeCLI.Generators
         // Mutual exclusivity support
         public string? MutuallyExclusiveSet { get; set; }
 
+        // Stream type support
+        public bool IsStreamType { get; set; }
+        public StreamDirection StreamDirection { get; set; }
+        public string? StreamTypeName { get; set; }
+
         public bool Optional => !Required;
+    }
+
+    /// <summary>
+    /// Direction of a stream parameter (input, output, or bidirectional)
+    /// </summary>
+    public enum StreamDirection
+    {
+        Unknown,
+        Input,
+        Output,
+        Bidirectional
     }
 
     /// <summary>
