@@ -1,12 +1,11 @@
 namespace TeCLI.Analyzers;
 
-using TeCLI.Attributes;
-using TeCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
+using TeCLI.Extensions;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class NullableWarningSuppressor : DiagnosticSuppressor
@@ -43,6 +42,6 @@ public class NullableWarningSuppressor : DiagnosticSuppressor
 
     private bool ContainsParameters(PropertyDeclarationSyntax propertyDecl)
     {
-        return propertyDecl.AttributeLists.Any(al => al.Attributes.HasAnyAttribute<ArgumentAttribute, OptionAttribute>());
+        return propertyDecl.AttributeLists.Any(al => al.Attributes.HasAnyAttribute(AttributeNames.ArgumentAttribute, AttributeNames.OptionAttribute));
     }
 }

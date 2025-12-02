@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using TeCLI.Attributes;
 using TeCLI.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -107,8 +106,8 @@ else
         statements.Add(ParseStatement(@"Console.WriteLine();"));
 
         // Get all actions
-        var actionMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, ActionAttribute>().ToList();
-        var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>().ToList();
+        var actionMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol>(AttributeNames.ActionAttribute).ToList();
+        var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol>(AttributeNames.PrimaryAttribute).ToList();
 
         // Build usage patterns
         if (primaryMethods.Count > 0 || actionMethods.Count > 0 || commandInfo.Subcommands.Count > 0)
@@ -129,7 +128,7 @@ else
 
             foreach (var action in actionMethods)
             {
-                var actionAttr = action.GetAttribute<ActionAttribute>();
+                var actionAttr = action.GetAttribute(AttributeNames.ActionAttribute);
                 if (actionAttr != null && actionAttr.ConstructorArguments.Length > 0)
                 {
                     string actionName = actionAttr.ConstructorArguments[0].Value?.ToString() ?? action.Name;
@@ -175,7 +174,7 @@ else
 
             foreach (var action in actionMethods)
             {
-                var actionAttr = action.GetAttribute<ActionAttribute>();
+                var actionAttr = action.GetAttribute(AttributeNames.ActionAttribute);
                 if (actionAttr != null && actionAttr.ConstructorArguments.Length > 0)
                 {
                     string actionName = actionAttr.ConstructorArguments[0].Value?.ToString() ?? action.Name;
@@ -219,7 +218,7 @@ else
         bool hasOptions = false;
         foreach (var method in primaryMethods.Concat(actionMethods))
         {
-            if (method.Parameters.Any(p => p.HasAttribute<OptionAttribute>()))
+            if (method.Parameters.Any(p => p.HasAttribute(AttributeNames.OptionAttribute)))
             {
                 hasOptions = true;
                 break;
@@ -263,14 +262,14 @@ else
         }
 
         // Add options
-        var optionParams = method.Parameters.Where(p => p.HasAttribute<OptionAttribute>()).ToList();
+        var optionParams = method.Parameters.Where(p => p.HasAttribute(AttributeNames.OptionAttribute)).ToList();
         if (optionParams.Count > 0)
         {
             usage.Append(" [options]");
         }
 
         // Add arguments
-        var argParams = method.Parameters.Where(p => p.HasAttribute<ArgumentAttribute>()).ToList();
+        var argParams = method.Parameters.Where(p => p.HasAttribute(AttributeNames.ArgumentAttribute)).ToList();
         foreach (var arg in argParams)
         {
             string argName = arg.Name.ToUpper();

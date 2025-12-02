@@ -1,5 +1,3 @@
-using TeCLI.Attributes;
-using TeCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using TeCLI.Extensions;
 
 namespace TeCLI.Analyzers;
 
@@ -39,9 +38,9 @@ public class ConflictingShortNameAnalyzer : DiagnosticAnalyzer
             return;
 
         // Check if this method is an action or in a command class
-        var isAction = methodSymbol.HasAttribute<ActionAttribute>() || methodSymbol.HasAttribute<PrimaryAttribute>();
+        var isAction = methodSymbol.HasAttribute(AttributeNames.ActionAttribute) || methodSymbol.HasAttribute(AttributeNames.PrimaryAttribute);
         var containingClass = methodSymbol.ContainingType;
-        var isInCommandClass = containingClass?.HasAttribute<CommandAttribute>() ?? false;
+        var isInCommandClass = containingClass?.HasAttribute(AttributeNames.CommandAttribute) ?? false;
 
         if (!isAction && !isInCommandClass)
             return;
@@ -51,7 +50,7 @@ public class ConflictingShortNameAnalyzer : DiagnosticAnalyzer
 
         foreach (var parameter in methodSymbol.Parameters)
         {
-            if (parameter.TryGetAttribute<OptionAttribute>(out var optionAttr) && optionAttr != null)
+            if (parameter.TryGetAttribute(out var optionAttr, AttributeNames.OptionAttribute) && optionAttr != null)
             {
                 var shortNameArg = optionAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "ShortName").Value;
 

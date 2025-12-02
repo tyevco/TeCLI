@@ -4,7 +4,6 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
-		<Configurations>Debug;Release;NugetPackage</Configurations>
 	</PropertyGroup>
 
 	<Import Project="../Generator.props" />
@@ -22,7 +21,7 @@
 		<None Include="README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'NugetPackage'">
+	<ItemGroup Condition="'$(Configuration)' == 'Release'">
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />

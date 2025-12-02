@@ -1,10 +1,9 @@
-using TeCLI.Attributes;
-using TeCLI.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
+using TeCLI.Extensions;
 
 namespace TeCLI.Analyzers;
 
@@ -36,8 +35,8 @@ public class SetOptionAccessibilityAnalyzer : DiagnosticAnalyzer
         var propertyDeclaration = (PropertyDeclarationSyntax)context.Node;
 
         if (context.SemanticModel.GetDeclaredSymbol(propertyDeclaration) is IPropertySymbol propertySymbol &&
-            (propertySymbol.HasAttribute<OptionAttribute>()
-             || propertySymbol.HasAttribute<ArgumentAttribute>()))
+            (propertySymbol.HasAttribute(AttributeNames.OptionAttribute)
+             || propertySymbol.HasAttribute(AttributeNames.ArgumentAttribute)))
         {
             // Check if the property has an accessible setter
             if (propertySymbol.SetMethod == null || propertySymbol.SetMethod.DeclaredAccessibility == Accessibility.Private)

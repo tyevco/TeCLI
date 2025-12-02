@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using TeCLI.Attributes;
 using TeCLI.Extensions;
-using static TeCLI.Constants;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static TeCLI.Constants;
 
 namespace TeCLI.Generators;
 
@@ -821,7 +820,7 @@ public partial class CommandLineArgsGenerator
     /// </summary>
     private void GeneratePrimaryMethodInvocationFromInfo(CodeBuilder cb, Compilation compilation, CommandSourceInfo commandInfo, bool throwOnNoPrimary)
     {
-        var primaryMethods = commandInfo.TypeSymbol!.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
+        var primaryMethods = commandInfo.TypeSymbol!.GetMembersWithAttribute<IMethodSymbol>(AttributeNames.PrimaryAttribute);
 
         int count = 0;
         if (primaryMethods != null)
@@ -853,7 +852,7 @@ public partial class CommandLineArgsGenerator
     private string? GetCommandName(ClassDeclarationSyntax classDecl)
     {
         // Logic to extract command name from attributes
-        var commandAttribute = classDecl.GetAttribute<CommandAttribute>();
+        var commandAttribute = classDecl.GetAttribute(AttributeNames.CommandAttribute);
 
         if (commandAttribute?.ArgumentList?.Arguments.Count > 0)
         {
@@ -869,7 +868,7 @@ public partial class CommandLineArgsGenerator
 
         if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
         {
-            var commandAttr = classSymbol.GetAttribute<CommandAttribute>();
+            var commandAttr = classSymbol.GetAttribute(AttributeNames.CommandAttribute);
             if (commandAttr != null)
             {
                 var aliasesArg = commandAttr.NamedArguments.FirstOrDefault(arg => arg.Key == "Aliases");
@@ -895,7 +894,7 @@ public partial class CommandLineArgsGenerator
 
         if (model.GetDeclaredSymbol(classDecl) is INamedTypeSymbol classSymbol)
         {
-            var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol, PrimaryAttribute>();
+            var primaryMethods = classSymbol.GetMembersWithAttribute<IMethodSymbol>(AttributeNames.PrimaryAttribute);
 
             int count = 0;
             if (primaryMethods != null)
@@ -939,7 +938,7 @@ public partial class CommandLineArgsGenerator
         };
 
         // Extract command name and metadata from CommandAttribute
-        var commandAttr = typeSymbol.GetAttribute<CommandAttribute>();
+        var commandAttr = typeSymbol.GetAttribute(AttributeNames.CommandAttribute);
         if (commandAttr != null)
         {
             // Get command name from first constructor argument
@@ -973,7 +972,7 @@ public partial class CommandLineArgsGenerator
         ExtractHooksFromSymbol(typeSymbol, commandInfo.BeforeExecuteHooks, commandInfo.AfterExecuteHooks, commandInfo.OnErrorHooks);
 
         // Extract actions from methods with ActionAttribute
-        var actionMethods = typeSymbol.GetMembersWithAttribute<IMethodSymbol, ActionAttribute>();
+        var actionMethods = typeSymbol.GetMembersWithAttribute<IMethodSymbol>(AttributeNames.ActionAttribute);
         if (actionMethods != null)
         {
             foreach (var method in actionMethods)
@@ -983,7 +982,7 @@ public partial class CommandLineArgsGenerator
                     Method = method
                 };
 
-                var actionAttr = method.GetAttribute<ActionAttribute>();
+                var actionAttr = method.GetAttribute(AttributeNames.ActionAttribute);
                 if (actionAttr != null)
                 {
                     // Get action name from first constructor argument
@@ -1027,7 +1026,7 @@ public partial class CommandLineArgsGenerator
         var nestedTypes = typeSymbol.GetTypeMembers();
         foreach (var nestedType in nestedTypes)
         {
-            if (nestedType.GetAttribute<CommandAttribute>() != null)
+            if (nestedType.GetAttribute(AttributeNames.CommandAttribute) != null)
             {
                 var nestedCommandInfo = ExtractCommandInfo(compilation, nestedType, commandInfo, level + 1);
                 commandInfo.Subcommands.Add(nestedCommandInfo);
@@ -1095,7 +1094,7 @@ public partial class CommandLineArgsGenerator
         var properties = typeSymbol.GetMembers().OfType<IPropertySymbol>();
         foreach (var property in properties)
         {
-            var optionAttr = property.GetAttribute<OptionAttribute>();
+            var optionAttr = property.GetAttribute(AttributeNames.OptionAttribute);
             if (optionAttr != null)
             {
                 var paramInfo = new ParameterSourceInfo

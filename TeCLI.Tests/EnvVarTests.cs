@@ -327,7 +327,7 @@ public class EnvVarTests
     #region Type Conversion Tests
 
     [Fact]
-    public void EnvVar_WithInteger_ShouldConvert()
+    public async Task EnvVar_WithInteger_ShouldConvert()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -337,7 +337,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
