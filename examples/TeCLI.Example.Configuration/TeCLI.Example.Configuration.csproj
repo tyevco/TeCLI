@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="obj/$(Configuration)/**/generated/**/*.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Analyzer dependencies - these DLLs must be available to the generators -->
+		<ProjectReference Include="..\..\TeCLI.Tools\TeCLI.Tools.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" Private="false" />
+		<ProjectReference Include="..\..\TeCLI\TeCLI.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+		<ProjectReference Include="..\..\extensions\TeCLI.Extensions.Configuration\TeCLI.Extensions.Configuration.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="tecli.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="tecli.yaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+</Project>
