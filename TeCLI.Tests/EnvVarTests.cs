@@ -24,7 +24,7 @@ public class EnvVarTests
     #region Basic Environment Variable Tests
 
     [Fact]
-    public void EnvVar_WhenNotProvidedViaCLI_ShouldUseEnvVar()
+    public async Task EnvVar_WhenNotProvidedViaCLI_ShouldUseEnvVar()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -33,7 +33,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -43,7 +43,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void EnvVar_WhenProvidedViaCLI_ShouldOverrideEnvVar()
+    public async Task EnvVar_WhenProvidedViaCLI_ShouldOverrideEnvVar()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -53,7 +53,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -62,7 +62,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void EnvVar_WhenNotProvidedAndNoEnvVar_ShouldUseDefaultValue()
+    public async Task EnvVar_WhenNotProvidedAndNoEnvVar_ShouldUseDefaultValue()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -71,7 +71,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -84,7 +84,7 @@ public class EnvVarTests
     #region Precedence Tests
 
     [Fact]
-    public void Precedence_CLIOptionTakesPrecedence()
+    public async Task Precedence_CLIOptionTakesPrecedence()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -95,7 +95,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -105,7 +105,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void Precedence_EnvVarTakesPrecedenceOverDefault()
+    public async Task Precedence_EnvVarTakesPrecedenceOverDefault()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -116,7 +116,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -126,7 +126,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void Precedence_MixedSources()
+    public async Task Precedence_MixedSources()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -137,7 +137,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -151,7 +151,7 @@ public class EnvVarTests
     #region Required Options with EnvVar
 
     [Fact]
-    public void RequiredOption_WithEnvVar_ShouldSatisfyRequirement()
+    public async Task RequiredOption_WithEnvVar_ShouldSatisfyRequirement()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -160,7 +160,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -168,7 +168,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void RequiredOption_WithoutEnvVarOrCLI_ShouldThrowException()
+    public async Task RequiredOption_WithoutEnvVarOrCLI_ShouldThrowException()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -177,7 +177,7 @@ public class EnvVarTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("api-key", exception.Message);
         Assert.Contains("Required option", exception.Message);
@@ -188,7 +188,7 @@ public class EnvVarTests
     #region Boolean Switch with EnvVar
 
     [Fact]
-    public void BooleanSwitch_WhenEnvVarTrue_ShouldBeTrue()
+    public async Task BooleanSwitch_WhenEnvVarTrue_ShouldBeTrue()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -197,7 +197,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -205,7 +205,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void BooleanSwitch_WhenEnvVarFalse_ShouldBeFalse()
+    public async Task BooleanSwitch_WhenEnvVarFalse_ShouldBeFalse()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -214,7 +214,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -222,7 +222,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void BooleanSwitch_CLITakesPrecedenceOverEnvVar()
+    public async Task BooleanSwitch_CLITakesPrecedenceOverEnvVar()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -231,7 +231,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -239,7 +239,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void BooleanSwitch_WhenEnvVarInvalid_ShouldUseFalse()
+    public async Task BooleanSwitch_WhenEnvVarInvalid_ShouldUseFalse()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -248,7 +248,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -260,7 +260,7 @@ public class EnvVarTests
     #region Collection with EnvVar
 
     [Fact]
-    public void Collection_WhenEnvVarProvided_ShouldParseCommaSeparated()
+    public async Task Collection_WhenEnvVarProvided_ShouldParseCommaSeparated()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -269,7 +269,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -281,7 +281,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void Collection_CLITakesPrecedenceOverEnvVar()
+    public async Task Collection_CLITakesPrecedenceOverEnvVar()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -290,7 +290,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -302,7 +302,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void Collection_WhenEnvVarHasSpaces_ShouldTrim()
+    public async Task Collection_WhenEnvVarHasSpaces_ShouldTrim()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -311,7 +311,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -345,7 +345,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void EnvVar_WithInvalidInteger_ShouldThrowException()
+    public async Task EnvVar_WithInvalidInteger_ShouldThrowException()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -355,7 +355,7 @@ public class EnvVarTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("PORT", exception.Message);
         Assert.Contains("invalid", exception.Message);
@@ -366,7 +366,7 @@ public class EnvVarTests
     #region Short Name Tests
 
     [Fact]
-    public void EnvVar_WithShortName_ShouldWork()
+    public async Task EnvVar_WithShortName_ShouldWork()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -375,7 +375,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -383,7 +383,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void EnvVar_ShortNameTakesPrecedenceOverEnvVar()
+    public async Task EnvVar_ShortNameTakesPrecedenceOverEnvVar()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -392,7 +392,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -404,7 +404,7 @@ public class EnvVarTests
     #region Null/Empty Environment Variable Tests
 
     [Fact]
-    public void EnvVar_WhenEmpty_ShouldUseDefault()
+    public async Task EnvVar_WhenEmpty_ShouldUseDefault()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -414,7 +414,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);
@@ -422,7 +422,7 @@ public class EnvVarTests
     }
 
     [Fact]
-    public void EnvVar_WhenNull_ShouldUseDefault()
+    public async Task EnvVar_WhenNull_ShouldUseDefault()
     {
         // Arrange
         EnvVarCommand.Reset();
@@ -432,7 +432,7 @@ public class EnvVarTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnvVarCommand.WasCalled);

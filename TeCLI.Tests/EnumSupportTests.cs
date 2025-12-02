@@ -11,7 +11,7 @@ namespace TeCLI.Tests;
 public class EnumSupportTests
 {
     [Fact]
-    public void EnumOption_WithValidValue_ShouldParse()
+    public async Task EnumOption_WithValidValue_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -19,7 +19,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -27,7 +27,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumOption_WithCaseInsensitiveValue_ShouldParse()
+    public async Task EnumOption_WithCaseInsensitiveValue_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -35,7 +35,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -43,7 +43,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumOption_WithMixedCaseValue_ShouldParse()
+    public async Task EnumOption_WithMixedCaseValue_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -51,7 +51,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -59,7 +59,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumOption_WithShortName_ShouldParse()
+    public async Task EnumOption_WithShortName_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -67,7 +67,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -75,7 +75,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumOption_WithDefaultValue_ShouldUseDefault()
+    public async Task EnumOption_WithDefaultValue_ShouldUseDefault()
     {
         // Arrange
         EnumCommand.Reset();
@@ -83,7 +83,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -91,7 +91,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumOption_WithInvalidValue_ShouldThrowWithSuggestions()
+    public async Task EnumOption_WithInvalidValue_ShouldThrowWithSuggestions()
     {
         // Arrange
         EnumCommand.Reset();
@@ -99,7 +99,7 @@ public class EnumSupportTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         // Error message should mention the invalid value and show valid values
         Assert.Contains("InvalidLevel", exception.Message);
@@ -110,7 +110,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumArgument_WithValidValue_ShouldParse()
+    public async Task EnumArgument_WithValidValue_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -118,7 +118,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -126,7 +126,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumArgument_WithCaseInsensitiveValue_ShouldParse()
+    public async Task EnumArgument_WithCaseInsensitiveValue_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -134,7 +134,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -142,7 +142,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumArgument_WithInvalidValue_ShouldThrowWithSuggestions()
+    public async Task EnumArgument_WithInvalidValue_ShouldThrowWithSuggestions()
     {
         // Arrange
         EnumCommand.Reset();
@@ -150,7 +150,7 @@ public class EnumSupportTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         // Error message should mention the invalid value and show valid values
         Assert.Contains("Invalid", exception.Message);
@@ -161,7 +161,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void FlagsEnum_WithSingleValue_ShouldParse()
+    public async Task FlagsEnum_WithSingleValue_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -169,7 +169,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -177,7 +177,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void FlagsEnum_WithCombinedValue_ShouldParse()
+    public async Task FlagsEnum_WithCombinedValue_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -185,7 +185,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -193,7 +193,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void FlagsEnum_WithCombinedValueAndSpaces_ShouldParse()
+    public async Task FlagsEnum_WithCombinedValueAndSpaces_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -201,7 +201,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -209,7 +209,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumCollection_WithRepeatedValues_ShouldCollectAll()
+    public async Task EnumCollection_WithRepeatedValues_ShouldCollectAll()
     {
         // Arrange
         EnumCommand.Reset();
@@ -217,7 +217,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -229,7 +229,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumCollection_WithCommaSeparated_ShouldSplit()
+    public async Task EnumCollection_WithCommaSeparated_ShouldSplit()
     {
         // Arrange
         EnumCommand.Reset();
@@ -237,7 +237,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -249,7 +249,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumCollection_WithMixedRepeatedAndCommaSeparated_ShouldCombine()
+    public async Task EnumCollection_WithMixedRepeatedAndCommaSeparated_ShouldCombine()
     {
         // Arrange
         EnumCommand.Reset();
@@ -257,7 +257,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -269,7 +269,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumCollection_WithListType_ShouldWork()
+    public async Task EnumCollection_WithListType_ShouldWork()
     {
         // Arrange
         EnumCommand.Reset();
@@ -277,7 +277,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -288,7 +288,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumCollection_WithCaseInsensitiveValues_ShouldParse()
+    public async Task EnumCollection_WithCaseInsensitiveValues_ShouldParse()
     {
         // Arrange
         EnumCommand.Reset();
@@ -296,7 +296,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -308,7 +308,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumCollectionArgument_WithMultipleValues_ShouldCollectAll()
+    public async Task EnumCollectionArgument_WithMultipleValues_ShouldCollectAll()
     {
         // Arrange
         EnumCommand.Reset();
@@ -316,7 +316,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -329,7 +329,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumCollectionArgument_WithCommaSeparated_ShouldSplit()
+    public async Task EnumCollectionArgument_WithCommaSeparated_ShouldSplit()
     {
         // Arrange
         EnumCommand.Reset();
@@ -337,7 +337,7 @@ public class EnumSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(EnumCommand.WasCalled);
@@ -349,7 +349,7 @@ public class EnumSupportTests
     }
 
     [Fact]
-    public void EnumCollection_WithInvalidValue_ShouldThrowWithSuggestions()
+    public async Task EnumCollection_WithInvalidValue_ShouldThrowWithSuggestions()
     {
         // Arrange
         EnumCommand.Reset();
@@ -357,7 +357,7 @@ public class EnumSupportTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         // Error message should show valid values
         Assert.Contains("Debug", exception.Message);

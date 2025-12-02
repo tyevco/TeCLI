@@ -10,7 +10,7 @@ namespace TeCLI.Tests;
 public class RequiredOptionTests
 {
     [Fact]
-    public void RequiredOption_WhenProvided_ShouldParse()
+    public async Task RequiredOption_WhenProvided_ShouldParse()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -18,7 +18,7 @@ public class RequiredOptionTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(RequiredOptionsCommand.WasCalled);
@@ -27,7 +27,7 @@ public class RequiredOptionTests
     }
 
     [Fact]
-    public void RequiredOption_WhenNotProvided_ShouldThrowException()
+    public async Task RequiredOption_WhenNotProvided_ShouldThrowException()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -35,14 +35,14 @@ public class RequiredOptionTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("environment", exception.Message);
         Assert.Contains("Required option", exception.Message);
     }
 
     [Fact]
-    public void RequiredOption_WithShortName_ShouldParse()
+    public async Task RequiredOption_WithShortName_ShouldParse()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -50,7 +50,7 @@ public class RequiredOptionTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(RequiredOptionsCommand.WasCalled);
@@ -58,7 +58,7 @@ public class RequiredOptionTests
     }
 
     [Fact]
-    public void RequiredOption_WithOptionalOptions_ShouldParse()
+    public async Task RequiredOption_WithOptionalOptions_ShouldParse()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -66,7 +66,7 @@ public class RequiredOptionTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(RequiredOptionsCommand.WasCalled);
@@ -76,7 +76,7 @@ public class RequiredOptionTests
     }
 
     [Fact]
-    public void RequiredOption_WithOnlyOptionalOptions_ShouldThrowException()
+    public async Task RequiredOption_WithOnlyOptionalOptions_ShouldThrowException()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -84,14 +84,14 @@ public class RequiredOptionTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("environment", exception.Message);
         Assert.Contains("Required option", exception.Message);
     }
 
     [Fact]
-    public void RequiredCollectionOption_WhenProvided_ShouldParse()
+    public async Task RequiredCollectionOption_WhenProvided_ShouldParse()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -99,7 +99,7 @@ public class RequiredOptionTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(RequiredOptionsCommand.WasCalled);
@@ -110,7 +110,7 @@ public class RequiredOptionTests
     }
 
     [Fact]
-    public void RequiredCollectionOption_WithCommaSeparated_ShouldParse()
+    public async Task RequiredCollectionOption_WithCommaSeparated_ShouldParse()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -118,7 +118,7 @@ public class RequiredOptionTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(RequiredOptionsCommand.WasCalled);
@@ -130,7 +130,7 @@ public class RequiredOptionTests
     }
 
     [Fact]
-    public void RequiredCollectionOption_WithShortName_ShouldParse()
+    public async Task RequiredCollectionOption_WithShortName_ShouldParse()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -138,7 +138,7 @@ public class RequiredOptionTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(RequiredOptionsCommand.WasCalled);
@@ -147,7 +147,7 @@ public class RequiredOptionTests
     }
 
     [Fact]
-    public void RequiredCollectionOption_WhenNotProvided_ShouldThrowException()
+    public async Task RequiredCollectionOption_WhenNotProvided_ShouldThrowException()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -155,14 +155,14 @@ public class RequiredOptionTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("tags", exception.Message);
         Assert.Contains("Required option", exception.Message);
     }
 
     [Fact]
-    public void RequiredOption_WithLongName_ShouldParse()
+    public async Task RequiredOption_WithLongName_ShouldParse()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -170,7 +170,7 @@ public class RequiredOptionTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(RequiredOptionsCommand.WasCalled);
@@ -178,7 +178,7 @@ public class RequiredOptionTests
     }
 
     [Fact]
-    public void RequiredOption_WithHyphenatedName_WhenNotProvided_ShouldThrowException()
+    public async Task RequiredOption_WithHyphenatedName_WhenNotProvided_ShouldThrowException()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -186,14 +186,14 @@ public class RequiredOptionTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("api-key", exception.Message);
         Assert.Contains("Required option", exception.Message);
     }
 
     [Fact]
-    public void RequiredCollectionOption_WithMixedRepeatedAndCommaSeparated_ShouldCombine()
+    public async Task RequiredCollectionOption_WithMixedRepeatedAndCommaSeparated_ShouldCombine()
     {
         // Arrange
         RequiredOptionsCommand.Reset();
@@ -201,7 +201,7 @@ public class RequiredOptionTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(RequiredOptionsCommand.WasCalled);

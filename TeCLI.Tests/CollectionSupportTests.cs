@@ -10,7 +10,7 @@ namespace TeCLI.Tests;
 public class CollectionSupportTests
 {
     [Fact]
-    public void CollectionOption_WithRepeatedValues_ShouldCollectAllValues()
+    public async Task CollectionOption_WithRepeatedValues_ShouldCollectAllValues()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -18,7 +18,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -30,7 +30,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionOption_WithCommaSeparatedValues_ShouldSplitValues()
+    public async Task CollectionOption_WithCommaSeparatedValues_ShouldSplitValues()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -38,7 +38,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -50,7 +50,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionOption_WithMixedRepeatedAndCommaSeparated_ShouldCombineAll()
+    public async Task CollectionOption_WithMixedRepeatedAndCommaSeparated_ShouldCombineAll()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -58,7 +58,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -70,7 +70,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionOption_WithShortName_ShouldWork()
+    public async Task CollectionOption_WithShortName_ShouldWork()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -78,7 +78,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -89,7 +89,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionOption_WithNumericType_ShouldParseCorrectly()
+    public async Task CollectionOption_WithNumericType_ShouldParseCorrectly()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -97,7 +97,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -109,7 +109,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionOption_WithCommaSeparatedNumbers_ShouldParseCorrectly()
+    public async Task CollectionOption_WithCommaSeparatedNumbers_ShouldParseCorrectly()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -117,7 +117,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -129,7 +129,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionOption_WithIEnumerableType_ShouldWork()
+    public async Task CollectionOption_WithIEnumerableType_ShouldWork()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -137,7 +137,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -150,7 +150,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionArgument_WithMultipleValues_ShouldCollectAll()
+    public async Task CollectionArgument_WithMultipleValues_ShouldCollectAll()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -158,7 +158,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -170,7 +170,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionArgument_WithCommaSeparated_ShouldSplit()
+    public async Task CollectionArgument_WithCommaSeparated_ShouldSplit()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -178,7 +178,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -190,7 +190,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void MixedArguments_WithSingleAndCollection_ShouldParseCorrectly()
+    public async Task MixedArguments_WithSingleAndCollection_ShouldParseCorrectly()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -198,7 +198,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -212,7 +212,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionOption_WithTrailingSpaces_ShouldTrimValues()
+    public async Task CollectionOption_WithTrailingSpaces_ShouldTrimValues()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -220,7 +220,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);
@@ -232,7 +232,7 @@ public class CollectionSupportTests
     }
 
     [Fact]
-    public void CollectionOption_MixedWithOtherOptions_ShouldParseCorrectly()
+    public async Task CollectionOption_MixedWithOtherOptions_ShouldParseCorrectly()
     {
         // Arrange
         CollectionCommand.Reset();
@@ -240,7 +240,7 @@ public class CollectionSupportTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CollectionCommand.WasCalled);

@@ -12,7 +12,7 @@ namespace TeCLI.Tests;
 public class InteractiveModeTests
 {
     [Fact(Skip = "Test cannot be done due to interactive prompts")]
-    public void ArgumentWithPrompt_WhenProvidedViaArgs_ShouldUseProvidedValue()
+    public async Task ArgumentWithPrompt_WhenProvidedViaArgs_ShouldUseProvidedValue()
     {
         // Arrange
         InteractiveModeCommand.Reset();
@@ -20,7 +20,7 @@ public class InteractiveModeTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(InteractiveModeCommand.WasCalled);
@@ -29,7 +29,7 @@ public class InteractiveModeTests
     }
 
     [Fact(Skip = "Test cannot be done due to interactive prompts")]
-    public void OptionWithPrompt_WhenProvidedViaArgs_ShouldUseProvidedValue()
+    public async Task OptionWithPrompt_WhenProvidedViaArgs_ShouldUseProvidedValue()
     {
         // Arrange
         InteractiveModeCommand.Reset();
@@ -37,7 +37,7 @@ public class InteractiveModeTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(InteractiveModeCommand.WasCalled);
@@ -46,7 +46,7 @@ public class InteractiveModeTests
     }
 
     [Fact(Skip = "Test cannot be done due to interactive prompts")]
-    public void MultipleArgumentsWithPrompts_WhenProvidedViaArgs_ShouldUseProvidedValues()
+    public async Task MultipleArgumentsWithPrompts_WhenProvidedViaArgs_ShouldUseProvidedValues()
     {
         // Arrange
         InteractiveModeCommand.Reset();
@@ -54,7 +54,7 @@ public class InteractiveModeTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(InteractiveModeCommand.WasCalled);
@@ -63,7 +63,7 @@ public class InteractiveModeTests
     }
 
     [Fact(Skip = "Test cannot be done due to interactive prompts")]
-    public void OptionWithPromptAndDefaultValue_WhenNotProvided_ShouldUseDefaultValue()
+    public async Task OptionWithPromptAndDefaultValue_WhenNotProvided_ShouldUseDefaultValue()
     {
         // Arrange
         InteractiveModeCommand.Reset();
@@ -71,7 +71,7 @@ public class InteractiveModeTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(InteractiveModeCommand.WasCalled);
@@ -79,7 +79,7 @@ public class InteractiveModeTests
     }
 
     [Fact(Skip = "Test cannot be done due to interactive prompts")]
-    public void OptionWithPromptAndDefaultValue_WhenProvidedViaArgs_ShouldUseProvidedValue()
+    public async Task OptionWithPromptAndDefaultValue_WhenProvidedViaArgs_ShouldUseProvidedValue()
     {
         // Arrange
         InteractiveModeCommand.Reset();
@@ -87,7 +87,7 @@ public class InteractiveModeTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(InteractiveModeCommand.WasCalled);
@@ -95,7 +95,7 @@ public class InteractiveModeTests
     }
 
     [Fact(Skip = "Test cannot be done due to interactive prompts")]
-    public void SecureOptionWithPrompt_WhenProvidedViaArgs_ShouldUseProvidedValue()
+    public async Task SecureOptionWithPrompt_WhenProvidedViaArgs_ShouldUseProvidedValue()
     {
         // Arrange
         InteractiveModeCommand.Reset();
@@ -103,7 +103,7 @@ public class InteractiveModeTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(InteractiveModeCommand.WasCalled);
@@ -111,7 +111,7 @@ public class InteractiveModeTests
     }
 
     [Fact(Skip = "Test cannot be done due to interactive prompts")]
-    public void PromptAttribute_DoesNotMakeParameterRequired()
+    public async Task PromptAttribute_DoesNotMakeParameterRequired()
     {
         // Arrange
         InteractiveModeCommand.Reset();
@@ -119,7 +119,7 @@ public class InteractiveModeTests
 
         // Act - region has a prompt but also has a default value, so it's optional
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert - should not throw, uses default
         Assert.True(InteractiveModeCommand.WasCalled);

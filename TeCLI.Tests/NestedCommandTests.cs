@@ -12,7 +12,7 @@ public class NestedCommandTests
     #region 2-Level Nesting Tests
 
     [Fact]
-    public void NestedCommand_TwoLevels_RemoteAdd_ShouldExecute()
+    public async Task NestedCommand_TwoLevels_RemoteAdd_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -20,7 +20,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -30,7 +30,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_TwoLevels_RemoteRemove_ShouldExecute()
+    public async Task NestedCommand_TwoLevels_RemoteRemove_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -38,7 +38,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -47,7 +47,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_TwoLevels_RemoteList_ShouldExecute()
+    public async Task NestedCommand_TwoLevels_RemoteList_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -55,7 +55,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -63,7 +63,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_TwoLevels_RemoteList_WithVerboseOption_ShouldExecute()
+    public async Task NestedCommand_TwoLevels_RemoteList_WithVerboseOption_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -71,7 +71,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -80,7 +80,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_TwoLevels_BranchCreate_ShouldExecute()
+    public async Task NestedCommand_TwoLevels_BranchCreate_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -88,7 +88,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -97,7 +97,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_TwoLevels_BranchDelete_ShouldExecute()
+    public async Task NestedCommand_TwoLevels_BranchDelete_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -105,7 +105,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -119,7 +119,7 @@ public class NestedCommandTests
     #region 3-Level Nesting Tests
 
     [Fact]
-    public void NestedCommand_ThreeLevels_ConfigUserName_ShouldExecute()
+    public async Task NestedCommand_ThreeLevels_ConfigUserName_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -127,7 +127,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -136,7 +136,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_ThreeLevels_ConfigUserEmail_ShouldExecute()
+    public async Task NestedCommand_ThreeLevels_ConfigUserEmail_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -144,7 +144,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -157,7 +157,7 @@ public class NestedCommandTests
     #region Top-Level Actions Tests
 
     [Fact]
-    public void NestedCommand_TopLevelAction_Status_ShouldExecute()
+    public async Task NestedCommand_TopLevelAction_Status_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -165,7 +165,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -173,7 +173,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_TopLevelAction_Commit_ShouldExecute()
+    public async Task NestedCommand_TopLevelAction_Commit_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -181,7 +181,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -194,7 +194,7 @@ public class NestedCommandTests
     #region Alias Tests
 
     [Fact]
-    public void NestedCommand_SubcommandAlias_Rem_ShouldExecute()
+    public async Task NestedCommand_SubcommandAlias_Rem_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -202,7 +202,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -210,7 +210,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_ActionAlias_RemoteRm_ShouldExecute()
+    public async Task NestedCommand_ActionAlias_RemoteRm_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -218,7 +218,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -227,7 +227,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_ActionAlias_BranchDel_ShouldExecute()
+    public async Task NestedCommand_ActionAlias_BranchDel_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -235,7 +235,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -248,7 +248,7 @@ public class NestedCommandTests
     #region Short Options Tests
 
     [Fact]
-    public void NestedCommand_ShortOption_RemoteListVerbose_ShouldWork()
+    public async Task NestedCommand_ShortOption_RemoteListVerbose_ShouldWork()
     {
         // Arrange
         NestedCommand.Reset();
@@ -256,7 +256,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -265,7 +265,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_ShortOption_BranchDeleteForce_ShouldWork()
+    public async Task NestedCommand_ShortOption_BranchDeleteForce_ShouldWork()
     {
         // Arrange
         NestedCommand.Reset();
@@ -273,7 +273,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -283,7 +283,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_ShortOption_CommitMessage_ShouldWork()
+    public async Task NestedCommand_ShortOption_CommitMessage_ShouldWork()
     {
         // Arrange
         NestedCommand.Reset();
@@ -291,7 +291,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -304,7 +304,7 @@ public class NestedCommandTests
     #region 2-Level Actions Tests
 
     [Fact]
-    public void NestedCommand_TwoLevels_ConfigGet_ShouldExecute()
+    public async Task NestedCommand_TwoLevels_ConfigGet_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -312,7 +312,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -321,7 +321,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_TwoLevels_ConfigSet_ShouldExecute()
+    public async Task NestedCommand_TwoLevels_ConfigSet_ShouldExecute()
     {
         // Arrange
         NestedCommand.Reset();
@@ -329,7 +329,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -343,7 +343,7 @@ public class NestedCommandTests
     #region Mixed Case Tests
 
     [Fact]
-    public void NestedCommand_MixedCase_ShouldBeCaseInsensitive()
+    public async Task NestedCommand_MixedCase_ShouldBeCaseInsensitive()
     {
         // Arrange
         NestedCommand.Reset();
@@ -351,7 +351,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -359,7 +359,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_MixedCase_ThreeLevels_ShouldBeCaseInsensitive()
+    public async Task NestedCommand_MixedCase_ThreeLevels_ShouldBeCaseInsensitive()
     {
         // Arrange
         NestedCommand.Reset();
@@ -367,7 +367,7 @@ public class NestedCommandTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(NestedCommand.WasCalled);
@@ -379,7 +379,7 @@ public class NestedCommandTests
     #region Error Cases
 
     [Fact]
-    public void NestedCommand_UnknownSubcommand_ShouldThrowOrDisplay()
+    public async Task NestedCommand_UnknownSubcommand_ShouldThrowOrDisplay()
     {
         // Arrange
         NestedCommand.Reset();
@@ -391,7 +391,7 @@ public class NestedCommandTests
         var dispatcher = new TeCLI.CommandDispatcher();
         try
         {
-            dispatcher.DispatchAsync(args).Wait();
+            await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
             // If no exception, that's acceptable - it may just print error
         }
         catch
@@ -401,7 +401,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_UnknownAction_InSubcommand_ShouldThrowOrDisplay()
+    public async Task NestedCommand_UnknownAction_InSubcommand_ShouldThrowOrDisplay()
     {
         // Arrange
         NestedCommand.Reset();
@@ -411,7 +411,7 @@ public class NestedCommandTests
         var dispatcher = new TeCLI.CommandDispatcher();
         try
         {
-            dispatcher.DispatchAsync(args).Wait();
+            await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
         }
         catch
         {
@@ -420,7 +420,7 @@ public class NestedCommandTests
     }
 
     [Fact]
-    public void NestedCommand_MissingArgument_ShouldThrow()
+    public async Task NestedCommand_MissingArgument_ShouldThrow()
     {
         // Arrange
         NestedCommand.Reset();
@@ -428,7 +428,7 @@ public class NestedCommandTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<InvalidOperationException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("url", exception.Message.ToLower());
     }
