@@ -98,16 +98,26 @@ internal static class ParameterCodeGenerator
                     {
                         cb.AppendLine($"{variableName}Set = true;");
                     }
-                    tb.Catch();
 
-                    if (sourceInfo.IsEnum)
+                    if (sourceInfo.HasCustomConverter)
                     {
-                        cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                        cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{1}}", args[{{variableName}}Index + 1], validValues));""");
+                        // For custom converters, re-throw ArgumentException to preserve the converter's message
+                        tb.Catch("(System.ArgumentException)");
+                        cb.AppendLine("throw;");
                     }
                     else
                     {
-                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+                        tb.Catch();
+
+                        if (sourceInfo.IsEnum)
+                        {
+                            cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
+                            cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{1}}", args[{{variableName}}Index + 1], validValues));""");
+                        }
+                        else
+                        {
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+                        }
                     }
                 }
             }
@@ -143,16 +153,26 @@ internal static class ParameterCodeGenerator
                             {
                                 cb.AppendLine($"{variableName}Set = true;");
                             }
-                            tb.Catch();
 
-                            if (sourceInfo.IsEnum)
+                            if (sourceInfo.HasCustomConverter)
                             {
-                                cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                                cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{1}}", {{variableName}}EnvValue, validValues));""");
+                                // For custom converters, re-throw ArgumentException to preserve the converter's message
+                                tb.Catch("(System.ArgumentException)");
+                                cb.AppendLine("throw;");
                             }
                             else
                             {
-                                cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'", {{variableName}}EnvValue));""");
+                                tb.Catch();
+
+                                if (sourceInfo.IsEnum)
+                                {
+                                    cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
+                                    cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{1}}", {{variableName}}EnvValue, validValues));""");
+                                }
+                                else
+                                {
+                                    cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' from environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'", {{variableName}}EnvValue));""");
+                                }
                             }
                         }
                     }
@@ -230,16 +250,26 @@ internal static class ParameterCodeGenerator
                                 }
                             }
                         }
-                        tb.Catch();
 
-                        if (sourceInfo.IsElementEnum)
+                        if (sourceInfo.HasElementCustomConverter)
                         {
-                            cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
-                            cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value for option '--{{sourceInfo.Name}}'. Valid values are: {{0}}", validValues));""");
+                            // For custom converters, re-throw ArgumentException to preserve the converter's message
+                            tb.Catch("(System.ArgumentException)");
+                            cb.AppendLine("throw;");
                         }
                         else
                         {
-                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+                            tb.Catch();
+
+                            if (sourceInfo.IsElementEnum)
+                            {
+                                cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
+                                cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value for option '--{{sourceInfo.Name}}'. Valid values are: {{0}}", validValues));""");
+                            }
+                            else
+                            {
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidOptionValue}", "{sourceInfo.Name}"));""");
+                            }
                         }
                     }
                 }
@@ -282,16 +312,26 @@ internal static class ParameterCodeGenerator
                                 }
                             }
                         }
-                        tb.Catch();
 
-                        if (sourceInfo.IsElementEnum)
+                        if (sourceInfo.HasElementCustomConverter)
                         {
-                            cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
-                            cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value in environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{0}}", validValues));""");
+                            // For custom converters, re-throw ArgumentException to preserve the converter's message
+                            tb.Catch("(System.ArgumentException)");
+                            cb.AppendLine("throw;");
                         }
                         else
                         {
-                            cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value in environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'"));""");
+                            tb.Catch();
+
+                            if (sourceInfo.IsElementEnum)
+                            {
+                                cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.ElementType})));""");
+                                cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value in environment variable '{{sourceInfo.EnvVar}}' for option '--{{sourceInfo.Name}}'. Valid values are: {{0}}", validValues));""");
+                            }
+                            else
+                            {
+                                cb.AppendLine($"""throw new ArgumentException(string.Format("Invalid value in environment variable '{sourceInfo.EnvVar}' for option '--{sourceInfo.Name}'"));""");
+                            }
                         }
                     }
                 }
@@ -400,16 +440,26 @@ internal static class ParameterCodeGenerator
                     {
                         cb.AppendLine($"{variableName} = ({sourceInfo.DisplayType})Convert.ChangeType({variableName}RawValue, typeof({sourceInfo.DisplayType}));");
                     }
-                    tb.Catch();
 
-                    if (sourceInfo.IsEnum)
+                    if (sourceInfo.HasCustomConverter)
                     {
-                        cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                        cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for argument '{{sourceInfo.Name}}'. Valid values are: {{1}}", {{variableName}}RawValue, validValues));""");
+                        // For custom converters, re-throw ArgumentException to preserve the converter's message
+                        tb.Catch("(System.ArgumentException)");
+                        cb.AppendLine("throw;");
                     }
                     else
                     {
-                        cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+                        tb.Catch();
+
+                        if (sourceInfo.IsEnum)
+                        {
+                            cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
+                            cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for argument '{{sourceInfo.Name}}'. Valid values are: {{1}}", args[{{sourceInfo.ArgumentIndex}}], validValues));""");
+                        }
+                        else
+                        {
+                            cb.AppendLine($"""throw new ArgumentException(string.Format("{ErrorMessages.InvalidArgumentSyntax}", "{sourceInfo.Name}"));""");
+                        }
                     }
                 }
             }
@@ -569,19 +619,29 @@ internal static class ParameterCodeGenerator
                 {
                     cb.AppendLine($"{variableName}Set = true;");
                 }
-                tb.Catch();
 
-                if (sourceInfo.IsEnum)
+                if (sourceInfo.HasCustomConverter)
                 {
-                    cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
-                    cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for {{(sourceInfo.ParameterType == ParameterType.Option ? "option '--{{sourceInfo.Name}}'" : $"argument '{{sourceInfo.Name}}'")}}.  Valid values are: {{1}}", {{variableName}}PromptValue, validValues));""");
+                    // For custom converters, re-throw ArgumentException to preserve the converter's message
+                    tb.Catch("(System.ArgumentException)");
+                    cb.AppendLine("throw;");
                 }
                 else
                 {
-                    var errorMsg = sourceInfo.ParameterType == ParameterType.Option
-                        ? $"\"Invalid value for option '--{sourceInfo.Name}'\""
-                        : $"\"{ErrorMessages.InvalidArgumentSyntax}\", \"{sourceInfo.Name}\"";
-                    cb.AppendLine($"throw new ArgumentException(string.Format({errorMsg}));");
+                    tb.Catch();
+
+                    if (sourceInfo.IsEnum)
+                    {
+                        cb.AppendLine($"""var validValues = string.Join(", ", System.Enum.GetNames(typeof({sourceInfo.DisplayType})));""");
+                        cb.AppendLine($$"""throw new ArgumentException(string.Format("Invalid value '{{0}}' for {{(sourceInfo.ParameterType == ParameterType.Option ? "option '--{{sourceInfo.Name}}'" : $"argument '{{sourceInfo.Name}}'")}}.  Valid values are: {{1}}", {{variableName}}PromptValue, validValues));""");
+                    }
+                    else
+                    {
+                        var errorMsg = sourceInfo.ParameterType == ParameterType.Option
+                            ? $"\"Invalid value for option '--{sourceInfo.Name}'\""
+                            : $"\"{ErrorMessages.InvalidArgumentSyntax}\", \"{sourceInfo.Name}\"";
+                        cb.AppendLine($"throw new ArgumentException(string.Format({errorMsg}));");
+                    }
                 }
             }
         }
