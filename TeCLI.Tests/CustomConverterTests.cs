@@ -19,7 +19,7 @@ public class CustomConverterTests
     #region Basic Custom Converter Tests
 
     [Fact]
-    public void CustomConverter_WhenValidValue_ShouldConvert()
+    public async Task CustomConverter_WhenValidValue_ShouldConvert()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -27,7 +27,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -36,7 +36,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WhenInvalidValue_ShouldThrowException()
+    public async Task CustomConverter_WhenInvalidValue_ShouldThrowException()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -44,14 +44,14 @@ public class CustomConverterTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Invalid email address", exception.Message);
         Assert.Contains("@", exception.Message);
     }
 
     [Fact]
-    public void CustomConverter_WhenEmptyValue_ShouldThrowException()
+    public async Task CustomConverter_WhenEmptyValue_ShouldThrowException()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -59,7 +59,7 @@ public class CustomConverterTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("cannot be empty", exception.Message);
     }
@@ -69,7 +69,7 @@ public class CustomConverterTests
     #region Optional Parameters with Custom Converters
 
     [Fact]
-    public void CustomConverter_WithOptionalParameter_WhenProvided_ShouldConvert()
+    public async Task CustomConverter_WithOptionalParameter_WhenProvided_ShouldConvert()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -77,7 +77,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -88,7 +88,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WithOptionalParameter_WhenNotProvided_ShouldBeNull()
+    public async Task CustomConverter_WithOptionalParameter_WhenNotProvided_ShouldBeNull()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -96,7 +96,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -105,7 +105,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WithOptionalParameter_WhenInvalid_ShouldThrowException()
+    public async Task CustomConverter_WithOptionalParameter_WhenInvalid_ShouldThrowException()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -113,7 +113,7 @@ public class CustomConverterTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Invalid phone number", exception.Message);
         Assert.Contains("at least 10 digits", exception.Message);
@@ -124,7 +124,7 @@ public class CustomConverterTests
     #region Arguments with Custom Converters
 
     [Fact]
-    public void CustomConverter_WithArgument_WhenValid_ShouldConvert()
+    public async Task CustomConverter_WithArgument_WhenValid_ShouldConvert()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -132,7 +132,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -141,7 +141,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WithArgument_WhenInvalid_ShouldThrowException()
+    public async Task CustomConverter_WithArgument_WhenInvalid_ShouldThrowException()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -149,7 +149,7 @@ public class CustomConverterTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Invalid email address", exception.Message);
     }
@@ -159,7 +159,7 @@ public class CustomConverterTests
     #region Collections with Custom Converters
 
     [Fact]
-    public void CustomConverter_WithCollection_WhenProvided_ShouldConvertAll()
+    public async Task CustomConverter_WithCollection_WhenProvided_ShouldConvertAll()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -167,7 +167,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -178,7 +178,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WithCollection_CommaSeparated_ShouldConvertAll()
+    public async Task CustomConverter_WithCollection_CommaSeparated_ShouldConvertAll()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -186,7 +186,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -198,7 +198,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WithCollection_ShortName_ShouldWork()
+    public async Task CustomConverter_WithCollection_ShortName_ShouldWork()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -206,7 +206,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -215,7 +215,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WithCollection_WhenOneInvalid_ShouldThrowException()
+    public async Task CustomConverter_WithCollection_WhenOneInvalid_ShouldThrowException()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -223,13 +223,13 @@ public class CustomConverterTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Invalid phone number", exception.Message);
     }
 
     [Fact]
-    public void CustomConverter_WithCollection_WhenNotProvided_ShouldBeNull()
+    public async Task CustomConverter_WithCollection_WhenNotProvided_ShouldBeNull()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -237,7 +237,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -249,7 +249,7 @@ public class CustomConverterTests
     #region Environment Variables with Custom Converters
 
     [Fact]
-    public void CustomConverter_WithEnvVar_ShouldConvert()
+    public async Task CustomConverter_WithEnvVar_ShouldConvert()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -258,7 +258,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -267,7 +267,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WithEnvVar_CLITakesPrecedence()
+    public async Task CustomConverter_WithEnvVar_CLITakesPrecedence()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -276,7 +276,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -285,7 +285,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_WithEnvVar_WhenInvalid_ShouldThrowException()
+    public async Task CustomConverter_WithEnvVar_WhenInvalid_ShouldThrowException()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -294,7 +294,7 @@ public class CustomConverterTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Invalid email address", exception.Message);
     }
@@ -304,7 +304,7 @@ public class CustomConverterTests
     #region Edge Cases
 
     [Fact]
-    public void CustomConverter_WithSpecialCharacters_ShouldHandle()
+    public async Task CustomConverter_WithSpecialCharacters_ShouldHandle()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -312,7 +312,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);
@@ -321,7 +321,7 @@ public class CustomConverterTests
     }
 
     [Fact]
-    public void CustomConverter_PhoneNumber_WithFormatting_ShouldClean()
+    public async Task CustomConverter_PhoneNumber_WithFormatting_ShouldClean()
     {
         // Arrange
         CustomConverterCommand.Reset();
@@ -329,7 +329,7 @@ public class CustomConverterTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CustomConverterCommand.WasCalled);

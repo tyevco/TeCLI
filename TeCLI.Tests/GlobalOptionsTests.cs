@@ -11,7 +11,7 @@ public class GlobalOptionsTests
     #region Basic Global Options Tests
 
     [Fact]
-    public void GlobalOptions_VerboseFlag_ShouldBeAvailableInAction()
+    public async Task GlobalOptions_VerboseFlag_ShouldBeAvailableInAction()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -19,7 +19,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -29,7 +29,7 @@ public class GlobalOptionsTests
     }
 
     [Fact]
-    public void GlobalOptions_ShortVerboseFlag_ShouldWork()
+    public async Task GlobalOptions_ShortVerboseFlag_ShouldWork()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -37,7 +37,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -45,7 +45,7 @@ public class GlobalOptionsTests
     }
 
     [Fact]
-    public void GlobalOptions_ConfigFile_ShouldBeParsed()
+    public async Task GlobalOptions_ConfigFile_ShouldBeParsed()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -53,7 +53,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -61,7 +61,7 @@ public class GlobalOptionsTests
     }
 
     [Fact]
-    public void GlobalOptions_LogLevel_ShouldHaveDefaultValue()
+    public async Task GlobalOptions_LogLevel_ShouldHaveDefaultValue()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -69,7 +69,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -77,7 +77,7 @@ public class GlobalOptionsTests
     }
 
     [Fact]
-    public void GlobalOptions_LogLevel_CanBeOverridden()
+    public async Task GlobalOptions_LogLevel_CanBeOverridden()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -85,7 +85,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -93,7 +93,7 @@ public class GlobalOptionsTests
     }
 
     [Fact]
-    public void GlobalOptions_Timeout_ShouldParseInt()
+    public async Task GlobalOptions_Timeout_ShouldParseInt()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -101,7 +101,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -113,7 +113,7 @@ public class GlobalOptionsTests
     #region Multiple Global Options Tests
 
     [Fact]
-    public void GlobalOptions_MultipleOptions_ShouldAllBeParsed()
+    public async Task GlobalOptions_MultipleOptions_ShouldAllBeParsed()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -121,7 +121,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -131,7 +131,7 @@ public class GlobalOptionsTests
     }
 
     [Fact]
-    public void GlobalOptions_MixedLongAndShortNames_ShouldWork()
+    public async Task GlobalOptions_MixedLongAndShortNames_ShouldWork()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -139,7 +139,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -153,7 +153,7 @@ public class GlobalOptionsTests
     #region Global Options Positioning Tests
 
     [Fact]
-    public void GlobalOptions_BeforeCommand_ShouldWork()
+    public async Task GlobalOptions_BeforeCommand_ShouldWork()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -161,7 +161,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -169,7 +169,7 @@ public class GlobalOptionsTests
     }
 
     [Fact]
-    public void GlobalOptions_InterspersedWithCommand_ShouldWork()
+    public async Task GlobalOptions_InterspersedWithCommand_ShouldWork()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -177,7 +177,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -190,7 +190,7 @@ public class GlobalOptionsTests
     #region Mixed Global and Local Options Tests
 
     [Fact]
-    public void GlobalOptions_WithLocalOptions_ShouldBothWork()
+    public async Task GlobalOptions_WithLocalOptions_ShouldBothWork()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -198,7 +198,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -209,7 +209,7 @@ public class GlobalOptionsTests
     }
 
     [Fact]
-    public void GlobalOptions_Mixed_WithRegularOptions()
+    public async Task GlobalOptions_Mixed_WithRegularOptions()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -217,7 +217,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -232,7 +232,7 @@ public class GlobalOptionsTests
     #region Actions Without Global Options Tests
 
     [Fact]
-    public void GlobalOptions_ActionWithoutGlobalOptionsParam_ShouldStillWork()
+    public async Task GlobalOptions_ActionWithoutGlobalOptionsParam_ShouldStillWork()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -240,7 +240,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -253,7 +253,7 @@ public class GlobalOptionsTests
     #region Default Values Tests
 
     [Fact]
-    public void GlobalOptions_NotProvided_ShouldUseDefaults()
+    public async Task GlobalOptions_NotProvided_ShouldUseDefaults()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -261,7 +261,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(GlobalOptionsCommand.WasCalled);
@@ -277,7 +277,7 @@ public class GlobalOptionsTests
     #region Edge Cases
 
     [Fact]
-    public void GlobalOptions_OnlyGlobalOptionsProvided_ShouldNotAffectEmptyArgs()
+    public async Task GlobalOptions_OnlyGlobalOptionsProvided_ShouldNotAffectEmptyArgs()
     {
         // Global options are parsed and removed, leaving empty args
         // This should trigger help display behavior
@@ -286,14 +286,14 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert - should display help, not call command
         Assert.False(GlobalOptionsCommand.WasCalled);
     }
 
     [Fact]
-    public void GlobalOptions_GlobalAndHelpFlag_ShouldShowHelp()
+    public async Task GlobalOptions_GlobalAndHelpFlag_ShouldShowHelp()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -301,14 +301,14 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert - help should be shown, command not called
         Assert.False(GlobalOptionsCommand.WasCalled);
     }
 
     [Fact]
-    public void GlobalOptions_GlobalAndVersionFlag_ShouldShowVersion()
+    public async Task GlobalOptions_GlobalAndVersionFlag_ShouldShowVersion()
     {
         // Arrange
         GlobalOptionsCommand.Reset();
@@ -316,7 +316,7 @@ public class GlobalOptionsTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert - version should be shown, command not called
         Assert.False(GlobalOptionsCommand.WasCalled);
@@ -327,7 +327,7 @@ public class GlobalOptionsTests
     #region Multiple Actions Tests
 
     [Fact]
-    public void GlobalOptions_DifferentActions_ShouldAllReceiveGlobalOptions()
+    public async Task GlobalOptions_DifferentActions_ShouldAllReceiveGlobalOptions()
     {
         // Test that multiple actions in the same command can all receive global options
 
@@ -335,21 +335,21 @@ public class GlobalOptionsTests
         GlobalOptionsCommand.Reset();
         var args1 = new[] { "--verbose", "globaltest", "simple" };
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args1).Wait();
+        await dispatcher.DispatchAsync(args1, TestContext.Current.CancellationToken);
         Assert.True(GlobalOptionsCommand.CapturedVerbose.GetValueOrDefault());
 
         // Test process action
         GlobalOptionsCommand.Reset();
         var args2 = new[] { "--debug", "globaltest", "process", "file.txt" };
         dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args2).Wait();
+        await dispatcher.DispatchAsync(args2, TestContext.Current.CancellationToken);
         Assert.True(GlobalOptionsCommand.CapturedDebug.GetValueOrDefault());
 
         // Test deploy action
         GlobalOptionsCommand.Reset();
         var args3 = new[] { "--config", "cfg.json", "globaltest", "deploy", "prod" };
         dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args3).Wait();
+        await dispatcher.DispatchAsync(args3, TestContext.Current.CancellationToken);
         Assert.Equal("cfg.json", GlobalOptionsCommand.CapturedConfig);
     }
 

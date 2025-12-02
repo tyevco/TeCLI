@@ -24,7 +24,7 @@ public class ErrorSuggestionTests
             Console.SetOut(output);
 
             // Act
-            await dispatcher.DispatchAsync(args);
+            await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
             // Assert
             var result = output.ToString();
@@ -51,7 +51,7 @@ public class ErrorSuggestionTests
             Console.SetOut(output);
 
             // Act
-            await dispatcher.DispatchAsync(args);
+            await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
             // Assert
             var result = output.ToString();
@@ -78,7 +78,7 @@ public class ErrorSuggestionTests
             Console.SetOut(output);
 
             // Act
-            await dispatcher.DispatchAsync(args);
+            await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
             // Assert
             var result = output.ToString();
@@ -105,7 +105,7 @@ public class ErrorSuggestionTests
             Console.SetOut(output);
 
             // Act
-            await dispatcher.DispatchAsync(args);
+            await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
             // Assert
             var result = output.ToString();
@@ -127,7 +127,7 @@ public class ErrorSuggestionTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => dispatcher.DispatchAsync(args));
+            async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Unknown option: --enviornment", exception.Message);
         Assert.Contains("Did you mean '--environment'?", exception.Message);
@@ -142,7 +142,7 @@ public class ErrorSuggestionTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => dispatcher.DispatchAsync(args));
+            async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Unknown option: -x", exception.Message);
         // Should suggest one of the valid options (-e, -f, -t)
@@ -157,7 +157,7 @@ public class ErrorSuggestionTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => dispatcher.DispatchAsync(args));
+            async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Unknown option: --xyz123", exception.Message);
         Assert.DoesNotContain("Did you mean", exception.Message);
@@ -182,7 +182,7 @@ public class ErrorSuggestionTests
             Console.SetOut(output);
 
             // Act
-            await dispatcher.DispatchAsync(args);
+            await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
             // Assert
             var result = output.ToString();
@@ -209,7 +209,7 @@ public class ErrorSuggestionTests
             Console.SetOut(output);
 
             // Act
-            await dispatcher.DispatchAsync(args);
+            await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
             // Assert
             var result = output.ToString();

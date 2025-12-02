@@ -9,7 +9,7 @@ namespace TeCLI.Tests;
 public class IntegrationTests
 {
     [Fact]
-    public void SimpleCommand_Primary_ShouldExecute()
+    public async Task SimpleCommand_Primary_ShouldExecute()
     {
         // Arrange
         SimpleCommand.Reset();
@@ -19,7 +19,7 @@ public class IntegrationTests
         // Note: This would require the CommandDispatcher to be generated
         // For now, this demonstrates the test pattern
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(SimpleCommand.WasCalled);
@@ -27,7 +27,7 @@ public class IntegrationTests
     }
 
     [Fact]
-    public void SimpleCommand_GreetAction_WithArgument_ShouldExecute()
+    public async Task SimpleCommand_GreetAction_WithArgument_ShouldExecute()
     {
         // Arrange
         SimpleCommand.Reset();
@@ -35,7 +35,7 @@ public class IntegrationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(SimpleCommand.WasCalled);
@@ -43,7 +43,7 @@ public class IntegrationTests
     }
 
     [Fact]
-    public void OptionsCommand_WithShortOptions_ShouldParseCorrectly()
+    public async Task OptionsCommand_WithShortOptions_ShouldParseCorrectly()
     {
         // Arrange
         OptionsCommand.Reset();
@@ -51,7 +51,7 @@ public class IntegrationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(OptionsCommand.WasCalled);
@@ -61,7 +61,7 @@ public class IntegrationTests
     }
 
     [Fact]
-    public void OptionsCommand_WithLongOptions_ShouldParseCorrectly()
+    public async Task OptionsCommand_WithLongOptions_ShouldParseCorrectly()
     {
         // Arrange
         OptionsCommand.Reset();
@@ -69,7 +69,7 @@ public class IntegrationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(OptionsCommand.WasCalled);
@@ -79,7 +79,7 @@ public class IntegrationTests
     }
 
     [Fact]
-    public void OptionsCommand_WithDefaultValues_ShouldUseDefaults()
+    public async Task OptionsCommand_WithDefaultValues_ShouldUseDefaults()
     {
         // Arrange
         OptionsCommand.Reset();
@@ -87,7 +87,7 @@ public class IntegrationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(OptionsCommand.WasCalled);

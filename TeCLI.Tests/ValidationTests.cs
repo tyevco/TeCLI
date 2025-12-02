@@ -39,7 +39,7 @@ public class ValidationTests
     #region Range Validation Tests
 
     [Fact]
-    public void RangeValidation_WhenValueWithinRange_ShouldParse()
+    public async Task RangeValidation_WhenValueWithinRange_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -47,7 +47,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -55,7 +55,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void RangeValidation_WhenValueAtMinimum_ShouldParse()
+    public async Task RangeValidation_WhenValueAtMinimum_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -63,7 +63,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -71,7 +71,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void RangeValidation_WhenValueAtMaximum_ShouldParse()
+    public async Task RangeValidation_WhenValueAtMaximum_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -79,7 +79,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -87,7 +87,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void RangeValidation_WhenValueBelowMinimum_ShouldThrowException()
+    public async Task RangeValidation_WhenValueBelowMinimum_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -95,14 +95,14 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("outside the allowed range", exception.Message);
         Assert.Contains("[1, 65535]", exception.Message);
     }
 
     [Fact]
-    public void RangeValidation_WhenValueAboveMaximum_ShouldThrowException()
+    public async Task RangeValidation_WhenValueAboveMaximum_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -110,14 +110,14 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("outside the allowed range", exception.Message);
         Assert.Contains("[1, 65535]", exception.Message);
     }
 
     [Fact]
-    public void RangeValidation_WithDouble_WhenValueWithinRange_ShouldParse()
+    public async Task RangeValidation_WithDouble_WhenValueWithinRange_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -125,7 +125,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -133,7 +133,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void RangeValidation_WithDouble_WhenValueOutsideRange_ShouldThrowException()
+    public async Task RangeValidation_WithDouble_WhenValueOutsideRange_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -141,14 +141,14 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("outside the allowed range", exception.Message);
         Assert.Contains("[0, 100]", exception.Message);
     }
 
     [Fact]
-    public void RangeValidation_WithOptionalParameter_WhenNotProvided_ShouldUseDefault()
+    public async Task RangeValidation_WithOptionalParameter_WhenNotProvided_ShouldUseDefault()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -156,7 +156,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -164,7 +164,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void RangeValidation_WithTimeout_WhenValueValid_ShouldParse()
+    public async Task RangeValidation_WithTimeout_WhenValueValid_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -172,7 +172,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -180,7 +180,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void RangeValidation_WithTimeout_WhenValueInvalid_ShouldThrowException()
+    public async Task RangeValidation_WithTimeout_WhenValueInvalid_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -188,7 +188,7 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("outside the allowed range", exception.Message);
         Assert.Contains("[0, 3600]", exception.Message);
@@ -199,7 +199,7 @@ public class ValidationTests
     #region RegularExpression Validation Tests
 
     [Fact]
-    public void RegexValidation_WhenValueMatchesPattern_ShouldParse()
+    public async Task RegexValidation_WhenValueMatchesPattern_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -207,7 +207,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -215,7 +215,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void RegexValidation_WhenValueTooShort_ShouldThrowException()
+    public async Task RegexValidation_WhenValueTooShort_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -223,13 +223,13 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("does not match the required pattern", exception.Message);
     }
 
     [Fact]
-    public void RegexValidation_WhenValueTooLong_ShouldThrowException()
+    public async Task RegexValidation_WhenValueTooLong_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -237,13 +237,13 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("does not match the required pattern", exception.Message);
     }
 
     [Fact]
-    public void RegexValidation_WhenValueContainsInvalidCharacters_ShouldThrowException()
+    public async Task RegexValidation_WhenValueContainsInvalidCharacters_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -251,13 +251,13 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("does not match the required pattern", exception.Message);
     }
 
     [Fact]
-    public void RegexValidation_WithEmail_WhenValid_ShouldParse()
+    public async Task RegexValidation_WithEmail_WhenValid_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -265,7 +265,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -273,7 +273,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void RegexValidation_WithEmail_WhenInvalid_ShouldThrowException()
+    public async Task RegexValidation_WithEmail_WhenInvalid_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -281,13 +281,13 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("Invalid email format", exception.Message); // Custom error message
     }
 
     [Fact]
-    public void RegexValidation_WithOptionalParameter_WhenNotProvided_ShouldNotValidate()
+    public async Task RegexValidation_WithOptionalParameter_WhenNotProvided_ShouldNotValidate()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -295,7 +295,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -307,7 +307,7 @@ public class ValidationTests
     #region FileExists Validation Tests
 
     [Fact]
-    public void FileExistsValidation_WhenFileExists_ShouldParse()
+    public async Task FileExistsValidation_WhenFileExists_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -315,7 +315,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -323,7 +323,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void FileExistsValidation_WhenFileDoesNotExist_ShouldThrowException()
+    public async Task FileExistsValidation_WhenFileDoesNotExist_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -332,14 +332,14 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("does not exist", exception.Message);
         Assert.Contains(nonExistentFile, exception.Message);
     }
 
     [Fact]
-    public void FileExistsValidation_WithRunAction_WhenFileExists_ShouldParse()
+    public async Task FileExistsValidation_WithRunAction_WhenFileExists_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -347,7 +347,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -359,7 +359,7 @@ public class ValidationTests
     #region DirectoryExists Validation Tests
 
     [Fact]
-    public void DirectoryExistsValidation_WhenDirectoryExists_ShouldParse()
+    public async Task DirectoryExistsValidation_WhenDirectoryExists_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -367,7 +367,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -375,7 +375,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void DirectoryExistsValidation_WhenDirectoryDoesNotExist_ShouldThrowException()
+    public async Task DirectoryExistsValidation_WhenDirectoryDoesNotExist_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -384,14 +384,14 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("does not exist", exception.Message);
         Assert.Contains(nonExistentDir, exception.Message);
     }
 
     [Fact]
-    public void DirectoryExistsValidation_WithOptionalParameter_WhenNotProvided_ShouldNotValidate()
+    public async Task DirectoryExistsValidation_WithOptionalParameter_WhenNotProvided_ShouldNotValidate()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -399,7 +399,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -411,7 +411,7 @@ public class ValidationTests
     #region Combined Validation Tests
 
     [Fact]
-    public void CombinedValidations_AllValid_ShouldParse()
+    public async Task CombinedValidations_AllValid_ShouldParse()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -425,7 +425,7 @@ public class ValidationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ValidationCommand.WasCalled);
@@ -435,7 +435,7 @@ public class ValidationTests
     }
 
     [Fact]
-    public void CombinedValidations_OneInvalid_ShouldThrowException()
+    public async Task CombinedValidations_OneInvalid_ShouldThrowException()
     {
         // Arrange
         ValidationCommand.Reset();
@@ -449,7 +449,7 @@ public class ValidationTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("does not match the required pattern", exception.Message);
     }

@@ -11,7 +11,7 @@ namespace TeCLI.Tests;
 public class CompletionGenerationTests
 {
     [Fact]
-    public void GenerateCompletion_Bash_ShouldOutputScript()
+    public async Task GenerateCompletion_Bash_ShouldOutputScript()
     {
         // Arrange
         var args = new[] { "--generate-completion", "bash" };
@@ -20,7 +20,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -31,7 +31,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_Zsh_ShouldOutputScript()
+    public async Task GenerateCompletion_Zsh_ShouldOutputScript()
     {
         // Arrange
         var args = new[] { "--generate-completion", "zsh" };
@@ -40,7 +40,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -50,7 +50,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_PowerShell_ShouldOutputScript()
+    public async Task GenerateCompletion_PowerShell_ShouldOutputScript()
     {
         // Arrange
         var args = new[] { "--generate-completion", "powershell" };
@@ -59,7 +59,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -70,7 +70,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_Fish_ShouldOutputScript()
+    public async Task GenerateCompletion_Fish_ShouldOutputScript()
     {
         // Arrange
         var args = new[] { "--generate-completion", "fish" };
@@ -79,7 +79,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -88,7 +88,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_UnknownShell_ShouldShowError()
+    public async Task GenerateCompletion_UnknownShell_ShouldShowError()
     {
         // Arrange
         var args = new[] { "--generate-completion", "unknown-shell" };
@@ -97,7 +97,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = errorOutput.ToString();
@@ -106,7 +106,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_Bash_ShouldIncludeCommands()
+    public async Task GenerateCompletion_Bash_ShouldIncludeCommands()
     {
         // Arrange
         var args = new[] { "--generate-completion", "bash" };
@@ -115,7 +115,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -125,7 +125,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_Zsh_ShouldIncludeGlobalOptions()
+    public async Task GenerateCompletion_Zsh_ShouldIncludeGlobalOptions()
     {
         // Arrange
         var args = new[] { "--generate-completion", "zsh" };
@@ -134,7 +134,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -143,7 +143,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_PowerShell_ShouldIncludeGlobalOptions()
+    public async Task GenerateCompletion_PowerShell_ShouldIncludeGlobalOptions()
     {
         // Arrange
         var args = new[] { "--generate-completion", "powershell" };
@@ -152,7 +152,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -161,7 +161,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_Fish_ShouldIncludeGlobalOptions()
+    public async Task GenerateCompletion_Fish_ShouldIncludeGlobalOptions()
     {
         // Arrange
         var args = new[] { "--generate-completion", "fish" };
@@ -170,7 +170,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -179,7 +179,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_CaseInsensitive_Bash_ShouldWork()
+    public async Task GenerateCompletion_CaseInsensitive_Bash_ShouldWork()
     {
         // Arrange
         var args = new[] { "--generate-completion", "BASH" };
@@ -188,7 +188,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -196,7 +196,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_CaseInsensitive_Zsh_ShouldWork()
+    public async Task GenerateCompletion_CaseInsensitive_Zsh_ShouldWork()
     {
         // Arrange
         var args = new[] { "--generate-completion", "ZSH" };
@@ -205,7 +205,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -213,7 +213,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_CaseInsensitive_PowerShell_ShouldWork()
+    public async Task GenerateCompletion_CaseInsensitive_PowerShell_ShouldWork()
     {
         // Arrange
         var args = new[] { "--generate-completion", "PowerShell" };
@@ -222,7 +222,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();
@@ -230,7 +230,7 @@ public class CompletionGenerationTests
     }
 
     [Fact]
-    public void GenerateCompletion_CaseInsensitive_Fish_ShouldWork()
+    public async Task GenerateCompletion_CaseInsensitive_Fish_ShouldWork()
     {
         // Arrange
         var args = new[] { "--generate-completion", "FISH" };
@@ -239,7 +239,7 @@ public class CompletionGenerationTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         var result = output.ToString();

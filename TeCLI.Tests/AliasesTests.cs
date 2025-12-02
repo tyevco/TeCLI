@@ -9,7 +9,7 @@ namespace TeCLI.Tests;
 public class AliasesTests
 {
     [Fact]
-    public void CommandPrimaryName_ShouldWork()
+    public async Task CommandPrimaryName_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -17,7 +17,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -26,7 +26,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void CommandAlias_Rm_ShouldWork()
+    public async Task CommandAlias_Rm_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -34,7 +34,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -43,7 +43,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void CommandAlias_Delete_ShouldWork()
+    public async Task CommandAlias_Delete_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -51,7 +51,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -60,7 +60,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void ActionPrimaryName_ShouldWork()
+    public async Task ActionPrimaryName_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -68,7 +68,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -76,7 +76,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void ActionAlias_SingleLetter_ShouldWork()
+    public async Task ActionAlias_SingleLetter_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -84,7 +84,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -93,7 +93,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void ActionAlias_Dir_ShouldWork()
+    public async Task ActionAlias_Dir_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -101,7 +101,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -110,7 +110,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void ActionAlias_D_ShouldWork()
+    public async Task ActionAlias_D_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -118,7 +118,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -126,7 +126,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void ActionAlias_Folder_ShouldWork()
+    public async Task ActionAlias_Folder_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -134,7 +134,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -142,7 +142,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void CommandAliasAndActionAlias_Combined_ShouldWork()
+    public async Task CommandAliasAndActionAlias_Combined_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -150,7 +150,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -160,7 +160,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void CommandAlias_DeleteAndActionAlias_Dir_Combined_ShouldWork()
+    public async Task CommandAlias_DeleteAndActionAlias_Dir_Combined_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -168,7 +168,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -178,7 +178,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void ActionAlias_Ls_ShouldWork()
+    public async Task ActionAlias_Ls_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -186,7 +186,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -194,7 +194,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void ActionAlias_Show_ShouldWork()
+    public async Task ActionAlias_Show_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -202,7 +202,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -210,7 +210,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void MultipleAliases_AllWorkIndependently()
+    public async Task MultipleAliases_AllWorkIndependently()
     {
         // Test each command alias
         var commandAliases = new[] { "remove", "rm", "delete" };
@@ -226,7 +226,7 @@ public class AliasesTests
 
                 // Act
                 var dispatcher = new TeCLI.CommandDispatcher();
-                dispatcher.DispatchAsync(args).Wait();
+                await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
                 // Assert
                 Assert.True(AliasesCommand.WasCalled, $"Failed for command '{cmdAlias}' and action '{actAlias}'");
@@ -236,7 +236,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void CaseInsensitive_CommandAliases_ShouldWork()
+    public async Task CaseInsensitive_CommandAliases_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -244,7 +244,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);
@@ -252,7 +252,7 @@ public class AliasesTests
     }
 
     [Fact]
-    public void CaseInsensitive_ActionAliases_ShouldWork()
+    public async Task CaseInsensitive_ActionAliases_ShouldWork()
     {
         // Arrange
         AliasesCommand.Reset();
@@ -260,7 +260,7 @@ public class AliasesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(AliasesCommand.WasCalled);

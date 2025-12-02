@@ -10,7 +10,7 @@ namespace TeCLI.Tests;
 public class CommonTypesTests
 {
     [Fact]
-    public void UriOption_WithValidUrl_ShouldParse()
+    public async Task UriOption_WithValidUrl_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -18,7 +18,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -28,7 +28,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void DateTimeOption_WithValidDate_ShouldParse()
+    public async Task DateTimeOption_WithValidDate_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -36,7 +36,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -45,7 +45,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void DateTimeOption_WithFullTimestamp_ShouldParse()
+    public async Task DateTimeOption_WithFullTimestamp_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -53,7 +53,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -62,7 +62,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void TimeSpanOption_WithDaysFormat_ShouldParse()
+    public async Task TimeSpanOption_WithDaysFormat_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -70,7 +70,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -79,7 +79,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void TimeSpanOption_WithSimpleFormat_ShouldParse()
+    public async Task TimeSpanOption_WithSimpleFormat_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -87,7 +87,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -96,7 +96,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void GuidOption_WithValidGuid_ShouldParse()
+    public async Task GuidOption_WithValidGuid_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -105,7 +105,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -114,7 +114,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void GuidOption_WithDifferentFormat_ShouldParse()
+    public async Task GuidOption_WithDifferentFormat_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -122,7 +122,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -131,7 +131,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void FileInfoOption_WithValidPath_ShouldParse()
+    public async Task FileInfoOption_WithValidPath_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -139,7 +139,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -148,7 +148,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void DirectoryInfoOption_WithValidPath_ShouldParse()
+    public async Task DirectoryInfoOption_WithValidPath_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -156,7 +156,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -165,7 +165,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void DateTimeOffsetOption_WithValidValue_ShouldParse()
+    public async Task DateTimeOffsetOption_WithValidValue_ShouldParse()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -173,7 +173,7 @@ public class CommonTypesTests
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
-        dispatcher.DispatchAsync(args).Wait();
+        await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(CommonTypesCommand.WasCalled);
@@ -182,7 +182,7 @@ public class CommonTypesTests
     }
 
     [Fact]
-    public void UriOption_WithInvalidUrl_ShouldThrow()
+    public async Task UriOption_WithInvalidUrl_ShouldThrow()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -190,13 +190,13 @@ public class CommonTypesTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("url", exception.Message);
     }
 
     [Fact]
-    public void DateTimeOption_WithInvalidDate_ShouldThrow()
+    public async Task DateTimeOption_WithInvalidDate_ShouldThrow()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -204,13 +204,13 @@ public class CommonTypesTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("date", exception.Message);
     }
 
     [Fact]
-    public void GuidOption_WithInvalidGuid_ShouldThrow()
+    public async Task GuidOption_WithInvalidGuid_ShouldThrow()
     {
         // Arrange
         CommonTypesCommand.Reset();
@@ -218,7 +218,7 @@ public class CommonTypesTests
 
         // Act & Assert
         var dispatcher = new TeCLI.CommandDispatcher();
-        var exception = Assert.ThrowsAsync<ArgumentException>(() => dispatcher.DispatchAsync(args)).Result;
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await dispatcher.DispatchAsync(args, TestContext.Current.CancellationToken));
 
         Assert.Contains("id", exception.Message);
     }
