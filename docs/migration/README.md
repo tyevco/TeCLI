@@ -46,6 +46,10 @@ Many features that require manual implementation or third-party packages in othe
 - **Shell completion**: Bash, Zsh, PowerShell, and Fish scripts
 - **Pre/post execution hooks**: `[BeforeExecute]`, `[AfterExecute]`, `[OnError]`
 - **Global options**: `[GlobalOptions]` for options shared across commands
+- **Configuration files**: Auto-discovery of JSON, YAML, TOML, INI configs
+- **Localization (i18n)**: `[LocalizedDescription]` with pluggable providers
+- **Interactive shell (REPL)**: `[Shell]` attribute for shell mode
+- **Progress UI**: Auto-injected `IProgressContext` for progress bars and spinners
 
 ### First-Class DI Support
 TeCLI provides extensions for popular dependency injection containers:
@@ -69,6 +73,10 @@ TeCLI provides extensions for popular dependency injection containers:
 | Interactive prompts | No | No | Via Spectre.Console | Limited | Built-in |
 | DI extensions | Manual | No | TypeRegistrar | Constructor | Extensions |
 | Pre/post hooks | Middleware | No | Interceptors | No | Attributes |
+| Configuration files | Manual | No | No | No | Auto-discovery |
+| Localization (i18n) | No | No | No | No | Attribute-based |
+| Interactive shell | No | No | No | No | Built-in |
+| Progress UI | No | No | Spectre.Console | No | Auto-injected |
 
 ## General Migration Steps
 

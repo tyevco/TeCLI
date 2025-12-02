@@ -577,6 +577,10 @@ public void Execute(
 | Pre/post hooks | ⚠️ Interceptors | ✅ Attributes |
 | Console styling | ✅ Spectre.Console | ⚠️ Bring your own |
 | Global options | ✅ | ✅ |
+| Configuration files | ❌ | ✅ Auto-discovery |
+| Localization (i18n) | ❌ | ✅ Attribute-based |
+| Interactive shell (REPL) | ❌ | ✅ Built-in |
+| Progress UI | ✅ Spectre.Console | ✅ Auto-injected |
 
 ## Benefits of Migration
 
@@ -620,3 +624,89 @@ dotnet add package TeCLI.Extensions.Console
 4. **Nested Commands:** Use nested classes with `[Command]` instead of `AddBranch()`
 5. **Interceptors → Hooks:** Use `[BeforeExecute]`/`[AfterExecute]` instead of interceptors
 6. **ExceptionHandler:** Use `[OnError]` attribute for error handling
+
+## Advanced Features (TeCLI-Only)
+
+These features have no direct equivalent in Spectre.Console.Cli:
+
+### Configuration File Support
+
+Auto-discover and load configuration files:
+
+```csharp
+var mergedArgs = args.WithConfiguration(appName: "myapp");
+await dispatcher.DispatchAsync(mergedArgs);
+```
+
+### Localization (i18n)
+
+Attribute-based localization without external dependencies:
+
+```csharp
+[Command("greet")]
+[LocalizedDescription("GreetCommand_Description")]
+public class GreetCommand
+{
+    [Primary]
+    public void Hello(
+        [Argument]
+        [LocalizedDescription("Name_Description")]
+        string name)
+    {
+        Console.WriteLine(Localizer.GetString("Greeting", name));
+    }
+}
+```
+
+### Interactive Shell (REPL)
+
+Built-in shell mode for interactive CLIs:
+
+```csharp
+[Command("db")]
+[Shell(Prompt = "db> ", WelcomeMessage = "Database Shell", EnableHistory = true)]
+public class DatabaseCommand
+{
+    [Action("query")]
+    public void Query([Argument] string sql) { }
+}
+```
+
+### Progress UI Comparison
+
+Both Spectre.Console and TeCLI support progress UI, but with different approaches:
+
+**Spectre.Console (manual setup):**
+```csharp
+public override int Execute(CommandContext context, Settings settings)
+{
+    AnsiConsole.Progress()
+        .Start(ctx =>
+        {
+            var task = ctx.AddTask("Processing...");
+            while (!ctx.IsFinished)
+            {
+                task.Increment(10);
+                Thread.Sleep(100);
+            }
+        });
+    return 0;
+}
+```
+
+**TeCLI (auto-injected):**
+```csharp
+[Primary]
+public async Task Execute(IProgressContext progress)  // Auto-injected!
+{
+    using var bar = progress.CreateProgressBar("Processing...", 100);
+    for (int i = 0; i <= 100; i += 10)
+    {
+        bar.Value = i;
+        await Task.Delay(100);
+    }
+    bar.Complete("Done!");
+}
+```
+
+TeCLI's `IProgressContext` is automatically injected—no manual setup required.

@@ -726,6 +726,10 @@ public class TagCommand
 | Interactive prompts | ⚠️ Prompt<T> | ✅ Built-in |
 | Pre/post hooks | ❌ | ✅ |
 | Global options | ✅ Parent props | ✅ `[GlobalOptions]` |
+| Configuration files | ❌ | ✅ Auto-discovery |
+| Localization (i18n) | ❌ | ✅ Attribute-based |
+| Interactive shell (REPL) | ❌ | ✅ Built-in |
+| Progress UI | ❌ | ✅ Auto-injected |
 
 ## Benefits of Migration
 
@@ -746,3 +750,69 @@ public class TagCommand
 5. **No Parent Property:** Use `[GlobalOptions]` for shared options across commands
 6. **Subcommands:** Use nested classes, not `[Subcommand]` attribute
 7. **Version Option:** Define manually as an `[Action("version")]`
+
+## Advanced Features (TeCLI-Only)
+
+These features have no equivalent in McMaster.Extensions.CommandLineUtils:
+
+### Configuration File Support
+
+Auto-discover and load configuration files:
+
+```csharp
+// Program.cs
+var mergedArgs = args.WithConfiguration(appName: "myapp");
+await dispatcher.DispatchAsync(mergedArgs);
+```
+
+Supports JSON, YAML, TOML, and INI formats.
+
+### Localization (i18n)
+
+Attribute-based internationalization:
+
+```csharp
+[Command("greet")]
+[LocalizedDescription("GreetCommand_Description")]
+public class GreetCommand
+{
+    [Primary]
+    public void Hello(
+        [Argument]
+        [LocalizedDescription("Name_Description")]
+        string name)
+    {
+        Console.WriteLine(Localizer.GetString("Greeting", name));
+    }
+}
+```
+
+### Interactive Shell (REPL)
+
+Add shell mode to your CLI:
+
+```csharp
+[Command("db")]
+[Shell(Prompt = "db> ", EnableHistory = true)]
+public class DatabaseCommand
+{
+    [Action("query")]
+    public void Query([Argument] string sql) { }
+}
+```
+
+### Progress UI
+
+Auto-injected progress context:
+
+```csharp
+[Primary]
+public async Task Process(IProgressContext progress)
+{
+    using var bar = progress.CreateProgressBar("Processing...", 100);
+    for (int i = 0; i <= 100; i += 10)
+    {
+        bar.Value = i;
+        await Task.Delay(100);
+    }
+}
