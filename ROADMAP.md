@@ -1389,45 +1389,65 @@ await Host.CreateDefaultBuilder(args)
 
 ---
 
-### 📊 TeCLI.Extensions.Progress
-**Status:** Planned
+### 📊 TeCLI.Extensions.Progress (IProgressContext)
+**Status:** ✅ Completed (Rolled into TeCLI.Extensions.Console)
 **Priority:** Medium
 
-Rich terminal UI elements for progress and status:
+Rich terminal UI elements for progress and status via auto-injected `IProgressContext`:
 
 ```csharp
 [Action("download")]
 public async Task Download(
     [Argument] string url,
-    IProgressContext progress)  // Auto-injected
+    IProgressContext progress)  // Auto-injected by framework
 {
-    using var bar = progress.CreateProgressBar("Downloading...");
+    using var bar = progress.CreateProgressBar("Downloading...", totalBytes);
 
     await foreach (var chunk in DownloadChunksAsync(url))
     {
         bar.Increment(chunk.Length);
     }
+    bar.Complete("Download complete!");
 }
 
 [Action("process")]
-public async Task Process([Argument] string[] files)
+public async Task Process(
+    [Argument] string[] files,
+    IProgressContext progress)
 {
     using var spinner = progress.CreateSpinner("Processing...");
 
     foreach (var file in files)
     {
-        spinner.Status = $"Processing {file}...";
+        spinner.Update($"Processing {file}...");
         await ProcessFileAsync(file);
     }
+    spinner.Success("All files processed!");
 }
 ```
 
-**Planned Features:**
-- `[Progress]` for progress bar support
-- Spinner animations during async operations
-- Status messages and tables
-- Integration with `Spectre.Console`
-- Auto-detect terminal capabilities
+**Implemented Features:**
+- ✅ `IProgressContext` auto-injection into action methods
+- ✅ `IProgressBar` with `Increment()`, `Report()`, `Complete()`, `Fail()`
+- ✅ Spinner support via `CreateSpinner()`
+- ✅ Progress indicator support via `CreateProgress()`
+- ✅ Access to underlying `IConsoleOutput` via `Console` property
+- ✅ Auto-detect terminal capabilities
+- ✅ Comprehensive unit and integration tests
+
+**Note:** This feature was rolled into `TeCLI.Extensions.Console` rather than being a separate package, as it builds on the existing progress indicator and spinner functionality.
+
+**Files Added:**
+- `TeCLI.Extensions.Console/IProgressContext.cs` - Interface and IProgressBar
+- `TeCLI.Extensions.Console/ProgressContext.cs` - Implementation
+- `TeCLI.Tests/ProgressContextTests.cs` - Integration tests
+- `TeCLI.Extensions.Console.Tests/ProgressContextTests.cs` - Unit tests
+
+**Files Modified:**
+- `TeCLI.Tools/Generators/ParameterSourceInfo.cs` - IsProgressContext property
+- `TeCLI.Tools/Extensions.cs` - IsProgressContextType() detection
+- `TeCLI/Generators/ParameterInfoExtractor.cs` - Progress context detection
+- `TeCLI/Generators/ParameterCodeGenerator.cs` - Auto-instantiation code generation
 
 ---
 

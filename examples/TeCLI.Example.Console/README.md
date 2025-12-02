@@ -11,6 +11,7 @@ Example demonstrating TeCLI.Extensions.Console features.
 - Spinners for indeterminate operations
 - Terminal capability detection
 - Custom progress bar styles
+- **Auto-injected `IProgressContext`** for action methods
 
 ## Commands
 
@@ -53,6 +54,10 @@ dotnet run -- progress outcomes
 
 # Custom progress bar styles
 dotnet run -- progress custom
+
+# Auto-injected IProgressContext (no manual setup required!)
+dotnet run -- progress context
+dotnet run -- progress context -s 20    # 20 steps
 ```
 
 ## Code Structure
