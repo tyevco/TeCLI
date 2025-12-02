@@ -85,21 +85,33 @@ public partial class CommandLineArgsGenerator : IIncrementalGenerator
         // Collect all command classes and global options classes
         var commandClassesCollected = commandClassesProvider.Collect();
         var globalOptionsClassesCollected = globalOptionsClassesProvider.Collect();
-        var compilationProvider = context.CompilationProvider;
+        var compilationAndAnalyzerConfigProvider = context.CompilationProvider
+            .Combine(context.AnalyzerConfigOptionsProvider);
 
         // Combine everything
-        var combined = compilationProvider
+        var combined = compilationAndAnalyzerConfigProvider
             .Combine(commandClassesCollected)
             .Combine(globalOptionsClassesCollected);
 
         // Register source output
         context.RegisterSourceOutput(combined, (spc, source) =>
         {
-            var ((compilation, commandClasses), globalOptionsClasses) = source;
+            var (((compilation, analyzerConfig), commandClasses), globalOptionsClasses) = source;
 
             if (commandClasses.Length > 0)
             {
                 GenerateCommandDispatcher(spc, compilation, commandClasses, globalOptionsClasses);
+
+                // Check if an invoker library is configured
+                var invokerLibrary = analyzerConfig.GlobalOptions.TryGetValue(
+                    $"build_property.{Constants.BuildProperties.InvokerLibrary}",
+                    out var value) ? value : null;
+
+                // Generate default invoker if no invoker library is specified
+                if (string.IsNullOrWhiteSpace(invokerLibrary))
+                {
+                    GenerateDefaultInvoker(spc);
+                }
             }
         });
     }
