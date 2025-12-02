@@ -25,6 +25,7 @@ TeCLI is a source-generated CLI parsing library for .NET that simplifies command
 - **Pipeline/Stream Support** - Unix-style stdin/stdout piping with `Stream`, `TextReader`, `TextWriter`
 - **Testing Utilities** - `TeCLI.Extensions.Testing` package for easy CLI testing
 - **Configuration Files** - Load options from JSON, YAML, TOML, or INI files with profile support
+- **Localization (i18n)** - `TeCLI.Extensions.Localization` for internationalized help text and messages
 
 ## Installation
 
@@ -520,6 +521,101 @@ Values are merged in this order (later sources override earlier ones):
 3. CLI arguments (highest precedence)
 
 This means users can set defaults in config files but always override them via CLI.
+
+## Localization (i18n)
+
+TeCLI provides internationalization support through the `TeCLI.Extensions.Localization` package.
+
+```bash
+dotnet add package TeCLI.Extensions.Localization
+```
+
+### Setup with Resource Files
+
+```csharp
+using TeCLI.Localization;
+
+// Initialize with automatic culture detection (checks --lang arg and LANG env var)
+Localizer.Initialize(
+    new ResourceLocalizationProvider(typeof(Strings)),
+    args
+);
+
+// Or configure manually
+Localizer.Configure(new ResourceLocalizationProvider(typeof(Strings)));
+Localizer.CurrentCulture = new CultureInfo("fr");
+```
+
+### Using Localized Descriptions
+
+```csharp
+using TeCLI.Localization;
+
+[Command("greet")]
+[LocalizedDescription("GreetCommand_Description")]
+public class GreetCommand
+{
+    [Primary]
+    [LocalizedDescription("GreetCommand_Hello_Description")]
+    public void Hello(
+        [Argument]
+        [LocalizedDescription("GreetCommand_Hello_Name_Description")]
+        string name)
+    {
+        // Use localized output messages
+        Console.WriteLine(Localizer.GetString("Greeting_Hello", name));
+    }
+}
+```
+
+### Showing Localized Help
+
+```csharp
+// Show localized help for a command
+Localizer.ShowHelp<GreetCommand>();
+
+// Or use the help renderer directly
+var renderer = Localizer.CreateHelpRenderer();
+renderer.RenderCommandHelp(typeof(GreetCommand));
+```
+
+### Culture Detection
+
+The extension automatically detects culture from:
+1. Command line arguments: `--lang=fr`, `--locale=de-DE`, `-l es`
+2. Environment variables: `LANG`, `LC_ALL`, `LC_MESSAGES`
+3. System culture (fallback)
+
+### Localization Providers
+
+| Provider | Use Case |
+|----------|----------|
+| `ResourceLocalizationProvider` | .resx resource files |
+| `DictionaryLocalizationProvider` | In-memory translations (testing, simple apps) |
+| `CompositeLocalizationProvider` | Chain multiple providers together |
+
+### In-Memory Translations (No Resource Files)
+
+```csharp
+Localizer.Configure(p =>
+{
+    p.AddTranslation("en", "greeting", "Hello, {0}!");
+    p.AddTranslation("fr", "greeting", "Bonjour, {0}!");
+    p.AddDefault("farewell", "Goodbye!");
+});
+
+Console.WriteLine(Localizer.GetString("greeting", "World"));
+```
+
+### Pluralization Support
+
+```csharp
+// Returns singular or plural based on count
+var message = Localizer.GetPluralString("file_singular", "file_plural", count);
+// "1 file" vs "5 files"
+```
+
+See `examples/TeCLI.Example.Localization` for a complete working example with English, French, German, and Spanish translations.
 
 ## Framework Support
 
