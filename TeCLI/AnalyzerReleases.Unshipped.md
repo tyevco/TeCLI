@@ -37,3 +37,8 @@ CLI029 | Usage | Info | NullableWithoutDefaultAnalyzer - Nullable option without
 CLI030 | Usage | Error | EmptyEnumTypeAnalyzer - Option uses empty enum type
 CLI031 | Usage | Warning | MultipleGlobalOptionsAnalyzer - Multiple GlobalOptions classes
 CLI032 | Security | Info | SensitiveOptionAnalyzer - Sensitive option detected
+CLI033 | Usage | Error | AliasConflictAnalyzer - Conflicting command/action alias
+CLI034 | Usage | Warning | InvalidEnvironmentVariableAnalyzer - Invalid or duplicate EnvVar mapping
+CLI035 | Usage | Error | TypeConverterValidationAnalyzer - Invalid TypeConverter reference
+CLI036 | Usage | Error | HookTypeValidationAnalyzer - Invalid hook type reference
+CLI037 | Usage | Error | ExitCodeMappingAnalyzer - Invalid or duplicate MapExitCode mapping
