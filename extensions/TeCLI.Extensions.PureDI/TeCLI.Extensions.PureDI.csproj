@@ -11,10 +11,10 @@
 		<RestoreProjectStyle>PackageReference</RestoreProjectStyle>
 	</PropertyGroup>
 
-	<Import Project="../Generator.props" />
+	<Import Project="../../Generator.props" />
 
 	<PropertyGroup>
-		<NamespaceSuffix>.Extensions.Jab</NamespaceSuffix>
+		<NamespaceSuffix>.Extensions.PureDI</NamespaceSuffix>
 		<RootNamespace>$(RootNamespaceId)$(NamespaceSuffix)</RootNamespace>
 	</PropertyGroup>
 
@@ -23,7 +23,7 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
 
-		<ProjectReference Include="..\TeCLI.Tools\TeCLI.Tools.csproj" />
+		<ProjectReference Include="..\..\TeCLI.Tools\TeCLI.Tools.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -31,9 +31,9 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<None Include="TeCLI.Extensions.Jab.props" Pack="true" PackagePath="build/" />
+		<None Include="TeCLI.Extensions.PureDI.props" Pack="true" PackagePath="build/" />
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="..\TeCLI.Tools\bin\$(Configuration)\netstandard2.0\TeCLI.Tools.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="..\..\TeCLI.Tools\bin\$(Configuration)\netstandard2.0\TeCLI.Tools.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 	</ItemGroup>
 
 	<!-- Ensure dependent DLLs are available to the analyzer -->

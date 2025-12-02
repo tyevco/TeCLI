@@ -23,7 +23,7 @@
 
 		<Copy
             SourceFiles="@(NugetFiles)"
-            DestinationFolder="..\.packages\"
+            DestinationFolder="..\..\.packages\"
 			ContinueOnError="true"
         />
 
@@ -31,7 +31,7 @@
 	</Target>
 
 	<ItemGroup>
-		<None Include="../LICENSE" Pack="true" PackagePath=""/>
+		<None Include="../../LICENSE" Pack="true" PackagePath=""/>
 	</ItemGroup>
 
 </Project>
