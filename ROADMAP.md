@@ -1147,24 +1147,76 @@ Better developer experience for source generators:
 
 ---
 
-### 💡 Localization Support (i18n)
-**Status:** Research Needed
-**Priority:** Low
+### 📊 Localization Support (i18n)
+**Status:** ✅ Completed
+**Priority:** Medium
 
-Internationalization for help text and error messages:
+TeCLI now provides internationalization support through the `TeCLI.Extensions.Localization` package! This enables localized help text, error messages, and output strings.
+
 ```csharp
-[Command("greet", DescriptionResourceKey = "GreetCommand_Description")]
+using TeCLI.Localization;
+
+[Command("greet")]
+[LocalizedDescription("GreetCommand_Description")]
 public class GreetCommand
 {
-    [Primary(DescriptionResourceKey = "GreetCommand_Hello_Description")]
-    public void Hello([Argument] string name) { }
+    [Primary]
+    [LocalizedDescription("GreetCommand_Hello_Description")]
+    public void Hello(
+        [Argument]
+        [LocalizedDescription("GreetCommand_Hello_Name_Description")]
+        string name)
+    {
+        Console.WriteLine(Localizer.GetString("Greeting_Hello", name));
+    }
 }
+
+// Initialize localization
+Localizer.Initialize(
+    new ResourceLocalizationProvider(typeof(Strings)),
+    args  // Auto-detects --lang=fr, LANG env var, etc.
+);
+
+// Show localized help
+Localizer.ShowHelp<GreetCommand>();
 ```
 
-**Challenges:**
-- Resource file integration
-- Culture detection
-- Pluralization support
+**Implemented Features:**
+- ✅ `ILocalizationProvider` interface for pluggable localization
+- ✅ `ResourceLocalizationProvider` - Uses .NET .resx resource files
+- ✅ `DictionaryLocalizationProvider` - In-memory translations (testing, simple apps)
+- ✅ `CompositeLocalizationProvider` - Chain multiple providers together
+- ✅ `[LocalizedDescription]`, `[LocalizedPrompt]`, `[LocalizedErrorMessage]` attributes
+- ✅ `LocalizedHelpRenderer` for runtime-localized help text
+- ✅ `CultureDetection` - Auto-detect culture from CLI args (`--lang=fr`) and env vars (`LANG`)
+- ✅ Pluralization support via `GetPluralString()`
+- ✅ Culture fallback chain (e.g., fr-CA → fr → default)
+- ✅ Comprehensive test coverage
+
+**Localization Providers:**
+
+| Provider | Use Case |
+|----------|----------|
+| `ResourceLocalizationProvider` | .resx resource files |
+| `DictionaryLocalizationProvider` | In-memory translations (testing, simple apps) |
+| `CompositeLocalizationProvider` | Chain multiple providers together |
+
+**Culture Detection Sources (in order of precedence):**
+1. Command line arguments: `--lang=fr`, `--locale=de-DE`, `-l es`
+2. Environment variables: `LANG`, `LC_ALL`, `LC_MESSAGES`
+3. System culture (fallback)
+
+**Files Added:**
+- `extensions/TeCLI.Extensions.Localization/ILocalizationProvider.cs` - Core interface
+- `extensions/TeCLI.Extensions.Localization/ResourceLocalizationProvider.cs` - .resx support
+- `extensions/TeCLI.Extensions.Localization/DictionaryLocalizationProvider.cs` - In-memory provider
+- `extensions/TeCLI.Extensions.Localization/CompositeLocalizationProvider.cs` - Provider chaining
+- `extensions/TeCLI.Extensions.Localization/LocalizedAttribute.cs` - Localization attributes
+- `extensions/TeCLI.Extensions.Localization/LocalizedHelpRenderer.cs` - Help text rendering
+- `extensions/TeCLI.Extensions.Localization/CultureDetection.cs` - Culture auto-detection
+- `extensions/TeCLI.Extensions.Localization/Localizer.cs` - Static entry point
+- `examples/TeCLI.Example.Localization/` - Complete example with EN, FR, DE, ES translations
+- `tests/TeCLI.Extensions.Localization.Tests/` - Comprehensive test suite
 
 ---
 
