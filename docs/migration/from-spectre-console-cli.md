@@ -581,6 +581,7 @@ public void Execute(
 | Localization (i18n) | ❌ | ✅ Attribute-based |
 | Interactive shell (REPL) | ❌ | ✅ Built-in |
 | Progress UI | ✅ Spectre.Console | ✅ Auto-injected |
+| Structured output (JSON/XML/YAML/Table) | ❌ | ✅ Built-in |
 
 ## Benefits of Migration
 
@@ -710,3 +711,29 @@ public async Task Execute(IProgressContext progress)  // Auto-injected!
 ```
 
 TeCLI's `IProgressContext` is automatically injected—no manual setup required.
+
+### Structured Output Formatting
+
+Format output as JSON, XML, YAML, or tables:
+
+```csharp
+using TeCLI.Output;
+
+[Command("list")]
+public class ListCommand
+{
+    [Action("users")]
+    [OutputFormat]  // Enables --output json|xml|table|yaml
+    public IEnumerable<User> ListUsers()
+    {
+        return _userService.GetAll();
+    }
+}
+
+// Usage:
+// myapp list users --output json
+// myapp list users --output table
+// myapp list users -o yaml
+```
+
+The table formatter uses Spectre.Console for rich terminal output, so you get familiar formatting.

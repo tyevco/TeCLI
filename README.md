@@ -26,6 +26,7 @@ TeCLI is a source-generated CLI parsing library for .NET that simplifies command
 - **Testing Utilities** - `TeCLI.Extensions.Testing` package for easy CLI testing
 - **Configuration Files** - Load options from JSON, YAML, TOML, or INI files with profile support
 - **Localization (i18n)** - `TeCLI.Extensions.Localization` for internationalized help text and messages
+- **Structured Output** - `TeCLI.Extensions.Output` for JSON, XML, YAML, and table output formatting
 
 ## Installation
 
@@ -43,6 +44,12 @@ For configuration file support:
 
 ```bash
 dotnet add package TeCLI.Extensions.Configuration
+```
+
+For structured output formatting:
+
+```bash
+dotnet add package TeCLI.Extensions.Output
 ```
 
 ## Quick Start
@@ -616,6 +623,92 @@ var message = Localizer.GetPluralString("file_singular", "file_plural", count);
 ```
 
 See `examples/TeCLI.Example.Localization` for a complete working example with English, French, German, and Spanish translations.
+
+## Structured Output Formatting
+
+TeCLI provides structured output formatting through the `TeCLI.Extensions.Output` package.
+
+```bash
+dotnet add package TeCLI.Extensions.Output
+```
+
+### Using the OutputFormat Attribute
+
+Apply `[OutputFormat]` to action methods to enable output format selection:
+
+```csharp
+using TeCLI.Output;
+
+[Command("list")]
+public class ListCommand
+{
+    [Action("users")]
+    [OutputFormat]  // Enables --output json|xml|table|yaml
+    public IEnumerable<User> ListUsers()
+    {
+        return _userService.GetAll();
+    }
+}
+
+// Usage:
+// myapp list users --output json
+// myapp list users --output table
+// myapp list users -o yaml
+```
+
+### Using OutputContext Directly
+
+For more control, use `OutputContext`:
+
+```csharp
+using TeCLI.Output;
+
+// Fluent API
+OutputContext.Create()
+    .WithFormat(OutputFormat.Json)
+    .WriteTo(Console.Out)
+    .Write(users);
+
+// Or construct directly
+var context = new OutputContext(OutputFormat.Table, Console.Out);
+context.Write(users);
+```
+
+### Supported Formats
+
+| Format | Description |
+|--------|-------------|
+| `json` | JSON output using System.Text.Json |
+| `xml` | XML output with configurable element names |
+| `yaml` | YAML output (lightweight, no external dependencies) |
+| `table` | Rich table output using Spectre.Console |
+
+### Custom Formatters
+
+Implement `IOutputFormatter<T>` for custom formatting:
+
+```csharp
+public class UserCsvFormatter : IOutputFormatter<User>
+{
+    public OutputFormat Format => OutputFormat.Csv;
+    public string FileExtension => ".csv";
+    public string MimeType => "text/csv";
+
+    public void Format(User value, TextWriter output)
+    {
+        output.WriteLine($"{value.Id},{value.Name},{value.Email}");
+    }
+
+    public void FormatCollection(IEnumerable<User> values, TextWriter output)
+    {
+        output.WriteLine("Id,Name,Email");
+        foreach (var user in values)
+            Format(user, output);
+    }
+}
+```
+
+See `examples/TeCLI.Example.Output` for a complete working example.
 
 ## Framework Support
 

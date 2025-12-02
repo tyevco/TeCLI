@@ -50,6 +50,7 @@ Many features that require manual implementation or third-party packages in othe
 - **Localization (i18n)**: `[LocalizedDescription]` with pluggable providers
 - **Interactive shell (REPL)**: `[Shell]` attribute for shell mode
 - **Progress UI**: Auto-injected `IProgressContext` for progress bars and spinners
+- **Structured output**: `[OutputFormat]` for JSON, XML, YAML, and table output
 
 ### First-Class DI Support
 TeCLI provides extensions for popular dependency injection containers:
@@ -77,6 +78,7 @@ TeCLI provides extensions for popular dependency injection containers:
 | Localization (i18n) | No | No | No | No | Attribute-based |
 | Interactive shell | No | No | No | No | Built-in |
 | Progress UI | No | No | Spectre.Console | No | Auto-injected |
+| Structured output | No | No | No | No | Built-in |
 
 ## General Migration Steps
 

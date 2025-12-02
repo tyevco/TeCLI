@@ -1492,10 +1492,10 @@ public class DeployCommand
 ---
 
 ### 📊 TeCLI.Extensions.Output
-**Status:** Planned
+**Status:** ✅ Completed
 **Priority:** Medium
 
-Structured output formatting with multiple format support:
+TeCLI now provides structured output formatting with multiple format support:
 
 ```csharp
 [Command("list")]
@@ -1512,13 +1512,35 @@ public class ListCommand
 // Usage:
 // myapp list users --output json
 // myapp list users --output table
+// myapp list users -o yaml
 ```
 
-**Planned Features:**
-- `[OutputFormat]` attribute to enable `--output json|xml|table|yaml`
-- Custom `IOutputFormatter<T>` interface for custom formats
-- Table rendering with column alignment, colors
-- Integration with `Spectre.Console` for rich tables
+**Implemented Features:**
+- ✅ `[OutputFormat]` attribute to enable `--output json|xml|table|yaml` option
+- ✅ Custom `IOutputFormatter<T>` interface for custom formatters
+- ✅ `OutputFormatterRegistry` for centralized formatter management
+- ✅ `OutputContext` with fluent API for easy formatting
+- ✅ Built-in JSON formatter using System.Text.Json
+- ✅ Built-in XML formatter with configurable element names
+- ✅ Built-in YAML formatter (lightweight, no external dependencies)
+- ✅ Built-in Table formatter with Spectre.Console integration
+- ✅ Table rendering with column alignment, borders, and colors
+- ✅ Format string parsing (json, xml, yaml/yml, table/tbl)
+- ✅ Comprehensive test coverage
+
+**Files Changed:**
+- `extensions/TeCLI.Extensions.Output/` - New extension package
+  - `OutputFormat.cs` - Enum of supported formats
+  - `OutputFormatAttribute.cs` - Attribute for enabling output option
+  - `IOutputFormatter.cs` - Interface for formatters
+  - `OutputFormatterRegistry.cs` - Registry for managing formatters
+  - `OutputContext.cs` - Context for formatting and output
+  - `Formatters/JsonOutputFormatter.cs` - JSON output
+  - `Formatters/XmlOutputFormatter.cs` - XML output
+  - `Formatters/YamlOutputFormatter.cs` - YAML output
+  - `Formatters/TableOutputFormatter.cs` - Rich table output
+- `tests/TeCLI.Extensions.Output.Tests/` - Comprehensive tests
+- `examples/TeCLI.Example.Output/` - Working example
 
 ---
 

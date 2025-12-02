@@ -454,6 +454,7 @@ public class AppCommand
 | Localization (i18n) | ❌ | ✅ Attribute-based |
 | Interactive shell (REPL) | ❌ | ✅ Built-in |
 | Progress UI | ❌ | ✅ Auto-injected |
+| Structured output (JSON/XML/YAML/Table) | ❌ | ✅ Built-in |
 
 ## Benefits of Migration
 
@@ -534,3 +535,26 @@ public async Task Process(IProgressContext progress)
     using var bar = progress.CreateProgressBar("Processing...", 100);
     // Update bar.Value as work progresses
 }
+```
+
+### Structured Output Formatting
+
+Format output as JSON, XML, YAML, or tables:
+
+```csharp
+using TeCLI.Output;
+
+[Command("list")]
+public class ListCommand
+{
+    [Action("users")]
+    [OutputFormat]  // Enables --output json|xml|table|yaml
+    public IEnumerable<User> ListUsers()
+    {
+        return _userService.GetAll();
+    }
+}
+
+// Usage:
+// myapp list users --output json
+// myapp list users --output table
