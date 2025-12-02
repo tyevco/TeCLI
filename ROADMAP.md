@@ -1537,34 +1537,62 @@ services.AddTelemetry(options =>
 
 ---
 
-### 💡 TeCLI.Extensions.Interactive
-**Status:** Planned
+### 💡 TeCLI.Extensions.Shell
+**Status:** ✅ Completed
 **Priority:** Low
 
-Enhanced REPL-like interactive functionality:
+Enhanced REPL-like interactive shell functionality (renamed from Extensions.Interactive to avoid confusion with interactive prompts):
 
 ```csharp
-[Command("shell")]
-[Interactive]  // Enables REPL mode
-public class ShellCommand
+// Using the fluent ActionShellBuilder
+var shell = ShellExtensions.CreateActionShell(new ShellOptions
+{
+    Prompt = "db> ",
+    WelcomeMessage = "Welcome to the Database Shell!"
+})
+.WithAction("query", "Execute a SQL query", args =>
+{
+    Console.WriteLine($"Executing: {string.Join(" ", args)}");
+    return 0;
+})
+.Build();
+
+return shell.Run();
+
+// Or using the Shell attribute on commands
+[Command("db")]
+[Shell(Prompt = "db> ")]
+public class DatabaseCommand
 {
     [Action("query")]
     public void Query([Argument] string sql) { }
 }
 
 // Usage:
-// myapp shell
-// > query SELECT * FROM users
-// > query SELECT * FROM orders
-// > exit
+// myapp db
+// db> query SELECT * FROM users
+// db> query SELECT * FROM orders
+// db> exit
 ```
 
-**Planned Features:**
-- `[Interactive]` attribute for REPL mode
-- Command history with up/down arrows
-- Auto-complete in shell
-- Persistent session state between commands
-- `Spectre.Console` or `Terminal.Gui` integration
+**Implemented Features:**
+- ✅ `[Shell]` attribute for REPL mode configuration
+- ✅ Command history with up/down arrows and persistence
+- ✅ Readline-like line editing (Ctrl+A/E/U/K/W, Home/End)
+- ✅ Auto-complete support with Tab key
+- ✅ Persistent session state between commands
+- ✅ Built-in commands (exit, help, history, clear)
+- ✅ `ShellHost` for running the REPL loop
+- ✅ `ActionShellBuilder` fluent API for action-based shells
+- ✅ Comprehensive test coverage
+
+**Files Added:**
+- `TeCLI.Extensions.Shell/ShellAttribute.cs` - Shell configuration attribute
+- `TeCLI.Extensions.Shell/CommandHistory.cs` - History with navigation and persistence
+- `TeCLI.Extensions.Shell/LineEditor.cs` - Readline-like input editing
+- `TeCLI.Extensions.Shell/ShellSession.cs` - Session state management
+- `TeCLI.Extensions.Shell/ShellHost.cs` - Main REPL loop
+- `TeCLI.Extensions.Shell/ShellExtensions.cs` - Fluent builder API
 
 ---
 
