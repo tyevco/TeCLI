@@ -145,8 +145,8 @@ public partial class CommandLineArgsGenerator
             // No hooks, generate normal code
             GenerateParameterStatements(statements, actionInfo.Method!,
                 actionInfo.Method!.MapAsync(
-                    () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
-                    () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
+                    () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
+                    () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
                 globalOptions);
         }
 
@@ -224,8 +224,8 @@ public partial class CommandLineArgsGenerator
             // Generate parameter parsing and action invocation
             GenerateParameterStatements(tryStatements, actionInfo.Method!,
                 actionInfo.Method!.MapAsync(
-                    () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
-                    () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
+                    () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
+                    () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
                 globalOptions);
 
             // Generate after execute hooks
@@ -281,9 +281,8 @@ if (!handled)
             }
             else
             {
-                // No error hooks, just use try without catch
-                statements.Add(TryStatement()
-                    .WithBlock(tryBlock));
+                // No error hooks, add the statements directly without try block
+                statements.AddRange(tryStatements);
             }
         }
         else
@@ -291,8 +290,8 @@ if (!handled)
             // No after or error hooks, just generate the action code directly
             GenerateParameterStatements(statements, actionInfo.Method!,
                 actionInfo.Method!.MapAsync(
-                    () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
-                    () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
+                    () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
+                    () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
                 globalOptions);
         }
     }
@@ -398,21 +397,21 @@ if (!handled)
                     cb.AddBlankLine();
                 }
 
-                // Wrap action execution in try-catch if there are after or error hooks
-                if (allAfterHooks.Count > 0 || allErrorHooks.Count > 0)
+                // Only wrap in try-catch if there are error hooks
+                if (allErrorHooks.Count > 0)
                 {
-                    using (cb.AddBlock("try"))
+                    using (var tryCatch = cb.AddTry())
                     {
                         // Generate parameter parsing and action invocation
                         GenerateParameterCode(
                             cb,
                             actionInfo.Method!,
                             actionInfo.Method!.MapAsync(
-                                () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
-                                () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
+                                () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
+                                () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
                             globalOptions);
 
-                        // Generate after execute hooks
+                        // Generate after execute hooks inside try block
                         if (allAfterHooks.Count > 0)
                         {
                             cb.AddBlankLine();
@@ -429,37 +428,58 @@ if (!handled)
                                 cb.AppendLine("await hook.AfterExecuteAsync(hookContext, null);");
                             }
                         }
-                    }
 
-                    // Generate error hooks
-                    if (allErrorHooks.Count > 0)
-                    {
-                        using (cb.AddBlock("catch (System.Exception ex)"))
+                        // Add catch block for error hooks
+                        tryCatch.Catch("(System.Exception ex)");
+
+                        cb.AppendLine("// Error hooks");
+                        cb.AppendLine("var errorHooks = new System.Collections.Generic.List<TeCLI.Hooks.IOnErrorHook>();");
+                        foreach (var hook in allErrorHooks)
                         {
-                            cb.AppendLine("// Error hooks");
-                            cb.AppendLine("var errorHooks = new System.Collections.Generic.List<TeCLI.Hooks.IOnErrorHook>();");
-                            foreach (var hook in allErrorHooks)
-                            {
-                                cb.AppendLine($"errorHooks.Add(new {hook.HookTypeName}());");
-                            }
-                            cb.AddBlankLine();
+                            cb.AppendLine($"errorHooks.Add(new {hook.HookTypeName}());");
+                        }
+                        cb.AddBlankLine();
 
-                            cb.AppendLine("bool handled = false;");
-                            using (cb.AddBlock("foreach (var hook in errorHooks)"))
+                        cb.AppendLine("bool handled = false;");
+                        using (cb.AddBlock("foreach (var hook in errorHooks)"))
+                        {
+                            using (cb.AddBlock("if (await hook.OnErrorAsync(hookContext, ex))"))
                             {
-                                using (cb.AddBlock("if (await hook.OnErrorAsync(hookContext, ex))"))
-                                {
-                                    cb.AppendLine("handled = true;");
-                                    cb.AppendLine("break;");
-                                }
-                            }
-                            cb.AddBlankLine();
-
-                            using (cb.AddBlock("if (!handled)"))
-                            {
-                                cb.AppendLine("throw;");
+                                cb.AppendLine("handled = true;");
+                                cb.AppendLine("break;");
                             }
                         }
+                        cb.AddBlankLine();
+
+                        using (cb.AddBlock("if (!handled)"))
+                        {
+                            cb.AppendLine("throw;");
+                        }
+                    }
+                }
+                else if (allAfterHooks.Count > 0)
+                {
+                    // Only after hooks, no try-catch needed
+                    GenerateParameterCode(
+                        cb,
+                        actionInfo.Method!,
+                        actionInfo.Method!.MapAsync(
+                            () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
+                            () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
+                        globalOptions);
+
+                    cb.AddBlankLine();
+                    cb.AppendLine("// After execute hooks");
+                    cb.AppendLine("var afterHooks = new System.Collections.Generic.List<TeCLI.Hooks.IAfterExecuteHook>();");
+                    foreach (var hook in allAfterHooks)
+                    {
+                        cb.AppendLine($"afterHooks.Add(new {hook.HookTypeName}());");
+                    }
+                    cb.AddBlankLine();
+
+                    using (cb.AddBlock("foreach (var hook in afterHooks)"))
+                    {
+                        cb.AppendLine("await hook.AfterExecuteAsync(hookContext, null);");
                     }
                 }
                 else
@@ -469,8 +489,8 @@ if (!handled)
                         cb,
                         actionInfo.Method!,
                         actionInfo.Method!.MapAsync(
-                            () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
-                            () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
+                            () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
+                            () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
                         globalOptions);
                 }
             }
@@ -481,8 +501,8 @@ if (!handled)
                     cb,
                     actionInfo.Method!,
                     actionInfo.Method!.MapAsync(
-                        () => $"InvokeCommandActionAsync<{actionInfo.Method!.ContainingSymbol.Name}>",
-                        () => $"InvokeCommandAction<{actionInfo.Method!.ContainingSymbol.Name}>"),
+                        () => $"InvokeCommandActionAsync<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>",
+                        () => $"InvokeCommandAction<{GetFullTypeReference(actionInfo.Method!.ContainingSymbol as INamedTypeSymbol)}>"),
                     globalOptions);
             }
         }
