@@ -74,28 +74,25 @@ public partial class CommandLineArgsGenerator
     private void GenerateParameterCodeInternal(CodeBuilder cb, IMethodSymbol methodSymbol, string methodInvokerName,
         List<ParameterSourceInfo> parameterDetails, ParameterSourceInfo? globalOptionsParam, bool hasCancellationToken = false)
     {
-        using (cb.AddBlock("if (args.Length == 0)"))
-        {
-            if (!parameterDetails.Any(p => p.Required))
-            {
-                var methodParams = new List<string>();
-                if (globalOptionsParam != null) methodParams.Add("_globalOptions");
-                if (hasCancellationToken) methodParams.Add("cancellationToken");
-                var methodParamsStr = string.Join(", ", methodParams);
+        // Check if there are required parameters without environment variable fallback
+        // If all required params have env vars, we should try parsing even if args.Length == 0
+        var hasRequiredWithoutEnvVar = parameterDetails.Any(p => p.Required && string.IsNullOrEmpty(p.EnvVar));
 
-                cb.AppendLine(
-                    methodSymbol.MapAsync(
-                        () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);",
-                        () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);"));
-            }
-            else
+        if (hasRequiredWithoutEnvVar)
+        {
+            // Only throw early if there are required params that can't be satisfied by env vars
+            using (cb.AddBlock("if (args.Length == 0)"))
             {
                 cb.AppendLine($"""throw new ArgumentException("{ErrorMessages.RequiredParametersNotProvided}");""");
             }
+            cb.AddBlankLine();
         }
 
+        // The parsing code - always runs (will check env vars for params that have them)
+        // When hasRequiredWithoutEnvVar is true, this code is only reached if args.Length > 0
+        // When hasRequiredWithoutEnvVar is false, this code always runs (env vars may satisfy requirements)
         bool hasOptionalValues = false;
-        using (cb.AddBlock("else"))
+        using (cb.AddBlankScope())
         {
             var optionParameters = parameterDetails.Where(p => p.ParameterType == ParameterType.Option).ToList();
             if (optionParameters.Any())
@@ -253,28 +250,25 @@ public partial class CommandLineArgsGenerator
         }
         else
         {
-            using (cb.AddBlock("if (args.Length == 0)"))
-            {
-                if (!parameterDetails.Any(p => p.Required))
-                {
-                    var methodParams = new List<string>();
-                    if (globalOptionsParam != null) methodParams.Add("_globalOptions");
-                    if (hasCancellationToken) methodParams.Add("cancellationToken");
-                    var methodParamsStr = string.Join(", ", methodParams);
+            // Check if there are required parameters without environment variable fallback
+            // If all required params have env vars, we should try parsing even if args.Length == 0
+            var hasRequiredWithoutEnvVar = parameterDetails.Any(p => p.Required && string.IsNullOrEmpty(p.EnvVar));
 
-                    cb.AppendLine(
-                        methodSymbol.MapAsync(
-                            () => $"await {methodInvokerName}(async command => await command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);",
-                            () => $"{methodInvokerName}(command => command.{methodSymbol.Name}({methodParamsStr}), cancellationToken);"));
-                }
-                else
+            if (hasRequiredWithoutEnvVar)
+            {
+                // Only throw early if there are required params that can't be satisfied by env vars
+                using (cb.AddBlock("if (args.Length == 0)"))
                 {
                     cb.AppendLine($"""throw new ArgumentException("{ErrorMessages.RequiredParametersNotProvided}");""");
                 }
+                cb.AddBlankLine();
             }
 
+            // The parsing code - always runs (will check env vars for params that have them)
+            // When hasRequiredWithoutEnvVar is true, this code is only reached if args.Length > 0
+            // When hasRequiredWithoutEnvVar is false, this code always runs (env vars may satisfy requirements)
             bool hasOptionalValues = false;
-            using (cb.AddBlock("else"))
+            using (cb.AddBlankScope())
             {
                 var optionParameters = parameterDetails.Where(p => p.ParameterType == ParameterType.Option).ToList();
                 if (optionParameters.Any())
