@@ -15,7 +15,7 @@ public class JsonOutputFormatter : IOutputFormatter
     private readonly JsonSerializerOptions _options;
 
     /// <inheritdoc />
-    public OutputFormat Format => OutputFormat.Json;
+    public OutputFormat OutputFormat => OutputFormat.Json;
 
     /// <inheritdoc />
     public string FileExtension => ".json";

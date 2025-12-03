@@ -15,7 +15,7 @@ namespace TeCLI.Output.Formatters;
 public class XmlOutputFormatter : IOutputFormatter
 {
     /// <inheritdoc />
-    public OutputFormat Format => OutputFormat.Xml;
+    public OutputFormat OutputFormat => OutputFormat.Xml;
 
     /// <inheritdoc />
     public string FileExtension => ".xml";

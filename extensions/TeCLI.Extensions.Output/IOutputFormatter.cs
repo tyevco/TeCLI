@@ -12,7 +12,7 @@ public interface IOutputFormatter
     /// <summary>
     /// Gets the output format this formatter handles.
     /// </summary>
-    OutputFormat Format { get; }
+    OutputFormat OutputFormat { get; }
 
     /// <summary>
     /// Gets the file extension associated with this format (e.g., ".json", ".xml").
@@ -48,7 +48,7 @@ public interface IOutputFormatter
 /// <code>
 /// public class UserCsvFormatter : IOutputFormatter&lt;User&gt;
 /// {
-///     public OutputFormat Format => OutputFormat.Csv;
+///     public OutputFormat OutputFormat => OutputFormat.Csv;
 ///     public string FileExtension => ".csv";
 ///     public string MimeType => "text/csv";
 ///

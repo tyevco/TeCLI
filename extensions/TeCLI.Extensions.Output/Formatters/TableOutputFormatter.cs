@@ -16,7 +16,7 @@ namespace TeCLI.Output.Formatters;
 public class TableOutputFormatter : IOutputFormatter
 {
     /// <inheritdoc />
-    public OutputFormat Format => OutputFormat.Table;
+    public OutputFormat OutputFormat => OutputFormat.Table;
 
     /// <inheritdoc />
     public string FileExtension => ".txt";
