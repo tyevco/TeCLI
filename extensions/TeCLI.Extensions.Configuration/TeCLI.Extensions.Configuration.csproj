@@ -18,25 +18,21 @@
 
 	<Target Name="MoveNugetPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release'">
 		<ItemGroup>
-			<NugetFiles Include="bin\**\$(MSBuildProjectName).*.nupkg"/>
+			<NugetFiles Include="bin\**\$(MSBuildProjectName).*.nupkg" />
 		</ItemGroup>
 
-		<Copy
-            SourceFiles="@(NugetFiles)"
-            DestinationFolder="..\..\.packages\"
-			ContinueOnError="true"
-        />
+		<Copy SourceFiles="@(NugetFiles)" DestinationFolder="..\..\.packages\" ContinueOnError="true" />
 
 		<Message Text="Copied nupkg to repo directory." Importance="high" />
 	</Target>
 
 	<ItemGroup>
-		<None Include="../../LICENSE" Pack="true" PackagePath=""/>
+		<None Include="../../LICENSE" Pack="true" PackagePath="" />
 	</ItemGroup>
 
 	<!-- JSON support is built-in via System.Text.Json -->
 	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-		<PackageReference Include="System.Text.Json" Version="6.0.0" />
+		<PackageReference Include="System.Text.Json" Version="10.0.0" />
 	</ItemGroup>
 
 </Project>

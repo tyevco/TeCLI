@@ -20,4 +20,8 @@
 	</ItemGroup>
 
 	<Import Project="..\..\extensions\TeCLI.Extensions.SimpleInjector\TeCLI.Extensions.SimpleInjector.props" />
+
+	<ItemGroup>
+	  <PackageReference Update="SimpleInjector" Version="5.5.0" />
+	</ItemGroup>
 </Project>

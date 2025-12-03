@@ -16,7 +16,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "bash" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -36,7 +36,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "zsh" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -55,7 +55,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "powershell" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -75,7 +75,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "fish" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -93,7 +93,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "unknown-shell" };
         var errorOutput = new StringWriter();
-        Console.SetError(errorOutput);
+        System.Console.SetError(errorOutput);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -111,7 +111,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "bash" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -130,7 +130,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "zsh" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -148,7 +148,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "powershell" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -166,7 +166,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "fish" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -184,7 +184,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "BASH" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -201,7 +201,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "ZSH" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -218,7 +218,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "PowerShell" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();
@@ -235,7 +235,7 @@ public class CompletionGenerationTests
         // Arrange
         var args = new[] { "--generate-completion", "FISH" };
         var output = new StringWriter();
-        Console.SetOut(output);
+        System.Console.SetOut(output);
 
         // Act
         var dispatcher = new TeCLI.CommandDispatcher();

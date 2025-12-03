@@ -20,4 +20,8 @@
 	</ItemGroup>
 
 	<Import Project="..\..\extensions\TeCLI.Extensions.Autofac\TeCLI.Extensions.Autofac.props" />
+
+	<ItemGroup>
+	  <PackageReference Update="Autofac" Version="9.0.0" />
+	</ItemGroup>
 </Project>

@@ -32,7 +32,7 @@ public class TomlConfigurationParser : IConfigurationParser
         }
 
         var result = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-        var currentSection = result;
+        IDictionary<string, object?> currentSection = result;
         var currentSectionPath = new List<string>();
 
         var lines = content.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);

@@ -15,7 +15,7 @@ namespace TeCLI.Output.Formatters;
 public class YamlOutputFormatter : IOutputFormatter
 {
     /// <inheritdoc />
-    public OutputFormat Format => OutputFormat.Yaml;
+    public OutputFormat OutputFormat => OutputFormat.Yaml;
 
     /// <inheritdoc />
     public string FileExtension => ".yaml";
