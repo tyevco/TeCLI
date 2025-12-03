@@ -720,7 +720,11 @@ TeCLI supports .NET 6.0, 7.0, 8.0, 9.0, and 10.0.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository, make your changes, and submit a pull request.
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a pull request.
+
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines
+- See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community guidelines
+- See [AGENTS.md](AGENTS.md) for AI coding agent instructions
 
 ## Additional Resources
 

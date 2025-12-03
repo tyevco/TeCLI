@@ -1,0 +1,70 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# C# source files
+*.cs text diff=csharp
+
+# Project files
+*.csproj text
+*.sln text eol=crlf
+*.props text
+*.targets text
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+
+# Configuration files
+*.json text
+*.yml text
+*.yaml text
+*.xml text
+*.config text
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Windows scripts
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.dll binary
+*.exe binary
+*.nupkg binary
+*.snupkg binary
+
+# Archives
+*.zip binary
+*.7z binary
+*.tar binary
+*.gz binary
+
+# Fonts
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+
+# Keep generated files from being diffed
+*.g.cs linguist-generated=true
+*.Designer.cs linguist-generated=true
+
+# Mark documentation as documentation
+*.md linguist-documentation
+docs/** linguist-documentation
+
+# Mark test files
+*Tests/** linguist-detectable=false
+TeCLI.Tests/** linguist-detectable=false
+TeCLI.Benchmarks/** linguist-detectable=false
+
+# Mark examples
+examples/** linguist-detectable=false
