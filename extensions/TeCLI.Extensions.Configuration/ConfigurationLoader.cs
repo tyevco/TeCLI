@@ -269,10 +269,17 @@ public class ConfigurationLoader
             if (underlyingType.IsEnum)
             {
                 var stringValue = value.ToString();
-                if (!string.IsNullOrEmpty(stringValue) &&
-                    Enum.TryParse(underlyingType, stringValue, ignoreCase: true, out var enumValue))
+                if (!string.IsNullOrEmpty(stringValue))
                 {
-                    return (T)enumValue!;
+                    try
+                    {
+                        var enumValue = Enum.Parse(underlyingType, stringValue, ignoreCase: true);
+                        return (T)enumValue;
+                    }
+                    catch (ArgumentException)
+                    {
+                        // Invalid enum value, fall through to Convert
+                    }
                 }
             }
 
