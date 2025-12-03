@@ -20,4 +20,8 @@
 	</ItemGroup>
 
 	<Import Project="..\..\extensions\TeCLI.Extensions.Jab\TeCLI.Extensions.Jab.props" />
+
+	<ItemGroup>
+	  <PackageReference Update="Jab" Version="0.12.0" />
+	</ItemGroup>
 </Project>

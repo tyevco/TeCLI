@@ -20,4 +20,11 @@
 	</ItemGroup>
 
 	<Import Project="..\..\extensions\TeCLI.Extensions.PureDI\TeCLI.Extensions.PureDI.props" />
+
+	<ItemGroup>
+	  <PackageReference Update="Pure.DI" Version="2.2.14">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
 </Project>
