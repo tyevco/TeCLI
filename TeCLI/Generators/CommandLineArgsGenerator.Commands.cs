@@ -340,7 +340,9 @@ public partial class CommandLineArgsGenerator
             Block(ExpressionStatement(
                 InvocationExpression(
                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Console"),
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("System"),
+                            IdentifierName("Console")),
                         IdentifierName("WriteLine")))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
                     Argument(InvocationExpression(
@@ -358,7 +360,9 @@ public partial class CommandLineArgsGenerator
             ElseClause(Block(ExpressionStatement(
                 InvocationExpression(
                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Console"),
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("System"),
+                            IdentifierName("Console")),
                         IdentifierName("WriteLine")))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
                     Argument(InvocationExpression(

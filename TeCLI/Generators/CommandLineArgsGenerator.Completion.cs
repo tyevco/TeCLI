@@ -86,7 +86,9 @@ public partial class CommandLineArgsGenerator
                                 InvocationExpression(
                                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                                         MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                            IdentifierName("Console"),
+                                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                IdentifierName("System"),
+                                                IdentifierName("Console")),
                                             IdentifierName("Error")),
                                         IdentifierName("WriteLine")))
                                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
@@ -101,7 +103,9 @@ public partial class CommandLineArgsGenerator
                                 InvocationExpression(
                                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                                         MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                            IdentifierName("Console"),
+                                            MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                IdentifierName("System"),
+                                                IdentifierName("Console")),
                                             IdentifierName("Error")),
                                         IdentifierName("WriteLine")))
                                 .WithArgumentList(ArgumentList(SingletonSeparatedList(
@@ -192,7 +196,9 @@ public partial class CommandLineArgsGenerator
             ExpressionStatement(
                 InvocationExpression(
                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Console"),
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("System"),
+                            IdentifierName("Console")),
                         IdentifierName("WriteLine")))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("script"))))))
         };
@@ -322,7 +328,9 @@ public partial class CommandLineArgsGenerator
             ExpressionStatement(
                 InvocationExpression(
                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Console"),
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("System"),
+                            IdentifierName("Console")),
                         IdentifierName("WriteLine")))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("script"))))))
         };
@@ -426,7 +434,9 @@ public partial class CommandLineArgsGenerator
             ExpressionStatement(
                 InvocationExpression(
                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Console"),
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("System"),
+                            IdentifierName("Console")),
                         IdentifierName("WriteLine")))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("script"))))))
         };
@@ -476,7 +486,9 @@ public partial class CommandLineArgsGenerator
             ExpressionStatement(
                 InvocationExpression(
                     MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Console"),
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("System"),
+                            IdentifierName("Console")),
                         IdentifierName("WriteLine")))
                 .WithArgumentList(ArgumentList(SingletonSeparatedList(Argument(IdentifierName("script"))))))
         };

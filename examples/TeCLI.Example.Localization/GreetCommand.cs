@@ -2,6 +2,8 @@ using TeCLI.Attributes;
 using TeCLI.Localization;
 using TeCLI.Example.Localization.Resources;
 
+namespace TeCLI.Example.Localization;
+
 /// <summary>
 /// Example command demonstrating localization support.
 /// Uses LocalizedDescription attributes for i18n descriptions.
