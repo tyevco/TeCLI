@@ -219,7 +219,7 @@ public class CommandHistory
         try
         {
             var lines = File.ReadAllLines(_historyFile);
-            foreach (var line in lines.TakeLast(_maxSize))
+            foreach (var line in lines.Skip(Math.Max(0, lines.Length - _maxSize)))
             {
                 if (!string.IsNullOrWhiteSpace(line))
                 {
@@ -247,7 +247,7 @@ public class CommandHistory
                 Directory.CreateDirectory(directory);
             }
 
-            File.WriteAllLines(_historyFile, _history.TakeLast(_maxSize));
+            File.WriteAllLines(_historyFile, _history.Skip(Math.Max(0, _history.Count - _maxSize)));
         }
         catch
         {
