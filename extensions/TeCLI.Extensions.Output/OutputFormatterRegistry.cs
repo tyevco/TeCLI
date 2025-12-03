@@ -49,7 +49,7 @@ public class OutputFormatterRegistry
         if (formatter == null)
             throw new ArgumentNullException(nameof(formatter));
 
-        _formatters[formatter.Format] = formatter;
+        _formatters[formatter.OutputFormat] = formatter;
     }
 
     /// <summary>
