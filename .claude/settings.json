@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/settings.json",
+  "project": {
+    "name": "TeCLI",
+    "description": "Source-generated CLI parsing library for .NET using Roslyn analyzers and generators"
+  },
+  "codeStyle": {
+    "language": "csharp",
+    "indentation": "spaces",
+    "indentSize": 4,
+    "lineEndings": "lf",
+    "maxLineLength": 120
+  },
+  "testing": {
+    "framework": "xunit",
+    "command": "dotnet test TeCLI.sln"
+  },
+  "build": {
+    "command": "dotnet build TeCLI.sln",
+    "releaseCommand": "dotnet build TeCLI.sln --configuration Release"
+  }
+}
