@@ -47,13 +47,24 @@ jobs:
         name: ${{ matrix.project }}
         path: ${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
 
-  build-libs:
+  build-extensions:
     needs: build-deps
 
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [ 'TeCLI.Extensions.DependencyInjection', 'TeCLI.Generators' ]
+        project:
+          - 'TeCLI.Extensions.DependencyInjection'
+          - 'TeCLI.Extensions.PureDI'
+          - 'TeCLI.Extensions.Jab'
+          - 'TeCLI.Extensions.Autofac'
+          - 'TeCLI.Extensions.SimpleInjector'
+          - 'TeCLI.Extensions.Testing'
+          - 'TeCLI.Extensions.Console'
+          - 'TeCLI.Extensions.Configuration'
+          - 'TeCLI.Extensions.Shell'
+          - 'TeCLI.Extensions.Localization'
+          - 'TeCLI.Extensions.Output'
 
     steps:
     - uses: actions/checkout@v4
@@ -67,6 +78,7 @@ jobs:
 
     - name: Determine Version
       uses: gittools/actions/gitversion/execute@v4.2.0
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -78,19 +90,66 @@ jobs:
         merge-multiple: true
 
     - name: Build ${{matrix.project}}
-      run: dotnet build --configuration Release ${{ matrix.project }}/${{ matrix.project }}.csproj
+      run: dotnet build --configuration Release extensions/${{ matrix.project }}/${{ matrix.project }}.csproj
 
     - name: Pack (if missing nupkg) ${{matrix.project}}
-      if: ${{ hashFiles('${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg') != '' }}
-      run: dotnet pack --configuration Release ${{ matrix.project }}/${{ matrix.project }}.csproj
+      if: ${{ hashFiles('extensions/${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg') != '' }}
+      run: dotnet pack --configuration Release extensions/${{ matrix.project }}/${{ matrix.project }}.csproj
 
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.project }}
-        path: ${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
+        path: extensions/${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
+
+  build-analyzers:
+    needs: build-extensions
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+          - 'TeCLI.Extensions.Console.Analyzers'
+          - 'TeCLI.Extensions.Configuration.Analyzers'
+          - 'TeCLI.Extensions.Shell.Analyzers'
+          - 'TeCLI.Extensions.Localization.Analyzers'
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v4.2.0
+      with:
+        versionSpec: '6.x'
+
+    - name: Determine Version
+      uses: gittools/actions/gitversion/execute@v4.2.0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - uses: actions/download-artifact@v4
+      with:
+        path: ./.packages
+        merge-multiple: true
+
+    - name: Build ${{matrix.project}}
+      run: dotnet build --configuration Release extensions/${{ matrix.project }}/${{ matrix.project }}.csproj
+
+    - name: Pack (if missing nupkg) ${{matrix.project}}
+      if: ${{ hashFiles('extensions/${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg') != '' }}
+      run: dotnet pack --configuration Release extensions/${{ matrix.project }}/${{ matrix.project }}.csproj
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.project }}
+        path: extensions/${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
 
   test:
-    needs: build-libs
+    needs: build-analyzers
     runs-on: ubuntu-latest
 
     steps:
@@ -118,7 +177,7 @@ jobs:
       run: dotnet build TeCLI.sln --configuration Release --no-restore
 
     - name: Run tests with coverage
-      run: dotnet test TeCLI.Tests/TeCLI.Tests.csproj --configuration Release --no-build -- --report-trx --report-github --coverage --coverage-output-format cobertura
+      run: dotnet test TeCLI.sln --configuration Release --no-build -- --report-trx --report-github --coverage --coverage-output-format cobertura
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
