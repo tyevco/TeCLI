@@ -106,9 +106,9 @@ internal static class ParameterInfoExtractor
                 var direction = parameterSymbol.Type.GetStreamDirection();
                 psi.StreamDirection = direction switch
                 {
-                    Extensions.StreamDirection.Input => StreamDirection.Input,
-                    Extensions.StreamDirection.Output => StreamDirection.Output,
-                    Extensions.StreamDirection.Bidirectional => StreamDirection.Bidirectional,
+                    Extensions.Extensions.StreamDirection.Input => StreamDirection.Input,
+                    Extensions.Extensions.StreamDirection.Output => StreamDirection.Output,
+                    Extensions.Extensions.StreamDirection.Bidirectional => StreamDirection.Bidirectional,
                     _ => StreamDirection.Unknown
                 };
                 psi.StreamTypeName = parameterSymbol.Type.GetStreamTypeName();
@@ -216,9 +216,9 @@ internal static class ParameterInfoExtractor
                 var direction = propertySymbol.Type.GetStreamDirection();
                 psi.StreamDirection = direction switch
                 {
-                    Extensions.StreamDirection.Input => StreamDirection.Input,
-                    Extensions.StreamDirection.Output => StreamDirection.Output,
-                    Extensions.StreamDirection.Bidirectional => StreamDirection.Bidirectional,
+                    Extensions.Extensions.StreamDirection.Input => StreamDirection.Input,
+                    Extensions.Extensions.StreamDirection.Output => StreamDirection.Output,
+                    Extensions.Extensions.StreamDirection.Bidirectional => StreamDirection.Bidirectional,
                     _ => StreamDirection.Unknown
                 };
                 psi.StreamTypeName = propertySymbol.Type.GetStreamTypeName();
