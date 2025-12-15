@@ -36,7 +36,7 @@ jobs:
     - name: Build ${{matrix.project}}
       run: dotnet build --configuration Release **/${{ matrix.project }}.csproj
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.project }}
         path: ${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
@@ -74,7 +74,7 @@ jobs:
     - name: Build ${{matrix.project}}
       run: dotnet build --configuration Release **/${{ matrix.project }}.csproj
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.project }}
         path: ${{ matrix.project }}/bin/Release/${{ matrix.project }}.${{ env.GitVersion_nuGetVersionV2 }}.nupkg
