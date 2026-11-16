@@ -36,7 +36,7 @@
 
 	<!-- JSON support is built-in via System.Text.Json -->
 	<ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-		<PackageReference Include="System.Text.Json" Version="6.0.0" />
+		<PackageReference Include="System.Text.Json" Version="6.0.11" />
 	</ItemGroup>
 
 </Project>
